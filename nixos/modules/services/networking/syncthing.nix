@@ -3,13 +3,25 @@
 with lib;
 
 let
-
   cfg = config.services.syncthing;
 
+  service = {
+    description = "Syncthing service";
+    environment = {
+      STNORESTART = "yes";
+      STNOUPGRADE = "yes";
+    } // (config.networking.proxy.envVars) // (if cfg.all_proxy != "" then { all_proxy = cfg.all_proxy; } else {});
+
+    serviceConfig = {
+      ExecStart = "${pkgs.syncthing}/bin/syncthing -no-browser -home=${cfg.dataDir}";
+      Restart = "on-failure";
+      SuccessExitStatus = "2 3 4";
+      RestartForceExitStatus = "3 4";
+    };
+  };
+
 in
-
 {
-
   ###### interface
 
   options = {
@@ -22,6 +34,15 @@ in
           Whether to enable the Syncthing, self-hosted open-source alternative
           to Dropbox and BittorrentSync. Initial interface will be
           available on http://127.0.0.1:8384/.
+        '';
+      };
+
+      runAsUser = mkOption {
+        default = false;
+        example = "true";
+        description = ''
+          Whether to enable the Syncthing in the system or user session.
+          By default it runs in the system session.
         '';
       };
 
@@ -60,17 +81,12 @@ in
           Syncthing package to use.
         '';
       };
-
-
     };
-
   };
-
 
   ###### implementation
 
   config = mkIf cfg.enable {
-
     systemd.services.syncthing =
       {
         description = "Syncthing service";
@@ -92,9 +108,6 @@ in
           RestartForceExitStatus="3 4";
         };
       };
-
     environment.systemPackages = [ cfg.package ];
-
   };
-
 }
