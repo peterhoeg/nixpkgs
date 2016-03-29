@@ -10698,6 +10698,8 @@ in
     ruby = ruby_2_1;
   };
 
+  shinken = callPackage ../servers/monitoring/shinken { };
+
   shishi = callPackage ../servers/shishi {
       pam = if stdenv.isLinux then pam else null;
       # see also openssl, which has/had this same trick
