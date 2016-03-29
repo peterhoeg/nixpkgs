@@ -6,7 +6,7 @@
 
 stdenv.mkDerivation rec {
   name = "network-manager-${version}";
-  version = "1.0.6";
+  version = "1.0.10";
 
   src = fetchurl {
     url = "mirror://gnome/sources/NetworkManager/1.0/NetworkManager-${version}.tar.xz";
