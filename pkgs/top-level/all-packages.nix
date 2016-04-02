@@ -16255,6 +16255,8 @@ let
 
   mg = callPackage ../applications/editors/mg { };
 
+  rbenv = callPackage ../tools/misc/rbenv { };
+
 };
 # end pkgs_ =
 
