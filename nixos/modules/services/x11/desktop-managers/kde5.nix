@@ -193,6 +193,27 @@ in
       ];
     };
 
+    systemd.user = {
+      targets.kde5 = {
+        description = "KDE 5";
+        wants = [ 
+          "kwalletd5.service" 
+          "xembedsniproxy.service" 
+        ];
+      };
+    };
+
+    systemd.user.services = {
+      xembedsniproxy = {
+        description = "Support for legacy icons";
+        wantedBy = [ "kde5.target" ];
+        serviceConfig = {
+          ExecStart = "${pkgs.plasma-workspace}/bin/xembedsniproxy";
+          Restart = "on-failure";
+        };
+      };
+    };
+
     security.pam.services.kde = { allowNullPassword = true; };
 
   };
