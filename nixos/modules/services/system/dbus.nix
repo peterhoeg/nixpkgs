@@ -122,6 +122,28 @@ in
 
     systemd.services.dbus.restartTriggers = [ configDir ];
 
+    systemd.user = {
+      services.dbus = {
+        description = "D-Bus User Message Bus";
+        requires = [ "dbus.socket" ];
+        reloadIfChanged = true;
+        restartTriggers = [ configDir ];
+        serviceConfig = {
+          ExecStart = "${pkgs.dbus_daemon}/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation";
+          ExecReload = "${pkgs.dbus_daemon}/bin/dbus-send --print-reply --session --type=method_call --dest=org.freedesktop.DBus / org.freedesktop.DBus.ReloadConfig";
+        };
+      };
+
+      sockets.dbus = {
+        description = "D-Bus User Message Bus Socket";
+        socketConfig = {
+          ListenStream = "%t/bus";
+          ExecStartPost = "-${config.systemd.package}/bin/systemctl --user set-environment DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus";
+        };
+        wantedBy = [ "sockets.target" ];
+      };
+    };
+
     environment.pathsToLink = [ "/etc/dbus-1" "/share/dbus-1" ];
 
   };
