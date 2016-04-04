@@ -19,11 +19,22 @@ in
 
     environment.systemPackages = [ open-vm-tools ];
 
-    systemd.services.vmware =
-      { description = "VMWare Guest Service";
+    systemd.services = {
+      vmware = {
+        description = "VMWare Guest Service";
         wantedBy = [ "multi-user.target" ];
         serviceConfig.ExecStart = "${open-vm-tools}/bin/vmtoolsd";
       };
+
+      vmblock = {
+        conditionVirtualization = "vmware";
+        serviceConfig = {
+          runtimeDirectory = "vmblock-fuse";
+          runtimeDirectoryMode = "755";
+          ExecStart = "${open-vm-tools}/bin/vmware-vmblock-fuse -d -f -o subtype=vmware-vmblock,default_permissions,allow_other /run/vmblock-fuse";
+        };
+      };
+    };
 
     services.xserver = {
       videoDrivers = mkOverride 50 [ "vmware" ];
