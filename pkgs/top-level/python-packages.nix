@@ -3499,11 +3499,11 @@ in modules // {
 
   colorama = buildPythonPackage rec {
     name = "colorama-${version}";
-    version = "0.3.3";
+    version = "0.3.6";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/c/colorama/${name}.tar.gz";
-      sha256 = "eb21f2ba718fbf357afdfdf6f641ab393901c7ca8d9f37edd0bee4806ffa269c";
+      sha256 = "1daknkr1iwxh32xc323614zjz39mwr7gk133hwkxg8c6n36gr7pc";
     };
 
     meta = {
@@ -6297,6 +6297,25 @@ in modules // {
       license = licenses.bsd3;
     };
 
+  };
+
+  git-up = buildPythonPackage rec {
+    version = "1.4.0";
+    name = "git-up-${version}";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/g/git-up/${name}.zip";
+      sha256 = "0ydl6f4h593rd4h4xgjib7scj8jyvzq5sq6kf4145d0mcy7m5kmw";
+    };
+
+    buildInputs = with self; [ pytest ];
+    propagatedBuildInputs = with self; [ colorama docopt GitPython nose six termcolor ];
+
+    meta = {
+      homepage = http://github.com/msiemens/PyGitUp;
+      description = "A git pull replacement that rebases all local branches when pulling.";
+      license = licenses.free;
+    };
   };
 
   GitPython = buildPythonPackage rec {
