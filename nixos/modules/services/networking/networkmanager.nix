@@ -12,15 +12,16 @@ let
   configFile = writeText "NetworkManager.conf" ''
     [main]
     plugins=keyfile
+    dhcp=${cfg.dhcp}
+    dns=${cfg.dns}
 
     [keyfile]
-    ${optionalString (config.networking.hostName != "")
-      ''hostname=${config.networking.hostName}''}
     ${optionalString (cfg.unmanaged != [])
       ''unmanaged-devices=${lib.concatStringsSep ";" cfg.unmanaged}''}
 
     [logging]
-    level=WARN
+    level=${cfg.logLevel}
+    audit=${if config.security.audit.enable then "true" else "false"}
 
     [connection]
     ipv6.ip6-privacy=2
@@ -122,6 +123,30 @@ in {
         apply = list: (attrValues cfg.basePackages) ++ list;
       };
 
+      dhcp = mkOption {
+        type = types.enum [ "dhclient" "dhcpcd" "internal" ];
+        default = "dhclient";
+        description = ''
+          Which program (or internal library) should be used for DHCP.
+        '';
+      };
+
+      dns = mkOption {
+        type = types.enum [ "default" "dnsmasq" "none" ];
+        default = "default";
+        description = ''
+          Set the DNS (resolv.conf) processing mode.
+        '';
+      };
+
+      logLevel = mkOption {
+        type = types.enum [ "OFF" "ERR" "WARN" "INFO" "DEBUG" "TRACE" ];
+        default = "WARN";
+        description = ''
+          Set the default logging verbosity level.
+        '';
+      };
+
       appendNameservers = mkOption {
         type = types.listOf types.str;
         default = [];
@@ -151,7 +176,7 @@ in {
             };
 
             type = mkOption {
-              type = types.enum (attrNames dispatcherTypesSubdirMap); 
+              type = types.enum (attrNames dispatcherTypesSubdirMap);
               default = "basic";
               description = ''
                 Dispatcher hook type. Only basic hooks are currently available.
@@ -172,10 +197,12 @@ in {
 
   config = mkIf cfg.enable {
 
-    assertions = [{
-      assertion = config.networking.wireless.enable == false;
-      message = "You can not use networking.networkmanager with networking.wireless";
-    }];
+    assertions = [
+      { assertion = config.networking.wireless.enable == false;
+        message = "You can not use networking.networkmanager with networking.wireless"; }
+      { assertion = (cfg.dns != "dnsmasq" || config.services.dnsmasq.enable == false);
+        message = "You can not use networking.networkmanager.dns == \"dnsmasq\" with services.dnsmasq"; }
+      ];
 
     boot.kernelModules = [ "ppp_mppe" ]; # Needed for most (all?) PPTP VPN connections.
 
@@ -208,7 +235,14 @@ in {
       ++ lib.imap (i: s: {
         text = s.source;
         target = "NetworkManager/dispatcher.d/${dispatcherTypesSubdirMap.${s.type}}03userscript${lib.fixedWidthNumber 4 i}";
-      }) cfg.dispatcherScripts;
+      }) cfg.dispatcherScripts
+      ++ optional (cfg.dns == "dnsmasq") {
+        text = ''
+          listen-address=127.0.0.1
+          ${optionalString config.networking.enableIPv6 "listen-address=::1"}
+        '';
+        target = "NetworkManager/dnsmasq.d/listen.conf";
+      };
 
     environment.systemPackages = cfg.packages;
 
@@ -249,7 +283,7 @@ in {
 
     security.polkit.extraConfig = polkitConf;
 
-    services.dbus.packages = cfg.packages;
+    services.dbus.packages = cfg.packages ++ optional (cfg.dns == "dnsmasq") dnsmasq;
 
     services.udev.packages = cfg.packages;
   };
