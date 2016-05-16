@@ -12,6 +12,8 @@ let
   configFile = writeText "NetworkManager.conf" ''
     [main]
     plugins=keyfile
+    dhcp=${cfg.dhcp}
+    dns=${cfg.dns}
 
     [keyfile]
     ${optionalString (config.networking.hostName != "")
@@ -128,6 +130,22 @@ in {
           Extra packages that provide NetworkManager plugins.
         '';
         apply = list: (attrValues cfg.basePackages) ++ list;
+      };
+
+      dhcp = mkOption {
+        type = types.enum [ "dhclient" "dhcpcd" "internal" ];
+        default = "dhclient";
+        description = ''
+          Which program (or internal library) should be used for DHCP.
+        '';
+      };
+
+      dns = mkOption {
+        type = types.enum [ "default" "dnsmasq" "unbound" "none" ];
+        default = "default";
+        description = ''
+          Set the DNS (resolv.conf) processing mode.
+        '';
       };
 
       appendNameservers = mkOption {
@@ -267,7 +285,7 @@ in {
 
     security.polkit.extraConfig = polkitConf;
 
-    services.dbus.packages = cfg.packages;
+    services.dbus.packages = cfg.packages ++ optional (cfg.dns == "dnsmasq") dnsmasq;
 
     services.udev.packages = cfg.packages;
   };
