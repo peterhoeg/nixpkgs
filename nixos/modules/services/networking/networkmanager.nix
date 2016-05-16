@@ -12,6 +12,8 @@ let
   configFile = writeText "NetworkManager.conf" ''
     [main]
     plugins=keyfile
+    dhcp=${cfg.dhcp}
+    dns=${cfg.dns}
 
     [keyfile]
     ${optionalString (config.networking.hostName != "")
@@ -130,6 +132,23 @@ in {
         apply = list: (attrValues cfg.basePackages) ++ list;
       };
 
+      dhcp = mkOption {
+        type = types.enum [ "dhclient" "dhcpcd" "internal" ];
+        default = "dhclient";
+        description = ''
+          Which program (or internal library) should be used for DHCP.
+        '';
+      };
+
+      dns = mkOption {
+        type = types.enum [ "default" "dnsmasq" "none" ]; # "unbound"
+        default = "default";
+        description = ''
+          Set the DNS (resolv.conf) processing mode.
+          Unbound is currently not supported.
+        '';
+      };
+
       appendNameservers = mkOption {
         type = types.listOf types.str;
         default = [];
@@ -218,7 +237,7 @@ in {
         target = "NetworkManager/dispatcher.d/${dispatcherTypesSubdirMap.${s.type}}03userscript${lib.fixedWidthNumber 4 i}";
       }) cfg.dispatcherScripts;
 
-    environment.systemPackages = cfg.packages;
+    environment.systemPackages = cfg.packages; # ++ optional (cfg.dns == "unbound") unbound;
 
     users.extraGroups = [{
       name = "networkmanager";
@@ -262,7 +281,7 @@ in {
 
     security.polkit.extraConfig = polkitConf;
 
-    services.dbus.packages = cfg.packages;
+    services.dbus.packages = cfg.packages ++ optional (cfg.dns == "dnsmasq") dnsmasq;
 
     services.udev.packages = cfg.packages;
   };
