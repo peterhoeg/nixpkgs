@@ -5,16 +5,19 @@ with lib;
 let
   cfg = config.services.deluge;
   cfg_web = config.services.deluge.web;
+  openFiles = 1024;
 in {
   options = {
     services.deluge = {
-      enable = mkOption {
-        default = false;
-        example = true;
+      enable = mkEnableOption "Start deluge daemon";
+
+      openFiles = mkOption {
+        default = openFiles;
+        example = 8192;
         description = ''
-          Start Deluge daemon.
-        ''; 
-      };  
+          Number of files to allow deluged to open.
+        '';
+      };
     };
 
     services.deluge.web = {
@@ -35,11 +38,14 @@ in {
       description = "Deluge BitTorrent Daemon";
       wantedBy = [ "multi-user.target" ];
       path = [ pkgs.pythonPackages.deluge ];
-      serviceConfig.ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluged -d";
-      # To prevent "Quit & shutdown daemon" from working; we want systemd to manage it!
-      serviceConfig.Restart = "on-success";
-      serviceConfig.User = "deluge";
-      serviceConfig.Group = "deluge";
+      serviceConfig = {
+        ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluged -d";
+        # To prevent "Quit & shutdown daemon" from working; we want systemd to manage it!
+        Restart = "on-success";
+        User = "deluge";
+        Group = "deluge";
+        LimitNOFILE = cfg.openFiles;
+      };
     };
 
     systemd.services.delugeweb = mkIf cfg_web.enable {
