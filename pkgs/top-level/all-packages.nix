@@ -16907,6 +16907,8 @@ in
 
   togglesg-download = callPackage ../tools/misc/togglesg-download { };
 
+  cabaretstage = callPackage ../applications/office/cabaretstage { };
+
   discord = callPackage ../applications/networking/instant-messengers/discord { };
 
   golden-cheetah = qt55.callPackage ../applications/misc/golden-cheetah {};
