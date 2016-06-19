@@ -263,6 +263,7 @@ in
 
             serviceConfig =
               { ExecStart =
+                  (optionalString cfg.startWhenNeeded "-") +
                   "${cfgc.package}/sbin/sshd " + (optionalString cfg.startWhenNeeded "-i ") +
                   "-f ${pkgs.writeText "sshd_config" cfg.extraConfig}";
                 KillMode = "process";
