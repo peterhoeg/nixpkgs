@@ -3401,6 +3401,8 @@ in
 
   sshfsFuse = callPackage ../tools/filesystems/sshfs-fuse { };
 
+  sshguard = callPackage ../tools/security/sshguard { };
+
   sshuttle = callPackage ../tools/security/sshuttle { };
 
   sstp = callPackage ../tools/networking/sstp {};
