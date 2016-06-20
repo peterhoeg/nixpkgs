@@ -13,6 +13,8 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ autoreconfHook ];
 
+  outputs = [ "dev" "out" "bin" "man" ];
+
   configureFlags = [
     "--prefix=$out"
     "--sbindir=/bin"
