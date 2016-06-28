@@ -13,8 +13,8 @@ in {
         example = true;
         description = ''
           Start Deluge daemon.
-        ''; 
-      };  
+        '';
+      };
     };
 
     services.deluge.web = {
@@ -23,33 +23,46 @@ in {
         example = true;
         description = ''
           Start Deluge Web daemon.
-        ''; 
-      };  
+        '';
+      };
     };
   };
 
   config = mkIf cfg.enable {
 
-    systemd.services.deluged = {
-      after = [ "network.target" ];
-      description = "Deluge BitTorrent Daemon";
-      wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.pythonPackages.deluge ];
-      serviceConfig.ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluged -d";
-      # To prevent "Quit & shutdown daemon" from working; we want systemd to manage it!
-      serviceConfig.Restart = "on-success";
-      serviceConfig.User = "deluge";
-      serviceConfig.Group = "deluge";
+    systemd.services = {
+      deluged = {
+        after = [ "network.target" ];
+        description = "Deluge BitTorrent Daemon";
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs.pythonPackages.deluge ];
+        serviceConfig = {
+          ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluged -d";
+          # To prevent "Quit & shutdown daemon" from working; we want systemd to manage it!
+          Restart = "always";
+          User = "deluge";
+          Group = "deluge";
+        };
+
+      delugeweb = mkIf cfg_web.enable {
+        after = [ "network.target" ];
+        description = "Deluge BitTorrent WebUI";
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkgs.pythonPackages.deluge ];
+        serviceConfig = {
+          ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluge --ui web";
+          User = "deluge";
+          Group = "deluge";
+        };
+      };
     };
 
-    systemd.services.delugeweb = mkIf cfg_web.enable {
-      after = [ "network.target" ];
-      description = "Deluge BitTorrent WebUI";
-      wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.pythonPackages.deluge ];
-      serviceConfig.ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluge --ui web";
-      serviceConfig.User = "deluge";
-      serviceConfig.Group = "deluge";
+    systemd.user.services.deluged = {
+      description = "Deluge BitTorrent Daemon";
+      serviceConfig = {
+        ExecStart = "${pkgs.pythonPackages.deluge}/bin/deluged -d";
+        Restart = "on-failure";
+      };
     };
 
     environment.systemPackages = [ pkgs.pythonPackages.deluge ];
