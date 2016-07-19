@@ -12696,6 +12696,8 @@ in
 
     notmuch-addrlookup = callPackage ../applications/networking/mailreaders/notmuch-addrlookup { };
 
+    notmuch-mutt = callPackage ../applications/networking/mailreaders/notmuch-mutt { };
+
     ocamlMode = callPackage ../applications/editors/emacs-modes/ocaml { };
 
     offlineimap = callPackage ../applications/editors/emacs-modes/offlineimap {};
