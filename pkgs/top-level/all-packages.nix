@@ -17141,6 +17141,8 @@ in
 
   linkchecker = callPackage ../tools/networking/linkchecker { };
 
+  tensor = callPackage ../applications/networking/instant-messengers/tensor { };
+
   tomb = callPackage ../os-specific/linux/tomb {};
 
   imatix_gsl = callPackage ../development/tools/imatix_gsl {};
