@@ -44,6 +44,16 @@ in
         description = "Auto launch Syncthing as a system service.";
       };
 
+      systemService = mkOption {
+        default = true;
+        description = "Auto launch syncthing as a system service.";
+      };
+
+      useInotify = mkOption {
+        default = false;
+        description = "Watch files using inotify.";
+      };
+
       user = mkOption {
         type = types.string;
         default = defaultUser;
@@ -84,7 +94,6 @@ in
       package = mkOption {
         type = types.package;
         default = pkgs.syncthing;
-        defaultText = "pkgs.syncthing";
         example = literalExample "pkgs.syncthing";
         description = ''
           Syncthing package to use.
@@ -111,7 +120,7 @@ in
         config.ids.gids.syncthing;
     };
 
-    environment.systemPackages = [ cfg.package ];
+    environment.systemPackages = [ cfg.package ]; # we do not need inotify on path
 
     systemd.services = mkIf cfg.systemService {
       syncthing = header // {
@@ -124,12 +133,38 @@ in
           ExecStart = "${cfg.package}/bin/syncthing -no-browser -home=${cfg.dataDir}";
         };
       };
+
+      syncthing-inotify = mkIf cfg.useInotify header // {
+        description = "Monitor Syncthing using inotify";
+        after = [ "syncthing.service" ];
+        requires = [ "syncthing.service" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          User = cfg.user;
+          Group = cfg.group;
+          PermissionsStartOnly = true;
+          ExecStart = "${pkgs.syncthing-inotify}/bin/syncthing-inotify -logflags=0";
+          Restart = "on-failure";
+        };
+      };
     };
 
     systemd.user.services =  {
       syncthing = header // {
         serviceConfig = service // {
           ExecStart = "${cfg.package}/bin/syncthing -no-browser";
+        };
+      };
+
+      syncthing-inotify = {
+        description = "Monitor Syncthing using inotify";
+        after = [ "syncthing.service" ];
+        requires = [ "syncthing.service" ];
+        serviceConfig = {
+          ExecStart = "${pkgs.syncthing-inotify}/bin/syncthing-inotify -logflags=0";
+          Restart = "on-failure";
+          ProtectSystem = "full";
+          ProtectHome = "read-only";
         };
       };
     };
