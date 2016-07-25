@@ -55,15 +55,12 @@ rm -fv $HOME/.cache/icon-cache.kcache
 # disastrous, so here we nuke references to the Nix store
 # in Trolltech.conf.  A better solution would be to stop
 # Qt from doing this wackiness in the first place.
-if [ -e $HOME/.config/Trolltech.conf ]; then
-    sed -e '/nix\\store\|nix\/store/ d' -i $HOME/.config/Trolltech.conf
-fi
+test -e $HOME/.config/Trolltech.conf && rm $HOME/.config/Trolltech.conf
 
 if test "x$1" = x--failsafe; then
-    KDE_FAILSAFE=1 # General failsafe flag
-    KWIN_COMPOSE=N # Disable KWin's compositing
-    QT_XCB_FORCE_SOFTWARE_OPENGL=1
-    export KWIN_COMPOSE KDE_FAILSAFE QT_XCB_FORCE_SOFTWARE_OPENGL
+  export KDE_FAILSAFE=1 # General failsafe flag
+  export KWIN_COMPOSE=N # Disable KWin's compositing
+  export QT_XCB_FORCE_SOFTWARE_OPENGL=1
 fi
 
 # When the X server dies we get a HUP signal from xinit. We must ignore it
@@ -159,9 +156,8 @@ if test $returncode -ne 0; then
 fi
 [ -r $configDir/startupconfig ] && . $configDir/startupconfig
 
-if [ "$kdeglobals_kscreen_screenscalefactors" ]; then
-    export QT_SCREEN_SCALE_FACTORS="$kdeglobals_kscreen_screenscalefactors"
-fi
+export QT_SCALE_FACTOR=${kdeglobals_kscreen_scalefactor:-0}
+
 #Manually disable auto scaling because we are scaling above
 #otherwise apps that manually opt in for high DPI get auto scaled by the developer AND manually scaled by us
 export QT_AUTO_SCREEN_SCALE_FACTOR=0
@@ -172,6 +168,9 @@ for xdgDir in "${xdgDirs[@]}"; do
     XCURSOR_PATH="$XCURSOR_PATH:$xdgDir/icons"
 done
 export XCURSOR_PATH
+
+kcminputrc_mouse_cursortheme=${kcminputrc_mouse_cursortheme:-""}
+kcminputrc_mouse_cursorsize=${kcminputrc_mouse_cursorsize:-""}
 
 # XCursor mouse theme needs to be applied here to work even for kded or ksmserver
 if test -n "$kcminputrc_mouse_cursortheme" -o -n "$kcminputrc_mouse_cursorsize" ; then
@@ -228,7 +227,8 @@ fi
 echo 'startkde: Starting up...'  1>&2
 
 # Make sure that D-Bus is running
-if qdbus >/dev/null 2>/dev/null; then
+if $(systemctl --user is-active --quiet dbus) ||
+    $(qdbus >/dev/null 2>/dev/null) ; then
     : # ok
 else
     echo 'startkde: Could not start D-Bus. Can you call qdbus?'  1>&2
@@ -259,19 +259,15 @@ fi
 # Note that this didn't exist in KDE3, which can be detected by its absense and
 # the presence of KDE_FULL_SESSION.
 #
-KDE_FULL_SESSION=true
-export KDE_FULL_SESSION
+export KDE_FULL_SESSION=true
 xprop -root -f KDE_FULL_SESSION 8t -set KDE_FULL_SESSION true
 
-KDE_SESSION_VERSION=5
-export KDE_SESSION_VERSION
+export KDE_SESSION_VERSION=5
 xprop -root -f KDE_SESSION_VERSION 32c -set KDE_SESSION_VERSION 5
 
-KDE_SESSION_UID=$(id -ru)
-export KDE_SESSION_UID
+export KDE_SESSION_UID=$(id -ru)
 
-XDG_CURRENT_DESKTOP=KDE
-export XDG_CURRENT_DESKTOP
+export XDG_CURRENT_DESKTOP=KDE
 
 # Source scripts found in <config locations>/plasma-workspace/env/*.sh
 # (where <config locations> correspond to the system and user's configuration
@@ -296,11 +292,11 @@ for prefix in "${scriptpath[@]}"; do
 done
 
 # At this point all the environment is ready, let's send it to kwalletd if running
-if test -n "$PAM_KWALLET_LOGIN" ; then
+if test -n "${PAM_KWALLET_LOGIN:-""}" ; then
     env | socat STDIN UNIX-CONNECT:$PAM_KWALLET_LOGIN
 fi
 # ...and also to kwalletd5
-if test -n "$PAM_KWALLET5_LOGIN" ; then
+if test -n "${PAM_KWALLET5_LOGIN:-""}" ; then
     env | socat STDIN UNIX-CONNECT:$PAM_KWALLET5_LOGIN
 fi
 
@@ -337,12 +333,12 @@ qdbus org.kde.KSplash /KSplash org.kde.KSplash.setStage kinit
 # We only check for 255 which means that the ksmserver process could not be
 # started, any problems thereafter, e.g. ksmserver failing to initialize,
 # will remain undetected.
-test -n "$KDEWM" && KDEWM="--windowmanager $KDEWM"
+test -n "${KDEWM:-""}" && KDEWM="--windowmanager $KDEWM"
 # If the session should be locked from the start (locked autologin),
 # lock now and do the rest of the KDE startup underneath the locker.
 KSMSERVEROPTIONS=""
 test -n "$dl" && KSMSERVEROPTIONS=" --lockscreen"
-kwrapper5 ksmserver $KDEWM $KSMSERVEROPTIONS
+kwrapper5 ksmserver ${KDEWM:-""} ${KSMSERVEROPTIONS:-""}
 if test $? -eq 255; then
   # Startup error
   echo 'startkde: Could not start ksmserver. Check your installation.'  1>&2
