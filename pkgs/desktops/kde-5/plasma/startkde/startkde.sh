@@ -23,15 +23,12 @@ rm -fv $HOME/.cache/icon-cache.kcache
 # disastrous, so here we nuke references to the Nix store
 # in Trolltech.conf.  A better solution would be to stop
 # Qt from doing this wackiness in the first place.
-if [ -e $HOME/.config/Trolltech.conf ]; then
-    sed -e '/nix\\store\|nix\/store/ d' -i $HOME/.config/Trolltech.conf
-fi
+test -e $HOME/.config/Trolltech.conf && rm $HOME/.config/Trolltech.conf
 
 if test "x$1" = x--failsafe; then
-    KDE_FAILSAFE=1 # General failsafe flag
-    KWIN_COMPOSE=N # Disable KWin's compositing
-    QT_XCB_FORCE_SOFTWARE_OPENGL=1
-    export KWIN_COMPOSE KDE_FAILSAFE QT_XCB_FORCE_SOFTWARE_OPENGL
+  export KDE_FAILSAFE=1 # General failsafe flag
+  export KWIN_COMPOSE=N # Disable KWin's compositing
+  export QT_XCB_FORCE_SOFTWARE_OPENGL=1
 fi
 
 # When the X server dies we get a HUP signal from xinit. We must ignore it
@@ -45,12 +42,12 @@ unset DYLD_FORCE_FLAT_NAMESPACE
 kcheckrunning
 kcheckrunning_result=$?
 if test $kcheckrunning_result -eq 0 ; then
-    echo "KDE seems to be already running on this display."
-    xmessage -geometry 500x100 "KDE seems to be already running on this display."
-	exit 1
+  echo "KDE seems to be already running on this display."
+  xmessage -geometry 500x100 "KDE seems to be already running on this display."
+  exit 1
 elif test $kcheckrunning_result -eq 2 ; then
-	echo "\$DISPLAY is not set or cannot connect to the X server."
-    exit 1
+  echo "\$DISPLAY is not set or cannot connect to the X server."
+  exit 1
 fi
 
 # Boot sequence:
@@ -87,7 +84,7 @@ EOF
 # preload the user's locale on first start
 plasmalocalerc=$configDir/plasma-localerc
 test -f $plasmalocalerc || {
-cat >$plasmalocalerc <<EOF
+  cat >$plasmalocalerc <<EOF
 [Formats]
 LANG=$LANG
 EOF
@@ -97,13 +94,13 @@ EOF
 # so it can be picked up by QLocale and friends.
 exportformatssettings=$configDir/plasma-locale-settings.sh
 test -f $exportformatssettings && {
-    . $exportformatssettings
+  . $exportformatssettings
 }
 
 # Write a default kdeglobals file to set up the font
 kdeglobalsfile=$configDir/kdeglobals
 test -f $kdeglobalsfile || {
-cat >$kdeglobalsfile <<EOF
+  cat >$kdeglobalsfile <<EOF
 [General]
 XftAntialias=true
 XftHintStyle=hintmedium
@@ -114,37 +111,42 @@ EOF
 kstartupconfig5
 returncode=$?
 if test $returncode -ne 0; then
-    xmessage -geometry 500x100 "kstartupconfig5 does not exist or fails. The error code is $returncode. Check your installation."
-    exit 1
+  xmessage -geometry 500x100 "kstartupconfig5 does not exist or fails. The error code is $returncode. Check your installation."
+  exit 1
 fi
 [ -r $configDir/startupconfig ] && . $configDir/startupconfig
 
-if test "$kdeglobals_kscreen_scalefactor" -ne 1; then
-    export QT_DEVICE_PIXEL_RATIO=$kdeglobals_kscreen_scalefactor
+export QT_SCALE_FACTOR=${kdeglobals_kscreen_scalefactor:-0}
+
+if [ $QT_SCALE_FACTOR -ne 0 ] ; then
+  export QT_AUTO_SCREEN_SCALE_FACTOR=1
 fi
 
 XCURSOR_PATH=~/.icons
 IFS=":" read -r -a xdgDirs <<< "$XDG_DATA_DIRS"
 for xdgDir in "${xdgDirs[@]}"; do
-    XCURSOR_PATH="$XCURSOR_PATH:$xdgDir/icons"
+  XCURSOR_PATH="$XCURSOR_PATH:$xdgDir/icons"
 done
 export XCURSOR_PATH
+
+kcminputrc_mouse_cursortheme=${kcminputrc_mouse_cursortheme:-""}
+kcminputrc_mouse_cursorsize=${kcminputrc_mouse_cursorsize:-""}
 
 # XCursor mouse theme needs to be applied here to work even for kded or ksmserver
 if test -n "$kcminputrc_mouse_cursortheme" -o -n "$kcminputrc_mouse_cursorsize" ; then
 
-    kapplymousetheme "$kcminputrc_mouse_cursortheme" "$kcminputrc_mouse_cursorsize"
-    if test $? -eq 10; then
-        XCURSOR_THEME=breeze_cursors
-        export XCURSOR_THEME
-    elif test -n "$kcminputrc_mouse_cursortheme"; then
-        XCURSOR_THEME="$kcminputrc_mouse_cursortheme"
-        export XCURSOR_THEME
-    fi
-    if test -n "$kcminputrc_mouse_cursorsize"; then
-        XCURSOR_SIZE="$kcminputrc_mouse_cursorsize"
-        export XCURSOR_SIZE
-    fi
+  kapplymousetheme "$kcminputrc_mouse_cursortheme" "$kcminputrc_mouse_cursorsize"
+  if test $? -eq 10; then
+    XCURSOR_THEME=breeze_cursors
+    export XCURSOR_THEME
+  elif test -n "$kcminputrc_mouse_cursortheme"; then
+    XCURSOR_THEME="$kcminputrc_mouse_cursortheme"
+    export XCURSOR_THEME
+  fi
+  if test -n "$kcminputrc_mouse_cursorsize"; then
+    XCURSOR_SIZE="$kcminputrc_mouse_cursorsize"
+    export XCURSOR_SIZE
+  fi
 fi
 
 unset THEME
@@ -201,13 +203,14 @@ done
 echo 'startkde: Starting up...'  1>&2
 
 # Make sure that D-Bus is running
-if $qdbus >/dev/null 2>/dev/null; then
-    : # ok
+if $(systemctl --user is-active --quiet dbus) ||
+    $(qdbus >/dev/null 2>/dev/null) ; then
+  : # ok
 else
-    echo 'startkde: Could not start D-Bus. Can you call qdbus?'  1>&2
-    test -n "$ksplash_pid" && kill "$ksplash_pid" 2>/dev/null
-    xmessage -geometry 500x100 "Could not start D-Bus. Can you call qdbus?"
-    exit 1
+  echo 'startkde: Could not start D-Bus. Can you call qdbus?'  1>&2
+  test -n "$ksplash_pid" && kill "$ksplash_pid" 2>/dev/null
+  xmessage -geometry 500x100 "Could not start D-Bus. Can you call qdbus?"
+  exit 1
 fi
 
 # Mark that full KDE session is running (e.g. Konqueror preloading works only
@@ -232,27 +235,23 @@ fi
 # Note that this didn't exist in KDE3, which can be detected by its absense and
 # the presence of KDE_FULL_SESSION.
 #
-KDE_FULL_SESSION=true
-export KDE_FULL_SESSION
+export KDE_FULL_SESSION=true
 xprop -root -f KDE_FULL_SESSION 8t -set KDE_FULL_SESSION true
 
-KDE_SESSION_VERSION=5
-export KDE_SESSION_VERSION
+export KDE_SESSION_VERSION=5
 xprop -root -f KDE_SESSION_VERSION 32c -set KDE_SESSION_VERSION 5
 
-KDE_SESSION_UID=`id -ru`
-export KDE_SESSION_UID
+export KDE_SESSION_UID=`id -ru`
 
-XDG_CURRENT_DESKTOP=KDE
-export XDG_CURRENT_DESKTOP
+export XDG_CURRENT_DESKTOP=KDE
 
 # At this point all the environment is ready, let's send it to kwalletd if running
-if test -n "$PAM_KWALLET_LOGIN" ; then
-    env | socat STDIN UNIX-CONNECT:$PAM_KWALLET_LOGIN
+if test -n "${PAM_KWALLET_LOGIN:-""}" ; then
+  env | socat STDIN UNIX-CONNECT:$PAM_KWALLET_LOGIN
 fi
 # ...and also to kwalletd5
-if test -n "$PAM_KWALLET5_LOGIN" ; then
-    env | socat STDIN UNIX-CONNECT:$PAM_KWALLET5_LOGIN
+if test -n "${PAM_KWALLET5_LOGIN:-""}" ; then
+  env | socat STDIN UNIX-CONNECT:$PAM_KWALLET5_LOGIN
 fi
 
 # At this point all environment variables are set, let's send it to the DBus session server to update the activation environment
@@ -293,7 +292,7 @@ kbuildsycoca5
 # We only check for 255 which means that the ksmserver process could not be
 # started, any problems thereafter, e.g. ksmserver failing to initialize,
 # will remain undetected.
-test -n "$KDEWM" && KDEWM="--windowmanager $KDEWM"
+KDEWM="--windowmanager ${KDEWM:-'kwin'}"
 # If the session should be locked from the start (locked autologin),
 # lock now and do the rest of the KDE startup underneath the locker.
 KSMSERVEROPTIONS=""
@@ -309,20 +308,20 @@ fi
 wait_drkonqi=$(kreadconfig5 --file startkderc --group WaitForDrKonqi --key Enabled --default true)
 
 if test x"$wait_drkonqi"x = x"true"x ; then
-    # wait for remaining drkonqi instances with timeout (in seconds)
-    wait_drkonqi_timeout=$(kreadconfig5 --file startkderc --group WaitForDrKonqi --key Timeout --default 900)
-    wait_drkonqi_counter=0
-    while qdbus | grep "^[^w]*org.kde.drkonqi" > /dev/null ; do
-        sleep 5
-        wait_drkonqi_counter=$((wait_drkonqi_counter+5))
-        if test "$wait_drkonqi_counter" -ge "$wait_drkonqi_timeout" ; then
-            # ask remaining drkonqis to die in a graceful way
-            qdbus | grep 'org.kde.drkonqi-' | while read address ; do
-                qdbus "$address" "/MainApplication" "quit"
-            done
-            break
-        fi
-    done
+  # wait for remaining drkonqi instances with timeout (in seconds)
+  wait_drkonqi_timeout=$(kreadconfig5 --file startkderc --group WaitForDrKonqi --key Timeout --default 900)
+  wait_drkonqi_counter=0
+  while qdbus | grep "^[^w]*org.kde.drkonqi" > /dev/null ; do
+    sleep 5
+    wait_drkonqi_counter=$((wait_drkonqi_counter+5))
+    if test "$wait_drkonqi_counter" -ge "$wait_drkonqi_timeout" ; then
+      # ask remaining drkonqis to die in a graceful way
+      qdbus | grep 'org.kde.drkonqi-' | while read address ; do
+        qdbus "$address" "/MainApplication" "quit"
+      done
+      break
+    fi
+  done
 fi
 
 echo 'startkde: Shutting down...'  1>&2
