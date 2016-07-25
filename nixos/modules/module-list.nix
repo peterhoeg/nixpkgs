@@ -418,6 +418,7 @@
   ./services/networking/tvheadend.nix
   ./services/networking/unbound.nix
   ./services/networking/unifi.nix
+  ./services/networking/unifi-video.nix
   ./services/networking/vsftpd.nix
   ./services/networking/wakeonlan.nix
   ./services/networking/websockify.nix
