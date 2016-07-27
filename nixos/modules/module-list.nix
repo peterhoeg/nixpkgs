@@ -28,6 +28,7 @@
   ./hardware/all-firmware.nix
   ./hardware/cpu/amd-microcode.nix
   ./hardware/cpu/intel-microcode.nix
+  ./hardware/sensor/iio.nix
   ./hardware/ksm.nix
   ./hardware/network/b43.nix
   ./hardware/network/intel-2100bg.nix
