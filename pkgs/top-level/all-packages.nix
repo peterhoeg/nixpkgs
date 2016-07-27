@@ -823,6 +823,8 @@ in
 
   interlock = callPackage ../servers/interlock {};
 
+  iio-sensor-proxy = callPackage ../os-specific/linux/iio-sensor-proxy { };
+
   mathics = pythonPackages.mathics;
 
   mcrl = callPackage ../tools/misc/mcrl { };
