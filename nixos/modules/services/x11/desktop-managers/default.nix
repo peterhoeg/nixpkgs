@@ -73,8 +73,17 @@ in
             '';
       };
 
+      preferNixOSBranding = mkOption {
+        type = types.bool;
+        default = true;
+        example = "false";
+        description = ''
+          If true, a number of graphical programs that support themes will use
+          a standard NixOS theme instead of default look and feel from
+          upstream.
+        '';
+      };
     };
-
   };
 
   config = {

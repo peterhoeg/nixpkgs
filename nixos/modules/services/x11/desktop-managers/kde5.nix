@@ -212,13 +212,13 @@ in
     ];
 
     services.xserver.displayManager.sddm = {
-      theme = "breeze";
+      theme = (if xcfg.desktopManager.preferNixOSBranding then "nixos" else "breeze");
       themes = [
         kde5.ecm # for the setup-hook
         kde5.plasma-workspace
         kde5.breeze-icons
         (kde5.oxygen-icons or kde5.oxygen-icons5)
-      ];
+      ] ++ lib.optional xcfg.desktopManager.preferNixOSBranding pkgs.nixos-artwork;
     };
 
     security.pam.services.kde = { allowNullPassword = true; };
