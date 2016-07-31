@@ -73,7 +73,7 @@ fi
 configDir=$(qtpaths --writable-path GenericConfigLocation)
 mkdir -p "$configDir"
 
-THEME=org.kde.breeze
+THEME=org.nixos.breeze
 #This is basically setting defaults so we can use them with kstartupconfig5
 #We cannot set the equivilant of THEME here as it will generate an
 #invalid variable name (with dots)
