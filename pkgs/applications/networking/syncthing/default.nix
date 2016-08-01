@@ -25,8 +25,10 @@ stdenv.mkDerivation rec {
   '';
 
   installPhase = ''
-    mkdir -p $out/bin
+    mkdir -p $out/bin $out/lib/systemd/{system,user}
     cp bin/* $out/bin
+    cp etc/linux-systemd/system/* $out/lib/systemd/system/
+    cp etc/linux-systemd/user/*   $out/lib/systemd/user/
   '';
 
   meta = {

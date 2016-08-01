@@ -15,6 +15,12 @@ buildGoPackage rec {
 
   goDeps = ./inotify-deps.json;
 
+  preInstall = ''
+    mkdir -p $out/bin $out/lib/systemd/{system,user}
+    cp $src/etc/linux-systemd/system/* $out/lib/systemd/system/
+    cp $src/etc/linux-systemd/user/*   $out/lib/systemd/user/
+  '';
+
   meta = {
     homepage = https://github.com/syncthing/syncthing-inotify;
     description = "File watcher intended for use with Syncthing";

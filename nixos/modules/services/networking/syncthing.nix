@@ -114,6 +114,9 @@ in
 
     environment.systemPackages = [ cfg.package ];
 
+    # this covers both system and user packages
+    systemd.packages = [ cfg.package ];
+
     systemd.services = mkIf cfg.systemService {
       syncthing = header // {
         wantedBy = [ "multi-user.target" ];
