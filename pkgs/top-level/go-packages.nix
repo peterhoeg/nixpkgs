@@ -3379,6 +3379,24 @@ let
   };
 
   syncthing = buildFromGitHub rec {
+    version = "0.14.3";
+    rev = "v${version}";
+    owner = "syncthing";
+    repo = "syncthing";
+    sha256 = "114i0911h3q6dn3j9x2qcm5lzpqclvrpf5vk87qpqp9qy62jp3az";
+    buildFlags = [ "-tags noupgrade,release" ];
+    disabled = isGo14;
+    buildInputs = [
+      go-lz4 du luhn xdr snappy ratelimit osext
+      goleveldb suture qart crypto net text rcrowley.go-metrics
+    ];
+    postPatch = ''
+      # Mostly a cosmetic change
+      sed -i 's,unknown-dev,${version},g' cmd/syncthing/main.go
+    '';
+  };
+
+  syncthing012 = buildFromGitHub rec {
     version = "0.12.25";
     rev = "v${version}";
     owner = "syncthing";
