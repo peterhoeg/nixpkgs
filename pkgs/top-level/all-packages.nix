@@ -131,6 +131,8 @@ in
 
   dockerTools = callPackage ../build-support/docker { };
 
+  dotnet = callPackage ../development/libraries/dotnet { };
+
   dotnetenv = callPackage ../build-support/dotnetenv {
     dotnetfx = dotnetfx40;
   };
