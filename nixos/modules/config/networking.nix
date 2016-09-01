@@ -162,9 +162,11 @@ in
         "rpc".source = pkgs.glibc.out + "/etc/rpc";
 
         # /etc/hosts: Hostname-to-IP mappings.
+        # We need 2 separate lines so that the "public" name resolves correctly
         "hosts".text =
           ''
-            127.0.0.1 localhost
+            127.0.0.1 localhost.localdomain localhost
+            # 127.0.0.1 ${config.networking.hostName}
             ${optionalString cfg.enableIPv6 ''
               ::1 localhost
             ''}
