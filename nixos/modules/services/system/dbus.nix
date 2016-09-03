@@ -118,9 +118,20 @@ in
     ];
 
     # Don't restart dbus-daemon. Bad things tend to happen if we do.
-    systemd.services.dbus.reloadIfChanged = true;
+    systemd.services.dbus = {
+      reloadIfChanged = true;
+      restartTriggers = [ configDir ];
+    };
 
-    systemd.services.dbus.restartTriggers = [ configDir ];
+    systemd.user = {
+      services.dbus = {
+        # Don't restart dbus-daemon. Bad things tend to happen if we do.
+        reloadIfChanged = true;
+        restartTriggers = [ configDir ];
+        wantedBy = [ "basic.target" ];
+      };
+      sockets.dbus.wantedBy = [ "sockets.target" ];
+    };
 
     systemd.user = {
       services.dbus = {
@@ -147,7 +158,5 @@ in
     };
 
     environment.pathsToLink = [ "/etc/dbus-1" "/share/dbus-1" ];
-
   };
-
 }
