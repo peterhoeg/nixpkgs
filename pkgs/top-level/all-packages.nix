@@ -1540,7 +1540,7 @@ in
 
   fatsort = callPackage ../tools/filesystems/fatsort { };
 
-  fcitx = callPackage ../tools/inputmethods/fcitx {
+  fcitx = qt55.callPackage ../tools/inputmethods/fcitx {
     plugins = [];
   };
 
@@ -4838,7 +4838,7 @@ in
   jdk = if stdenv.isDarwin then self.jdk7 else self.jdk8;
   jre = if stdenv.isDarwin then self.jre7 else self.jre8;
 
-  openshot-qt = callPackage ../applications/video/openshot-qt { };
+  openshot-qt = qt55.callPackage ../applications/video/openshot-qt { };
 
   oraclejdk = self.jdkdistro true false;
 
@@ -6031,7 +6031,7 @@ in
   spidermonkey_24 = callPackage ../development/interpreters/spidermonkey/24.2.nix { };
   spidermonkey_31 = callPackage ../development/interpreters/spidermonkey/31.5.nix { };
 
-  supercollider = callPackage ../development/interpreters/supercollider {
+  supercollider = qt55.callPackage ../development/interpreters/supercollider {
     fftw = fftwSinglePrec;
   };
 
@@ -7268,8 +7268,8 @@ in
     x265 = if stdenv.isDarwin then null else x265;
     xavs = if stdenv.isDarwin then null else xavs;
     inherit (darwin) CF;
-    inherit (darwin.apple_sdk.frameworks) 
-      Cocoa CoreServices CoreAudio AVFoundation MediaToolbox 
+    inherit (darwin.apple_sdk.frameworks)
+      Cocoa CoreServices CoreAudio AVFoundation MediaToolbox
       VideoDecodeAcceleration;
   };
 

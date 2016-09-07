@@ -10,7 +10,6 @@
 , libxml2
 , libxslt
 , makeQtWrapper
-, qt55
 , sqlite
 , stdenv
 , xlibs
@@ -46,10 +45,10 @@ stdenv.mkDerivation rec {
       libuuid
       libxml2
       libxslt
-      qt55.qtbase
-      qt55.qtdeclarative
-      qt55.qtscript
-      qt55.qtwebkit
+      qtbase
+      qtdeclarative
+      qtscript
+      qtwebkit
       sqlite
       xlibs.xcbutilkeysyms
       xorg.libX11

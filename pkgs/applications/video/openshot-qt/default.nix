@@ -1,5 +1,5 @@
 {stdenv, fetchurl, fetchFromGitHub, callPackage, makeWrapper, doxygen
-, ffmpeg, python3Packages, qt55}:
+, ffmpeg, python3Packages}:
 
 with stdenv.lib;
 
@@ -20,8 +20,8 @@ stdenv.mkDerivation rec {
   buildInputs = [doxygen python3Packages.python makeWrapper ffmpeg];
 
   propagatedBuildInputs = [
-    qt55.qtbase
-    qt55.qtmultimedia
+    qtbase
+    qtmultimedia
     libopenshot
   ];
 

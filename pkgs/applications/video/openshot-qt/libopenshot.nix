@@ -1,10 +1,10 @@
 {stdenv, fetchurl, fetchFromGitHub, callPackage, cmake, doxygen
-, imagemagick, ffmpeg, qt55, swig, python3, ruby, unittest-cpp}:
+, imagemagick, ffmpeg, swig, python3, ruby, unittest-cpp}:
 
 with stdenv.lib;
 
 let
-  libopenshot_audio = callPackage ./libopenshot-audio.nix {};
+  libopenshot_audio = self.callPackage ./libopenshot-audio.nix {};
 in
 stdenv.mkDerivation rec {
   name = "libopenshot-${version}";
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     cmake doxygen
-    imagemagick ffmpeg qt55.qtbase qt55.qtmultimedia swig python3 ruby
+    imagemagick ffmpeg qtbase qtmultimedia swig python3 ruby
     unittest-cpp
   ];
 
