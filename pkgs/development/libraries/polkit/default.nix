@@ -4,7 +4,7 @@
 
 let
 
-  system = "/var/run/current-system/sw";
+  system = "/run/current-system/sw";
   setuid = "/var/setuid-wrappers"; #TODO: from <nixos> config.security.wrapperDir;
 
   foolVars = {

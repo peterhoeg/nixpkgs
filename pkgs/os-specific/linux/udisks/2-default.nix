@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
 
   patches = [ ./force-path.patch ];
 
-  # FIXME remove /var/run/current-system/sw/* references
+  # FIXME remove /run/current-system/sw/* references
   # FIXME add references to parted, cryptsetup, etc (see the sources)
   postPatch =
     ''

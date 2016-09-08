@@ -28,7 +28,7 @@ stdenv.mkDerivation {
 
   postFixup =
   ''
-  rm -rf $out/var/run
+  rm -rf $out/run
   wrapProgram $out/bin/ocsigenserver \
     --prefix CAML_LD_LIBRARY_PATH : "${mkpath ocaml_ssl "ssl"}:${mkpath ocaml_lwt "lwt"}:${mkpath ocamlnet "netsys"}:${mkpath ocamlnet "netstring"}:${mkpath ocaml_pcre "pcre"}:${mkpath cryptokit "cryptokit"}:${mkpath ocaml_sqlite3 "sqlite3"}"
   '';

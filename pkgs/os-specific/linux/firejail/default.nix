@@ -23,8 +23,8 @@ stdenv.mkDerivation {
   preConfigure = ''
     sed -e 's@/bin/bash@${stdenv.shell}@g' -i $( grep -lr /bin/bash .)
     sed -e "s@/bin/cp@$(which cp)@g" -i $( grep -lr /bin/cp .)
-    sed -e '/void fs_var_run(/achar *vrcs = get_link("/var/run/current-system")\;' -i ./src/firejail/fs_var.c
-    sed -e '/ \/run/iif(vrcs!=NULL){symlink(vrcs, "/var/run/current-system")\;free(vrcs)\;}' -i ./src/firejail/fs_var.c
+    sed -e '/void fs_var_run(/achar *vrcs = get_link("/run/current-system")\;' -i ./src/firejail/fs_var.c
+    sed -e '/ \/run/iif(vrcs!=NULL){symlink(vrcs, "/run/current-system")\;free(vrcs)\;}' -i ./src/firejail/fs_var.c
   '';
 
   preBuild = ''

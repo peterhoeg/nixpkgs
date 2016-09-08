@@ -1,5 +1,5 @@
 { stdenv, fetchurl, zlib, enableStatic ? false,
-sftpPath ? "/var/run/current-system/sw/libexec/sftp-server" }:
+sftpPath ? "/run/current-system/sw/libexec/sftp-server" }:
 
 stdenv.mkDerivation rec {
   name = "dropbear-2016.74";

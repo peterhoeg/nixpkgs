@@ -64,7 +64,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ intltool pkgconfig ];
 
   preInstall = ''
-    installFlagsArray=( "sysconfdir=$out/etc" "localstatedir=$out/var" "runstatedir=$out/var/run" )
+    installFlagsArray=( "sysconfdir=$out/etc" "localstatedir=$out/var" "runstatedir=$out/run" )
   '';
 
   postInstall = ''

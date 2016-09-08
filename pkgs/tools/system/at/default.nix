@@ -17,9 +17,9 @@ stdenv.mkDerivation {
   preConfigure =
     ''
       export SENDMAIL=${sendmailPath}
-      # Purity: force atd.pid to be placed in /var/run regardless of
+      # Purity: force atd.pid to be placed in /run regardless of
       # whether it exists now.
-      substituteInPlace ./configure --replace "test -d /var/run" "true"
+      substituteInPlace ./configure --replace "test -d /run" "true"
     '';
 
   configureFlags =

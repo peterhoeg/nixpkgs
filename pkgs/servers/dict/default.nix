@@ -12,7 +12,7 @@ stdenv.mkDerivation rec {
   buildInputs = [ flex bison which libmaa zlib libtool ];
 
   patchPhase = "patch -p0 < ${./buildfix.diff}";
-  configureFlags = "--datadir=/var/run/current-system/share/dictd";
+  configureFlags = "--datadir=/run/current-system/share/dictd";
 
   meta = with stdenv.lib; {
     description = "Dict protocol server and client";

@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
   ];
 
   postPatch = ''
-    substituteInPlace Linode/Longview/Util.pm --replace /var/run/longview.pid /run/longview.pid
+    substituteInPlace Linode/Longview/Util.pm --replace /run/longview.pid /run/longview.pid
   '';
 
   buildInputs = [ perl makeWrapper glibc ]

@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = ''
     -DDEBIAN_BUILD=ON
-    -DRUNDIR=/var/run/rspamd
+    -DRUNDIR=/run/rspamd
     -DDBDIR=/var/lib/rspamd
     -DLOGDIR=/var/log/rspamd
   '';

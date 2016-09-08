@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
       SYSCONFDIR=/etc
       SBINDIR=$out/sbin
       LIBEXECDIR=$out/libexec/resolvconf
-      VARDIR=/var/run/resolvconf
+      VARDIR=/run/resolvconf
       MANDIR=$out/share/man
       RESTARTCMD="false \1"
       EOF
