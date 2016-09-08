@@ -60,7 +60,7 @@ in {
     };
 
     pidFile = mkOption {
-      default = "/var/run/collectd.pid";
+      default = "/run/collectd.pid";
       description = ''
         Location of collectd pid file.
       '';

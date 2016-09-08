@@ -51,7 +51,7 @@ import ./make-test.nix ({ pkgs, ...} : rec {
     Description=Hello World
 
     [Service]
-    ExecStart=/bin/sh -c "while true; do echo \"Hello, world\"; /var/run/current-system/sw/bin/sleep 1; done"
+    ExecStart=/bin/sh -c "while true; do echo \"Hello, world\"; /run/current-system/sw/bin/sleep 1; done"
 
     [X-Fleet]
     MachineMetadata=name=node2

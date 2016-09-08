@@ -5,8 +5,8 @@
 
 # TODO: support fastcgi
 # http://munin-monitoring.org/wiki/CgiHowto2
-# spawn-fcgi -s /var/run/munin/fastcgi-graph.sock -U www-data   -u munin -g munin /usr/lib/munin/cgi/munin-cgi-graph
-# spawn-fcgi -s /var/run/munin/fastcgi-html.sock  -U www-data   -u munin -g munin /usr/lib/munin/cgi/munin-cgi-html
+# spawn-fcgi -s /run/munin/fastcgi-graph.sock -U www-data   -u munin -g munin /usr/lib/munin/cgi/munin-cgi-graph
+# spawn-fcgi -s /run/munin/fastcgi-html.sock  -U www-data   -u munin -g munin /usr/lib/munin/cgi/munin-cgi-html
 # https://paste.sh/vofcctHP#-KbDSXVeWoifYncZmLfZzgum
 # nginx http://munin.readthedocs.org/en/latest/example/webserver/nginx.html
 
@@ -36,7 +36,7 @@ let
         wrapProgram $file \
           --set PATH "/var/setuid-wrappers:/run/current-system/sw/bin:/run/current-system/sw/bin" \
           --set MUNIN_LIBDIR "${pkgs.munin}/lib" \
-          --set MUNIN_PLUGSTATE "/var/run/munin"
+          --set MUNIN_PLUGSTATE "/run/munin"
 
         # munin uses markers to tell munin-node-configure what a plugin can do
         echo "#%# family=$family" >> $file
@@ -54,7 +54,7 @@ let
       dbdir     /var/lib/munin
       htmldir   /var/www/munin
       logdir    /var/log/munin
-      rundir    /var/run/munin
+      rundir    /run/munin
 
       ${cronCfg.extraGlobalConfig}
 
@@ -176,7 +176,7 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       path = [ pkgs.munin ];
-      environment.MUNIN_PLUGSTATE = "/var/run/munin";
+      environment.MUNIN_PLUGSTATE = "/run/munin";
       preStart = ''
         echo "updating munin plugins..."
 

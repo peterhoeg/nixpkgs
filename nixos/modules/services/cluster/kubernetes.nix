@@ -607,7 +607,7 @@ in {
         description = "Kubernetes setup.";
         serviceConfig.Type = "oneshot";
         script = ''
-          mkdir -p /var/run/kubernetes
+          mkdir -p /run/kubernetes
           chown kubernetes /var/lib/kubernetes
 
           rm ${cfg.dataDir}/.dockercfg || true

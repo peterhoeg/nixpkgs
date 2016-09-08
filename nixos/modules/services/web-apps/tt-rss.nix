@@ -17,7 +17,7 @@ let
     else cfg.database.port;
 
   poolName = "tt-rss";
-  phpfpmSocketName = "/var/run/phpfpm/${poolName}.sock";
+  phpfpmSocketName = "/run/phpfpm/${poolName}.sock";
   virtualHostName = "tt-rss";
 
   tt-rss-config = pkgs.writeText "config.php" ''

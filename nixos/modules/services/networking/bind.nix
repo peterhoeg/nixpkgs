@@ -20,8 +20,8 @@ let
         blackhole { badnetworks; };
         forward first;
         forwarders { ${concatMapStrings (entry: " ${entry}; ") cfg.forwarders} };
-        directory "/var/run/named";
-        pid-file "/var/run/named/named.pid";
+        directory "/run/named";
+        pid-file "/run/named/named.pid";
       };
 
       ${cfg.extraConfig}
@@ -150,8 +150,8 @@ in
       wantedBy = [ "multi-user.target" ];
 
       preStart = ''
-        ${pkgs.coreutils}/bin/mkdir -p /var/run/named
-        chown ${bindUser} /var/run/named
+        ${pkgs.coreutils}/bin/mkdir -p /run/named
+        chown ${bindUser} /run/named
       '';
 
       script = "${pkgs.bind.bin}/sbin/named -u ${bindUser} ${optionalString cfg.ipv4Only "-4"} -c ${cfg.configFile} -f";

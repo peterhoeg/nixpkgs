@@ -39,7 +39,7 @@ with lib;
       description = "Pommed hotkey management";
       wantedBy = [ "multi-user.target" ];
       after = [ "dbus.service" ];
-      postStop = "rm -f /var/run/pommed.pid";
+      postStop = "rm -f /run/pommed.pid";
       script = "${pkgs.pommed}/bin/pommed";
       serviceConfig.Type = "forking";
       path = [ pkgs.eject ];

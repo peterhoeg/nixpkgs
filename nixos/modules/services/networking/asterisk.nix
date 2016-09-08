@@ -36,7 +36,7 @@ let
       astdatadir => /var/lib/asterisk
       astagidir => /var/lib/asterisk/agi-bin
       astspooldir => /var/spool/asterisk
-      astrundir => /var/run/asterisk
+      astrundir => /run/asterisk
       astlogdir => /var/log/asterisk
       astsbindir => ${pkgs.asterisk}/sbin
     '';
@@ -217,7 +217,7 @@ in
           in
           "${pkgs.asterisk}/bin/asterisk -U ${asteriskUser} -C ${asteriskEtc}/asterisk.conf ${argString} -F";
         Type = "forking";
-        PIDFile = "/var/run/asterisk/asterisk.pid";
+        PIDFile = "/run/asterisk/asterisk.pid";
       };
     };
   };

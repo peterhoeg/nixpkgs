@@ -43,7 +43,7 @@ in
       socket = mkOption {
         default = "";
         description = "Unix socket path to listen on. Setting this will disable network support";
-        example = "/var/run/memcached";
+        example = "/run/memcached";
       };
 
       maxMemory = mkOption {

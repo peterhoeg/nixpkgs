@@ -19,8 +19,8 @@ in {
 
     listen = mkOption {
       type = types.listOf types.str;
-      default = [ "/var/run/fleet.sock" ];
-      example = [ "/var/run/fleet.sock" "127.0.0.1:49153" ];
+      default = [ "/run/fleet.sock" ];
+      example = [ "/run/fleet.sock" "127.0.0.1:49153" ];
       description = ''
         Fleet listening addresses.
       '';
@@ -134,7 +134,7 @@ in {
       wantedBy = [ "sockets.target" ];
       listenStreams = cfg.listen;
       socketConfig = {
-        ListenStream = "/var/run/fleet.sock";
+        ListenStream = "/run/fleet.sock";
         SocketMode = "0660";
         SocketUser = "root";
         SocketGroup = "fleet";

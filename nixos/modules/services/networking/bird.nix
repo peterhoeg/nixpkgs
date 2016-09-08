@@ -69,7 +69,7 @@ in
       description = "BIRD Internet Routing Daemon";
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart   = "${bird}/bin/bird -d -c ${configFile} -s /var/run/bird.ctl -u ${cfg.user} -g ${cfg.group}";
+        ExecStart   = "${bird}/bin/bird -d -c ${configFile} -s /run/bird.ctl -u ${cfg.user} -g ${cfg.group}";
       };
     };
   };

@@ -8,7 +8,7 @@ let
 
   cfg = config.services.dbus;
 
-  homeDir = "/var/run/dbus";
+  homeDir = "/run/dbus";
 
   systemExtraxml = concatStrings (flip concatMap cfg.packages (d: [
     "<servicedir>${d}/share/dbus-1/system-services</servicedir>"

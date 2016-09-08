@@ -192,7 +192,7 @@ in
 
         path = [ pkgs.coreutils pkgs.avahi ];
 
-        preStart = "mkdir -p /var/run/avahi-daemon";
+        preStart = "mkdir -p /run/avahi-daemon";
 
         script =
           ''

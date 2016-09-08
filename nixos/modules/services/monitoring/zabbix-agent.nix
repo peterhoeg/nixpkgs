@@ -7,7 +7,7 @@ let
 
   cfg = config.services.zabbixAgent;
 
-  stateDir = "/var/run/zabbix";
+  stateDir = "/run/zabbix";
 
   logDir = "/var/log/zabbix";
 

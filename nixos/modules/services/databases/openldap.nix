@@ -91,8 +91,8 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       preStart = ''
-        mkdir -p /var/run/slapd
-        chown -R ${cfg.user}:${cfg.group} /var/run/slapd
+        mkdir -p /run/slapd
+        chown -R ${cfg.user}:${cfg.group} /run/slapd
         mkdir -p ${cfg.dataDir}
         chown -R ${cfg.user}:${cfg.group} ${cfg.dataDir}
       '';

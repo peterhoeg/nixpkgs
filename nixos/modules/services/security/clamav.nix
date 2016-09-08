@@ -3,7 +3,7 @@ with lib;
 let
   clamavUser = "clamav";
   stateDir = "/var/lib/clamav";
-  runDir = "/var/run/clamav";
+  runDir = "/run/clamav";
   logDir = "/var/log/clamav";
   clamavGroup = clamavUser;
   cfg = config.services.clamav;

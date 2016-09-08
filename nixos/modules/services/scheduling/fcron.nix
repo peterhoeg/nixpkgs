@@ -91,8 +91,8 @@ in
         # see man 5 fcron.conf
         { source = pkgs.writeText "fcon.conf" ''
             fcrontabs   =       /var/spool/fcron
-            pidfile     =       /var/run/fcron.pid
-            fifofile    =       /var/run/fcron.fifo
+            pidfile     =       /run/fcron.pid
+            fifofile    =       /run/fcron.fifo
             fcronallow  =       /etc/fcron.allow
             fcrondeny   =       /etc/fcron.deny
             shell       =       /bin/sh

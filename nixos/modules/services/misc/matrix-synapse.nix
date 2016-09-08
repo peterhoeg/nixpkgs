@@ -24,7 +24,7 @@ ${optionalString (cfg.bind_host != null) ''
 bind_host: "${cfg.bind_host}"
 ''}
 server_name: "${cfg.server_name}"
-pid_file: "/var/run/matrix-synapse.pid"
+pid_file: "/run/matrix-synapse.pid"
 web_client: ${if cfg.web_client then "true" else "false"}
 ${optionalString (cfg.public_baseurl != null) ''
 public_baseurl: "${cfg.public_baseurl}"

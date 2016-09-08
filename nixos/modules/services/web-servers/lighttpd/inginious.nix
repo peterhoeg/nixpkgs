@@ -28,7 +28,7 @@ let
     #    # Parameter can be set to true or path to the certificates
     #    #use_tls: false
     #    # Link to the docker daemon *from the host that runs the docker daemon*. Defaults to:
-    #    #local_location: "unix:///var/run/docker.sock"
+    #    #local_location: "unix:///run/docker.sock"
     #    # Path to the cgroups "mount" *from the host that runs the docker daemon*. Defaults to:
     #    #cgroups_location: "/sys/fs/cgroup"
     #    # Name that will be used to reference the agent
@@ -191,7 +191,7 @@ in
         virtualisation.docker = {
           enable = true;
           # We need docker to listen on port 2375.
-          extraOptions = "-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock";
+          extraOptions = "-H tcp://127.0.0.1:2375 -H unix:///run/docker.sock";
           storageDriver = mkDefault "overlay";
           socketActivation = false;
         };

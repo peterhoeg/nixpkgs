@@ -69,7 +69,7 @@ in
       };
 
       pidFile = mkOption {
-        default = "/var/run/mongodb.pid";
+        default = "/run/mongodb.pid";
         description = "Location of MongoDB pid file";
       };
 

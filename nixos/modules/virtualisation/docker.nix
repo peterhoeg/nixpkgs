@@ -62,7 +62,7 @@ in
       mkOption {
         type = types.lines;
         default = ''
-          while ! [ -e /var/run/docker.sock ]; do
+          while ! [ -e /run/docker.sock ]; do
             sleep 0.1
           done
         '';
@@ -108,7 +108,7 @@ in
         description = "Docker Socket for the API";
         wantedBy = [ "sockets.target" ];
         socketConfig = {
-          ListenStream = "/var/run/docker.sock";
+          ListenStream = "/run/docker.sock";
           SocketMode = "0660";
           SocketUser = "root";
           SocketGroup = "docker";
