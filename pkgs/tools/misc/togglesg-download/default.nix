@@ -3,13 +3,13 @@
 buildPythonApplication rec {
 
   name = "togglesg-download-git-${version}";
-  version = "2016-05-31";
+  version = "2016-09-11";
 
   src = fetchFromGitHub {
     owner = "0x776b7364";
     repo = "toggle.sg-download";
-    rev = "7d7c5f4d549360f95e248accd9771949abd94ad2";
-    sha256 = "0xj42khvacwmhbiy2p8rxk7lqg7pvya4zdc2c34lnr3avdp49fjn";
+    rev = "790ff01771e3977d9b4421896b9eee369401baf3";
+    sha256 = "1j2fkfy5b005jmvs7i9swqrsm89ndqrdqdilaqy55sbhj14dmxym";
   };
 
   nativeBuildInputs = [ makeWrapper ];
