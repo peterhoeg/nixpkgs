@@ -1,16 +1,5 @@
-{ stdenv
-, fetchurl
-, libtsm
-, systemd
-, libxkbcommon
-, libdrm
-, mesa
-, pango
-, pixman
-, pkgconfig
-, docbook_xsl
-, libxslt
-}:
+{ stdenv, fetchurl, pkgconfig
+, docbook_xsl, libdrm, libtsm, libxkbcommon, libxslt, mesa, pango, pixman, systemd }:
 
 stdenv.mkDerivation rec {
   name = "kmscon-8";
@@ -19,6 +8,8 @@ stdenv.mkDerivation rec {
     url = "http://www.freedesktop.org/software/kmscon/releases/${name}.tar.xz";
     sha256 = "0axfwrp3c8f4gb67ap2sqnkn75idpiw09s35wwn6kgagvhf1rc0a";
   };
+
+  outputs = [ "bin" "man" "out" ];
 
   buildInputs = [
     libtsm
@@ -45,10 +36,10 @@ stdenv.mkDerivation rec {
     "--with-renderers=bbulk,gltex,pixman"
   ];
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "KMS/DRM based System Console";
-    homepage = "http://www.freedesktop.org/wiki/Software/kmscon/";
-    license = stdenv.lib.licenses.mit;
-    platforms = stdenv.lib.platforms.linux;
+    homepage = http://www.freedesktop.org/wiki/Software/kmscon/;
+    license = licenses.mit;
+    platforms = platforms.linux;
   };
 }
