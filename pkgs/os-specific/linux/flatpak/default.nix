@@ -6,8 +6,8 @@ let
   libglnx-src = fetchFromGitHub {
     owner  = "GNOME";
     repo   = "libglnx";
-    rev    = "769522753c25537e520adc322fa62e5390272add";
-    sha256 = "0gfc8dl63xpmf73dwb1plj7cymq7z6w6wq5m06yx8jymwhq7x1l8";
+    rev    = "master";
+    sha256 = "0b3q7k4xslsqklsadjjd6pnqfvvpkpbg5y6mm80pcvbrpi0aarfp";
   };
 
   bubblewrap-src = fetchFromGitHub {
