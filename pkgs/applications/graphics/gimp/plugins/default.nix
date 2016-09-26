@@ -41,8 +41,25 @@ let
     };
   };
 
-in
-rec {
+in rec {
+  deblur = pluginDerivation {
+    name = "deblur-0.0.1";
+    buildInputs = [ gimp pkgconfig opencv ] ++ gimp.nativeBuildInputs;
+    src = fetchurl {
+      url = http://www.open.ou.nl/hjo/supervision/2016-e.v.schaijk,t.poppe-bsc-thesis/Text-deblur-plugin.zip;
+      sha256 = "1nrvx50p12ziha4d76wp2di27gb66wwb86jp2wav02lxpgqg1kpl";
+    };
+    patchPhase = ''
+      sed -e 's,^\(GIMP_PLUGIN_DIR=\).*,\1'"$out/${gimp.name}-plugins", \
+       -e 's,^\(GIMP_DATA_DIR=\).*,\1'"$out/share/${gimp.name}", -i configure
+    '';
+    meta = with stdenv.lib; {
+      description = "GIMP Deblur";
+      homepage = http://www.open.ou.nl/hjo/software/text-deblur.htm;
+      license = with licenses; [ gpl3 ];
+    };
+  };
+
   gap = pluginDerivation {
     /* menu:
        Video
