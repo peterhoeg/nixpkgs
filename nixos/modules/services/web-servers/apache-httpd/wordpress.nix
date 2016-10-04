@@ -98,7 +98,7 @@ let
       # symlink additional plugin(s)
       ${concatMapStrings (plugin: "ln -s ${plugin} $out/wp-content/plugins/${plugin.name}\n") (config.plugins) }
 
-      # symlink additional translation(s) 
+      # symlink additional translation(s)
       mkdir -p $out/wp-content/languages
       ${concatMapStrings (language: "ln -s ${language}/*.mo ${language}/*.po $out/wp-content/languages/\n") (selectedLanguages) }
     '';
@@ -123,7 +123,7 @@ in
   options = {
     dbHost = mkOption {
       default = "localhost";
-      description = "The location of the database server.";  
+      description = "The location of the database server.";
       example = "localhost";
     };
     dbName = mkOption {
@@ -148,7 +148,7 @@ in
       '';
     };
     wordpressUploads = mkOption {
-    default = "/data/uploads";
+      default = "/data/uploads";
       description = ''
         This directory is used for uploads of pictures and must be accessible (read: owned) by the httpd running user. The directory passed here is automatically created and permissions are given to the httpd running user.
       '';
@@ -157,7 +157,7 @@ in
       default = [];
       type = types.listOf types.path;
       description =
-        ''
+    ''
           List of path(s) to respective plugin(s) which are symlinked from the 'plugins' directory. Note: These plugins need to be packaged before use, see example.
         '';
       example = ''
@@ -183,7 +183,7 @@ in
       default = [];
       type = types.listOf types.path;
       description =
-        ''
+    ''
           List of path(s) to respective theme(s) which are symlinked from the 'theme' directory. Note: These themes need to be packaged before use, see example.
         '';
       example = ''
@@ -206,14 +206,14 @@ in
       '';
     };
     languages = mkOption {
-          default = [];
-          description = "Installs wordpress language packs based on the list, see wordpress.nix for possible translations.";
-          example = "[ \"en_GB\" \"de_DE\" ];";
+      default = [];
+      description = "Installs wordpress language packs based on the list, see wordpress.nix for possible translations.";
+      example = "[ \"en_GB\" \"de_DE\" ];";
     };
     extraConfig = mkOption {
       default = "";
       example =
-        ''
+    ''
           define( 'AUTOSAVE_INTERVAL', 60 ); // Seconds
         '';
       description = ''
@@ -225,7 +225,7 @@ in
     extraHtaccess = mkOption {
       default = "";
       example =
-        ''
+    ''
           php_value upload_max_filesize 20M
           php_value post_max_size 20M
         '';
@@ -253,7 +253,7 @@ in
       done
       ${pkgs.mysql}/bin/mysql -e 'CREATE DATABASE ${config.dbName};'
       ${pkgs.mysql}/bin/mysql -e 'GRANT ALL ON ${config.dbName}.* TO ${config.dbUser}@localhost IDENTIFIED BY "${config.dbPassword}";'
-    else 
+    else
       echo "Good, no need to do anything database related."
     fi
   '';
