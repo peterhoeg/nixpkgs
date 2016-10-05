@@ -49,7 +49,8 @@ in {
             --nictype1 virtio --nic1 nat \
             --audiocontroller ac97 --audio alsa \
             --rtcuseutc on \
-            --usb on --mouse usbtablet
+            --usb on --mouse usbtablet \
+            --paravirtprovider kvm
           VBoxManage storagectl "$vmName" --name SATA --add sata --portcount 4 --bootable on --hostiocache on
           VBoxManage storageattach "$vmName" --storagectl SATA --port 0 --device 0 --type hdd \
             --medium disk.vmdk
