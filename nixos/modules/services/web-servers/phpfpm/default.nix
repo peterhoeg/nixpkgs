@@ -112,8 +112,8 @@ in {
       serviceConfig = {
         Type = "notify";
         ExecStart = "${cfg.phpPackage}/bin/php-fpm -y ${cfgFile} -c ${phpIni}";
+        ExecReload = "${pkgs.coreutils}/bin/kill -USR2 $MAINPID";
       };
     };
-
   };
 }
