@@ -1,5 +1,8 @@
 { stdenv, fetchurl, pythonPackages }:
 
+# https://github.com/emc-openstack/naviseccli/raw/master/navicli-linux-64-x86-en-us_7.33.2.0.51-1_all.deb
+# 0d8gdy3q3grz51zfip1fziw7vbz5bhn0m6k3as7bn5nlaasmqfhr
+
 pythonPackages.buildPythonApplication rec {
   version = "2.4.3";
   name = "Shinken-${version}";
