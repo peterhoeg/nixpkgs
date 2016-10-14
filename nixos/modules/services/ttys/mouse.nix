@@ -4,14 +4,14 @@ with lib;
 
 let
 
-  cfg = config.services.gpm;
+  cfg = config.services.mouse;
 
 in {
 
   ###### interface
 
   options = {
-    services.gpm = {
+    services.mouse = {
       enable = mkOption {
         type = types.bool;
         default = false;
@@ -32,7 +32,7 @@ in {
   ###### implementation
 
   config = mkIf cfg.enable {
-    systemd.services.gpm = {
+    systemd.services.mouse = {
       description = "Console Mouse Daemon";
       wantedBy = [ "multi-user.target" ];
       requires = [ "dev-input-mice.device" ];

@@ -11091,6 +11091,8 @@ in
 
   conntrack_tools = callPackage ../os-specific/linux/conntrack-tools { };
 
+  consolation = callPackage ../servers/consolation { };
+
   coredns = callPackage ../servers/dns/coredns { };
 
   cpufrequtils = callPackage ../os-specific/linux/cpufrequtils { };
