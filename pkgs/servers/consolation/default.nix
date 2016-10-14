@@ -2,25 +2,24 @@
 , libevdev, libinput }:
 
 let
-  desc = "copy-paste for the Linux console";
+  description = "copy-paste for the Linux console";
 
   service = writeText ''
     [Unit]
-    Description = ${desc}
+    Description = ${description}
 
     [Service]
     Type = simple
     ExecStart = $out/bin/consolation
     PrivateNetwork = yes
     PrivateTmp = yes
-    MaxTasks = 64
+    MaxTasks = 16
     ProtectHome = yes
     ProtectSystem = full
   '';
 
 in stdenv.mkDerivation rec {
-  name = "consolation-${version}";
-  version = "0.0.2";
+  name = "consolation-0.0.2";
 
   src = fetchgit {
     url = https://alioth.debian.org/anonscm/git/consolation/consolation.git;
@@ -38,7 +37,7 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     homepage = https://alioth.debian.org/projects/consolation;
-    description = desc;
+    inherit description;
     license = licenses.gpl2;
     platforms = platforms.linux;
     maintainers = with maintainers; [ peterhoeg ];
