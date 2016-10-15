@@ -104,7 +104,10 @@ in {
       description = "Kernel Auditing";
       wantedBy = [ "basic.target" ];
 
-      unitConfig.ConditionVirtualization = "!container";
+      unitConfig = {
+        ConditionVirtualization = "!container";
+        ConditionSecurity = [ "audit" ];
+      };
 
       path = [ pkgs.audit ];
 
