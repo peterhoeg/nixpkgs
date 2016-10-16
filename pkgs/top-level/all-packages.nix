@@ -17339,5 +17339,7 @@ in
 
   zoom-us = qt55.callPackage ../applications/networking/instant-messengers/zoom-us {};
 
+  tora = qt5.callPackage ../development/tools/tora {};
+
   xulrunner = firefox-unwrapped;
 }
