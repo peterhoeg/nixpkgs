@@ -1,13 +1,13 @@
-{ stdenv, fetchurl, python, zip, makeWrapper
+{ stdenv, fetchurl, python, zip, makeWrapper, master ? false
 }:
 
 let
 
-  version = "1.5.0";
+  version = if master then "master" else "1.5.0";
 
   src = fetchurl {
     url = "https://github.com/garbas/pypi2nix/archive/v${version}.tar.gz";
-    sha256 = "0s79pp7gkgyk7discnv94m6z81fd67p66rdbd4cwk1ma0qljlh2k";
+    sha256 = if master then "11111p7gkgyk7discnv94m6z81fd67p66rdbd4cwk1ma0qljlh2k" else "0s79pp7gkgyk7discnv94m6z81fd67p66rdbd4cwk1ma0qljlh2k";
   };
 
   click = fetchurl {
