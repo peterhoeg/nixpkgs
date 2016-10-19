@@ -53,12 +53,13 @@ in
     systemd.network =
       let
         domains = cfg.search ++ (optional (cfg.domain != null) cfg.domain);
-        genericNetwork = override: {
+        genericNetwork = override:
+          let gateway = optional (cfg.defaultGateway != null)  cfg.defaultGateway
+                     ++ optional (cfg.defaultGateway6 != null) cfg.defaultGateway6;
+          in {
           DHCP = override (dhcpStr cfg.useDHCP);
-        } // optionalAttrs (cfg.defaultGateway != null) {
-          gateway = override [ cfg.defaultGateway ];
-        } // optionalAttrs (cfg.defaultGateway6 != null) {
-          gateway = override [ cfg.defaultGateway6 ];
+          } // optionalAttrs (gateway != [ ]) {
+            gateway = override gateway;
         } // optionalAttrs (domains != [ ]) {
           domains = override domains;
         };
