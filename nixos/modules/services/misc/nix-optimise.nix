@@ -4,9 +4,8 @@ with lib;
 
 let
   cfg = config.nix.optimise;
-in
 
-{
+in {
 
   ###### interface
 
@@ -38,12 +37,19 @@ in
 
   config = {
 
-    systemd.services.nix-optimise =
-      { description = "Nix Store Optimiser";
-        serviceConfig.ExecStart = "${config.nix.package}/bin/nix-store --optimise";
-        startAt = optional cfg.automatic cfg.dates;
+    systemd = {
+      services.nix-optimise = {
+        description = "Nix Store Optimiser";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${config.nix.package}/bin/nix-store --optimise";
+        };
       };
 
+      timers.nix-optimise = mkIf cfg.automatic {
+        description = "Nix Store Optimiser Scheduler";
+        serviceConfig.startAt = cfg.dates;
+      };
+    };
   };
-
 }
