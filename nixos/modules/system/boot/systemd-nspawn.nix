@@ -80,7 +80,7 @@ let
 
   };
 
-  instanceToUnit = name: def: 
+  instanceToUnit = name: def:
     { text = ''
       [Exec]
       ${attrsToSection def.execConfig}
@@ -99,8 +99,7 @@ in {
 
     systemd.nspawn = mkOption {
       default = {};
-      type = types.attrsOf types.optionSet;
-      options = [ instanceOptions ];
+      type = with types; attrsOf (submodule { options = instanceOptions; } );
       description = "Definition of systemd-nspawn configurations.";
     };
 
