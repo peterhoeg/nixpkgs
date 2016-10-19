@@ -558,6 +558,15 @@ in
       '';
     };
 
+    services.logind.killUserProcesses = mkOption {
+      default = false;
+      type = types.bool;
+      example = "true";
+      description = ''
+        Make systemd-logind clean up user processes after the last user session is terminated.
+      '';
+    };
+
     services.logind.extraConfig = mkOption {
       default = "";
       type = types.lines;
@@ -693,7 +702,7 @@ in
 
       "systemd/logind.conf".text = ''
         [Login]
-        KillUserProcesses=no
+        KillUserProcesses=${boolToString config.services.logind.killUserProcesses}
         ${config.services.logind.extraConfig}
       '';
 
