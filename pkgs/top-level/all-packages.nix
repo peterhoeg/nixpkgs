@@ -8875,6 +8875,12 @@ in
       qt = qtbase;
     };
 
+    qscintilla = lowPrio (callPackage ../development/libraries/qscintilla {
+      qt4 = null;
+      qmake4Hook = null;
+      withQt5 = true;
+    });
+
     qwt = callPackage ../development/libraries/qwt/6.nix { };
 
     telepathy = callPackage ../development/libraries/telepathy/qt { };
