@@ -1,4 +1,5 @@
-{ stdenv, fetchurl, pkgconfig, djvulibre, poppler, fontconfig, libjpeg }:
+{ stdenv, fetchurl, autoreconfHook, pkgconfig
+, djvulibre, exiv2, fontconfig, graphicsmagick, libjpeg, libuuid, poppler }:
 
 stdenv.mkDerivation rec {
   version = "0.9.4";
@@ -9,7 +10,13 @@ stdenv.mkDerivation rec {
     sha256 = "1a1gwr6yzbiximbpgg4rc69dq8g3jmxwcbcwqk0fhfbgzj1j4w65";
   };
 
-  buildInputs = [ pkgconfig djvulibre poppler fontconfig libjpeg ];
+  patches = [
+    ./ignore_tools.patch
+  ];
+
+  buildInputs = [ autoreconfHook pkgconfig djvulibre.dev graphicsmagick poppler fontconfig libjpeg libuuid exiv2 ];
+
+  propagatedBuildInputs = [ djvulibre.bin ];
 
   meta = with stdenv.lib; {
     description = "Creates djvu files from PDF files";
