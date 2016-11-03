@@ -41,6 +41,9 @@ let
     filelight = callPackage ./filelight.nix {};
     gpgmepp = callPackage ./gpgmepp.nix {};
     gwenview = callPackage ./gwenview.nix {};
+    kaffeine = callPackage ./kaffeine.nix {
+      vlc = pkgs.vlc_qt5;
+    };
     kate = callPackage ./kate.nix {};
     kdenlive = callPackage ./kdenlive.nix {};
     kcalc = callPackage ./kcalc.nix {};
