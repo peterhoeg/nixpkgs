@@ -1,15 +1,14 @@
 { stdenv, fetchurl, pkgconfig, libusb1 }:
 
 let
-   version = "2.3.0";
-in
+   version = "2.4.0";
 
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   name = "usb-modeswitch-${version}";
 
   src = fetchurl {
     url = "http://www.draisberghof.de/usb_modeswitch/${name}.tar.bz2";
-    sha256 = "1jqih1g0y78w03rchpw7fjvzwjfakak61qjp7hbr1m5nnsh2dn9p";
+    sha256 = "04p288pr477jqlj1b9dagwsg5n6z6iyi7db94c7kg3nz22zk5p0p";
   };
 
   # make clean: we always build from source. It should be necessary on x86_64 only
@@ -22,10 +21,10 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ pkgconfig libusb1 ];
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "A mode switching tool for controlling 'multi-mode' USB devices";
-    license = stdenv.lib.licenses.gpl2;
-    maintainers = [ stdenv.lib.maintainers.marcweber ];
-    platforms = stdenv.lib.platforms.linux;
+    license = licenses.gpl2;
+    maintainers = with maintainers; [ marcweber peterhoeg ];
+    platforms = platforms.linux;
   };
 }

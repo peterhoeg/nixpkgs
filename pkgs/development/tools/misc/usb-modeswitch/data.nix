@@ -1,15 +1,14 @@
-{ stdenv, fetchurl, pkgconfig, libusb1, usb-modeswitch }:
+{ stdenv, fetchurl, pkgconfig, libusb1, tcl, usb-modeswitch }:
 
 let
-   version = "20160112";
-in
+   version = "20160803";
 
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   name = "usb-modeswitch-data-${version}";
 
   src = fetchurl {
      url = "http://www.draisberghof.de/usb_modeswitch/${name}.tar.bz2";
-     sha256 = "19yzqv0592b9mwgdi7apzw881q70ajyx5d56zr1z5ldi915a8yfn";
+     sha256 = "1zjnlxhnlra6z3h38q9j7yzzf22h4zwnpq8afhvqajz3qrvs5x43";
    };
 
   # make clean: we always build from source. It should be necessary on x86_64 only
@@ -18,12 +17,12 @@ stdenv.mkDerivation rec {
     sed -i "1 i\DESTDIR=$out" Makefile
   '';
 
-  buildInputs = [ pkgconfig libusb1 usb-modeswitch ];
+  # we add tcl here so we can patch in support for new devices by dropping config into
+  # the usb_modeswitch.d directory
+  buildInputs = [ pkgconfig libusb1 tcl usb-modeswitch ];
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "Device database and the rules file for 'multi-mode' USB devices";
-    license = stdenv.lib.licenses.gpl2;
-    maintainers = [ stdenv.lib.maintainers.marcweber ];
-    platforms = stdenv.lib.platforms.linux;
+    inherit (usb-modeswitch.meta) license maintainers platforms;
   };
 }
