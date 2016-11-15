@@ -4,7 +4,7 @@ with lib;
 
 let
   cfg = config.services.flexget;
-  pkg = pkgs.python27Packages.flexget;
+  pkg = pkgs.python2Packages.flexget;
   ymlFile = pkgs.writeText "flexget.yml" ''
     ${cfg.config}
 
@@ -54,8 +54,6 @@ in {
 
   config = mkIf cfg.enable {
 
-    environment.systemPackages = [ pkgs.python27Packages.flexget ];
-
     systemd.services = {
       flexget = {
         description = "FlexGet Daemon";
@@ -64,9 +62,10 @@ in {
           User = cfg.user;
           Environment = "TZ=${config.time.timeZone}";
           ExecStartPre = "${pkgs.coreutils}/bin/install -m644 ${ymlFile} ${configFile}";
-          ExecStart = "${pkg}/bin/flexget -c ${configFile} daemon start";
-          ExecStop = "${pkg}/bin/flexget -c ${configFile} daemon stop";
-          ExecReload = "${pkg}/bin/flexget -c ${configFile} daemon reload";
+          ExecStartPre = "${pkgs.coreutils}/bin/rm -f ${cfg.homeDir}/.flexget.lock";
+          ExecStart    = "${pkg}/bin/flexget -c ${configFile} daemon start";
+          ExecStop     = "${pkg}/bin/flexget -c ${configFile} daemon stop";
+          ExecReload   = "${pkg}/bin/flexget -c ${configFile} daemon reload";
           Restart = "on-failure";
           PrivateTmp = true;
           WorkingDirectory = toString cfg.homeDir;
