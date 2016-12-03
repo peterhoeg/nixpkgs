@@ -112,6 +112,8 @@ in
 
   cmark = callPackage ../development/libraries/cmark { };
 
+  restbed = callPackage ../development/libraries/restbed { };
+
   dockerTools = callPackage ../build-support/docker { };
 
   dotnetenv = callPackage ../build-support/dotnetenv {
@@ -10252,7 +10254,7 @@ in
   riak = callPackage ../servers/nosql/riak/2.1.1.nix { };
 
   riak-cs = callPackage ../servers/nosql/riak-cs/2.1.1.nix {
-    erlang = erlang_basho_R16B03;  
+    erlang = erlang_basho_R16B03;
   };
 
   stanchion = callPackage ../servers/nosql/riak-cs/stanchion.nix {
@@ -14523,6 +14525,8 @@ in
   seq24 = callPackage ../applications/audio/seq24 { };
 
   setbfree = callPackage ../applications/audio/setbfree { };
+
+  ring-daemon = callPackage ../applications/networking/instant-messengers/ring/daemon.nix { };
 
   sflphone = callPackage ../applications/networking/instant-messengers/sflphone {
     gtk = gtk3;
