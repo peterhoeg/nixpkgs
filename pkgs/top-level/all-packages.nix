@@ -98,6 +98,8 @@ with pkgs;
     inherit (haskellPackages) dhall-nix;
   };
 
+  restbed = callPackage ../development/libraries/restbed { };
+
   dockerTools = callPackage ../build-support/docker { };
 
   docker_compose = pythonPackages.docker_compose;
@@ -11030,7 +11032,7 @@ with pkgs;
 
   riak-cs = callPackage ../servers/nosql/riak-cs/2.1.1.nix {
     inherit (darwin.apple_sdk.frameworks) Carbon Cocoa;
-    erlang = erlang_basho_R16B02;
+    erlang = erlang_basho_R16B03;
   };
 
   stanchion = callPackage ../servers/nosql/riak-cs/stanchion.nix {
@@ -15595,6 +15597,12 @@ with pkgs;
   seq24 = callPackage ../applications/audio/seq24 { };
 
   setbfree = callPackage ../applications/audio/setbfree { };
+
+  ring-daemon = callPackage ../applications/networking/instant-messengers/ring/daemon.nix { };
+
+  sflphone = callPackage ../applications/networking/instant-messengers/sflphone {
+    gtk = gtk3;
+  };
 
   shfmt = callPackage ../tools/text/shfmt { };
 
