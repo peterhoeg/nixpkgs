@@ -9262,6 +9262,10 @@ in
 
     qca-qt5 = callPackage ../development/libraries/qca-qt5 { };
 
+    qscintilla = callPackage ../development/libraries/qscintilla {
+      withQt5 = true;
+    };
+
     quazip = callPackage ../development/libraries/quazip {
       qt = qtbase;
     };
