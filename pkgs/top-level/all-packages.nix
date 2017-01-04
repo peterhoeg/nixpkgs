@@ -10539,8 +10539,14 @@ in
   ruby-zoom = callPackage ../tools/text/ruby-zoom { };
 
   sensu = callPackage ../servers/monitoring/sensu {
-    ruby = ruby_2_1;
+    ruby = ruby_2_3;
   };
+
+  sensu-plugins = callPackage ../servers/monitoring/sensu-plugins {
+    ruby = sensu.ruby;
+  };
+
+  uchiwa = callPackage ../servers/monitoring/uchiwa { };
 
   shishi = callPackage ../servers/shishi {
       pam = if stdenv.isLinux then pam else null;
@@ -14516,7 +14522,7 @@ in
   qscreenshot = callPackage ../applications/graphics/qscreenshot {
     qt = qt4;
   };
-  
+
   qsyncthingtray = qt5.callPackage ../applications/misc/qsyncthingtray { };
 
   qsynth = callPackage ../applications/audio/qsynth { };

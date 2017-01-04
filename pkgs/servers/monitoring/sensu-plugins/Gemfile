@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+
+(%w(cpu-checks disk-checks filesystem-checks load-checks memory-checks network-checks) +
+ %w(http mysql windows)).each do |g|
+  gem "sensu-plugins-#{g}"
+end
