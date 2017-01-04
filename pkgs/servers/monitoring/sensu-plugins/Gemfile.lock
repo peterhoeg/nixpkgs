@@ -1,0 +1,98 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activesupport (4.2.5)
+      i18n (~> 0.7)
+      json (~> 1.7, >= 1.7.7)
+      minitest (~> 5.1)
+      thread_safe (~> 0.3, >= 0.3.4)
+      tzinfo (~> 1.1)
+    aws-sdk (2.6.43)
+      aws-sdk-resources (= 2.6.43)
+    aws-sdk-core (2.6.43)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.6.43)
+      aws-sdk-core (= 2.6.43)
+    aws-sigv4 (1.0.0)
+    dnsbl-client (1.0.2)
+    domain_name (0.5.20161129)
+      unf (>= 0.0.5, < 1.0.0)
+    ffi (1.9.14)
+    http-cookie (1.0.3)
+      domain_name (~> 0.5)
+    i18n (0.7.0)
+    inifile (3.0.0)
+    jmespath (1.3.1)
+    json (1.8.3)
+    linux-kstat (0.1.3)
+    mime-types (3.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2016.0521)
+    minitest (5.10.1)
+    mixlib-cli (1.7.0)
+    net-ping (1.7.8)
+    netrc (0.11.0)
+    rest-client (2.0.0)
+      http-cookie (>= 1.0.2, < 2.0)
+      mime-types (>= 1.16, < 4.0)
+      netrc (~> 0.8)
+    ruby-mysql (2.9.14)
+    sensu-plugin (1.4.4)
+      json (< 2.0.0)
+      mixlib-cli (>= 1.5.0)
+    sensu-plugins-cpu-checks (1.0.0)
+      linux-kstat (= 0.1.3)
+      sensu-plugin (~> 1.2)
+    sensu-plugins-disk-checks (2.0.1)
+      sensu-plugin (~> 1.2)
+      sys-filesystem (= 1.1.5)
+    sensu-plugins-filesystem-checks (0.2.0)
+      sensu-plugin (~> 1.2)
+    sensu-plugins-http (1.0.0)
+      aws-sdk (~> 2.3)
+      rest-client (~> 2.0)
+      sensu-plugin (~> 1.2)
+    sensu-plugins-load-checks (1.0.0)
+      sensu-plugin (~> 1.2)
+    sensu-plugins-memory-checks (1.0.2)
+      sensu-plugin (~> 1.2)
+    sensu-plugins-mysql (1.0.0)
+      inifile (= 3.0.0)
+      ruby-mysql (~> 2.9)
+      sensu-plugin (~> 1.2)
+    sensu-plugins-network-checks (1.1.0)
+      activesupport (= 4.2.5)
+      dnsbl-client (= 1.0.2)
+      net-ping (= 1.7.8)
+      sensu-plugin (~> 1.2)
+      whois (= 3.6.3)
+    sensu-plugins-windows (0.0.10)
+      sensu-plugin (~> 1.2)
+    sys-filesystem (1.1.5)
+      ffi
+    thread_safe (0.3.5)
+    tzinfo (1.2.2)
+      thread_safe (~> 0.1)
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.7.2)
+    whois (3.6.3)
+      activesupport (>= 3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sensu-plugins-cpu-checks
+  sensu-plugins-disk-checks
+  sensu-plugins-filesystem-checks
+  sensu-plugins-http
+  sensu-plugins-load-checks
+  sensu-plugins-memory-checks
+  sensu-plugins-mysql
+  sensu-plugins-network-checks
+  sensu-plugins-windows
+
+BUNDLED WITH
+   1.13.6

@@ -10709,8 +10709,14 @@ in
   seyren = callPackage ../servers/monitoring/seyren { };
 
   sensu = callPackage ../servers/monitoring/sensu {
-    ruby = ruby_2_1;
+    ruby = ruby_2_3;
   };
+
+  sensu-plugins = callPackage ../servers/monitoring/sensu-plugins {
+    ruby = sensu.ruby;
+  };
+
+  uchiwa = callPackage ../servers/monitoring/uchiwa { };
 
   shishi = callPackage ../servers/shishi {
       pam = if stdenv.isLinux then pam else null;
