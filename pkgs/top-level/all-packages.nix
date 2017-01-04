@@ -2658,6 +2658,8 @@ in
 
   logstalgia = callPackage ../tools/graphics/logstalgia {};
 
+  loki = callPackage ../development/libraries/loki { };
+
   longview = callPackage ../servers/monitoring/longview { };
 
   lout = callPackage ../tools/typesetting/lout { };
