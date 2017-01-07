@@ -1,12 +1,12 @@
 { stdenv, fetchurl, python2Packages, git }:
 
 python2Packages.buildPythonApplication rec {
-  version = "1.4.2";
+  version = "1.4.5";
   name = "git-up-${version}";
 
   src = fetchurl {
     url = "mirror://pypi/g/git-up/${name}.zip";
-    sha256 = "121ia5gyjy7js6fbsx9z98j2qpq7rzwpsj8gnfvsbz2d69g0vl7q";
+    sha256 = "153f8rvcr3a8n1h54aamg51fhlqszlhzpllb3gmrgpxpbj2d2mqb";
   };
 
   buildInputs = [ git ] ++ (with python2Packages; [ nose ]);

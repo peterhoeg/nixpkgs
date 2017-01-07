@@ -7351,17 +7351,56 @@ in {
 
   };
 
+  gitdb2 = buildPythonPackage rec {
+    name = "gitdb2-${version}";
+    version = "2.0.0";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/g/gitdb2/${name}.tar.gz";
+      sha256 = "0rmblgxx30yrwpfx4p7ffis6prjhfv0wjrj9z6jlv2qv82dj1wxr";
+    };
+
+    buildInputs = with self; [ pkgs.git nose ];
+    propagatedBuildInputs = with self; [ smmap2 ];
+
+    checkPhase = ''
+      set -x
+      export HOME=$TMPDIR
+      dir=$HOME/${name}
+      export GITDB_TEST_GIT_REPO_BASE=file://$dir
+      git config --global user.email "you@example.com"
+      git config --global user.name "Your Name"
+      pushd $dir
+      tar -xf $src
+      git init
+      git add .
+      git commit -m 'repo'
+      popd
+      nosetests
+    '';
+
+    # doCheck = false; # Bunch of tests fail because they need an actual git repo
+
+    meta = {
+      description = "Git Object Database - version 2";
+      maintainers = with maintainers; [ mornfall ];
+      homepage = https://github.com/gitpython-developers/gitdb;
+      license = licenses.bsd3;
+    };
+
+  };
+
   GitPython = buildPythonPackage rec {
-    version = "2.0.8";
+    version = "2.1.1";
     name = "GitPython-${version}";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/G/GitPython/GitPython-${version}.tar.gz";
-      sha256 = "7c03d1130f903aafba6ae5b89ccf8eb433a995cd3120cbb781370e53fc4eb222";
+      sha256 = "0132r4pr86iixy0h06ilnrh8fclifmk8giczb6ky1zpr7jaqwvz9";
     };
 
     buildInputs = with self; [ mock nose ];
-    propagatedBuildInputs = with self; [ gitdb ];
+    propagatedBuildInputs = with self; [ gitdb2 ];
 
     # All tests error with
     # InvalidGitRepositoryError: /tmp/nix-build-python2.7-GitPython-1.0.1.drv-0/GitPython-1.0.1
@@ -20035,8 +20074,8 @@ in {
 
     buildInputs = [ pkgs.libev ];
 
-    libEvSharedLibrary = 
-      if !stdenv.isDarwin  
+    libEvSharedLibrary =
+      if !stdenv.isDarwin
       then "${pkgs.libev}/lib/libev.so.4"
       else "${pkgs.libev}/lib/libev.4.dylib";
 
@@ -25746,6 +25785,20 @@ in {
     src = pkgs.fetchurl {
       url = "mirror://pypi/s/smmap/${name}.tar.gz";
       sha256 = "0qlx25f6n2n9ff37w9gg62f217fzj16xlbh0pkz0lpxxjys64aqf";
+    };
+  };
+
+  smmap2 = buildPythonPackage rec {
+    name = "smmap2-${version}";
+    version = "2.0.0";
+    disabled = isPyPy;
+    meta.maintainers = with maintainers; [ mornfall ];
+
+    buildInputs = with self; [ nosexcover ];
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/s/smmap2/${name}.tar.gz";
+      sha256 = "06s6d09qzfrns0mn2xgayby6dbk1vi92v97zg6l6xj6chm555jz6";
     };
   };
 
