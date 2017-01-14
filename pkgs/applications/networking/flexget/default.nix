@@ -1,39 +1,42 @@
 { lib
-, pythonPackages
+, python3Packages
 , fetchurl
 , transmission
 , deluge
 , config
 }:
 
-with pythonPackages;
+with python3Packages;
 
 buildPythonPackage rec {
-  version = "1.2.337";
+  version = "2.9.4";
   name = "FlexGet-${version}";
-  disabled = isPy3k;
 
   src = fetchurl {
     url = "mirror://pypi/F/FlexGet/${name}.tar.gz";
-    sha256 = "0f7aaf0bf37860f0c5adfb0ba59ca228aa3f5c582131445623a4c3bc82d45346";
+    sha256 = "0fdg73h9ig58748j9zx5496y9sikdk89ma9if7zjrxrxm174gaax";
   };
 
-  doCheck = false;
+  # doCheck = false;
 
   buildInputs = [ nose ];
+
   propagatedBuildInputs = [
     paver feedparser sqlalchemy pyyaml rpyc
-    beautifulsoup_4_1_3 html5lib_0_9999999 pyrss2gen pynzb progressbar jinja2 flask
-    cherrypy requests dateutil_2_1 jsonschema python_tvrage tmdb3
-    guessit pathpy apscheduler ]
+    beautifulsoup4 html5lib_0_9999999 pyrss2gen pynzb progressbar jinja2
+    flask flask-compress flask-cors flask-login flask-restful flask-restplus_0_8_6
+    cherrypy requests2 dateutil jsonschema python_tvrage tmdb3
+    guessit pathpy
+    apscheduler colorclass future pathlib pyparsing terminaltables zxcvbn-python
+  ]
   # enable deluge and transmission plugin support, if they're installed
   ++ lib.optional (config.deluge or false) deluge
   ++ lib.optional (transmission != null) transmissionrpc;
 
-  meta = {
+  meta = with lib; {
     homepage = http://flexget.com/;
     description = "Multipurpose automation tool for content like torrents";
-    license = lib.licenses.mit;
-    maintainers = with lib.maintainers; [ domenkozar ];
+    license = licenses.mit;
+    maintainers = with maintainers; [ domenkozar peterhoeg ];
   };
 }

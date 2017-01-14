@@ -1102,12 +1102,12 @@ in {
   };
 
   apscheduler = buildPythonPackage rec {
-    name = "APScheduler-3.0.4";
+    name = "APScheduler-3.2.0";
     disabled = !isPy27;
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/A/APScheduler/${name}.tar.gz";
-      sha256 = "1ljjhn6cv8b1pccsi3mgc887ypi2vim317r9p0zh0amd0bhkk6wb";
+      sha256 = "0f7n6rbgfcpi9f49da2c04j13zvj0gw2qqapwbx6h63ipaai3ajv";
     };
 
     buildInputs = with self; [
@@ -1119,6 +1119,7 @@ in {
       trollius
       funcsigs
       gevent
+      setuptools_scm
     ];
 
     propagatedBuildInputs = with self; [
@@ -3647,15 +3648,17 @@ in {
 
   cherrypy = buildPythonPackage (rec {
     name = "cherrypy-${version}";
-    version = "3.2.2";
+    version = "8.9.0";
 
     src = pkgs.fetchurl {
-      url = "http://download.cherrypy.org/cherrypy/${version}/CherryPy-${version}.tar.gz";
-      sha256 = "14dn129h69wj0h8yr0bjwbrk8kygl6mkfnxc5m3fxhlm4xb8hnnw";
+      url = "mirror://pypi/C/CherryPy/CherryPy-${version}.tar.gz";
+      sha256 = "0m35706sd8i928jgwr244lshf56pm5lli3nbicnf68fiigq0bx9q";
     };
 
     # error: invalid command 'test'
     doCheck = false;
+
+    buildInputs = with self; [ setuptools_scm six ];
 
     meta = {
       homepage = "http://www.cherrypy.org";
@@ -11442,6 +11445,188 @@ in {
       homepage = "http://flask-pymongo.readthedocs.org/";
       description = "PyMongo support for Flask applications";
       license = licenses.bsd2;
+    };
+  };
+
+  aniso8601 = buildPythonPackage rec {
+    name = "aniso8601-1.2.0";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/a/aniso8601/${name}.tar.gz";
+      sha256 = "1m2d83rm684xdf54ynfd9lv3slv7bkqq6pcirh2aibvl4pw0092h";
+    };
+
+    propagatedBuildInputs = with self; [ dateutil ];
+
+    meta = {
+      homepage = https://pypi.python.org/pypi/aniso8601;
+      description = "Library for parsing ISO 8601 strings.";
+      license = licenses.bsd3;
+    };
+  };
+
+  colorclass = buildPythonPackage rec {
+    pname = "colorclass";
+    name = "${pname}-2.2.0";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/c/${pname}/${name}.tar.gz";
+      sha256 = "12z1x2g8w391h586raclva2jyzkvbf5df9r5a0nzy6pwils2lp5h";
+    };
+
+    # buildInputs = with self; [ mock sphinx nose ];
+    # propagatedBuildInputs = with self; [ aniso8601 blinker flask pycrypto pytz six ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.bsd3;
+    };
+  };
+
+  zxcvbn-python = buildPythonPackage rec {
+    name = "${pname}-4.4.12";
+    pname = "zxcvbn-python";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "1r0d00ar4sxjr8ny19qcl5cw1hi84v0mfl6qkjpg450cxhxa3kgq";
+    };
+
+    meta = {
+      homepage = https://github.com/dwolfhub/zxcvbn-python;
+      description = "Dropbox's realistic password strength estimator";
+      license = licenses.mit;
+    };
+  };
+
+  terminaltables = buildPythonPackage rec {
+    name = "${pname}-3.1.0";
+    pname = "terminaltables";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "109vhldk6nv1z3hzp4dyqf6rjvlhl0y2k5k7qcm9fcrq5swhxszk";
+    };
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.bsd3;
+    };
+  };
+
+  flask-compress = buildPythonPackage rec {
+    name = "${pname}-1.4.0";
+    pname = "Flask-Compress";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "1cxdbdiyxkspg7vkchfmaqr7c6q79gwvakna3fjcc6nivps971j6";
+    };
+
+    buildInputs = with self; [ flask ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.bsd3;
+    };
+  };
+
+  flask-login = buildPythonPackage rec {
+    name = "${pname}-0.4.0";
+    pname = "Flask-Login";
+
+    # no tests
+    doCheck = false;
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "19w2f33lglkyvxqnj3qghhxa4pr8mp13235k1bd557x52imkapnj";
+    };
+
+    buildInputs = with self; [ flask ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.bsd3;
+    };
+  };
+
+  flask-restful = buildPythonPackage rec {
+    name = "${pname}-0.3.5";
+    pname = "Flask-RESTful";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "0hjcmdb56b7z4bkw848lxfkyrpnkwzmqn2dgnlv12mwvjpzsxr6c";
+    };
+
+    buildInputs = with self; [ mock sphinx nose ];
+    propagatedBuildInputs = with self; [ aniso8601 blinker flask pycrypto pytz six ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.bsd3;
+    };
+  };
+
+  flask-restplus_0_8_6 = buildPythonPackage rec {
+    name = "${pname}-0.8.6";
+    pname = "flask-restplus";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "14smg3r5q5g7ix9ji5gpriyg5r1iz8ljpn4n4fk9v85rav0nrdrv";
+    };
+
+    buildInputs = with self; [ mock nose rednose ];
+    propagatedBuildInputs = with self; [ aniso8601 blinker flask flask-restful jsonschema pytz six tzlocal ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.mit;
+    };
+  };
+
+  flask-restplus = buildPythonPackage rec {
+    name = "${pname}-0.9.2";
+    pname = "flask-restplus";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "11his6ii5brpkhld0d5bwzjjw4q3vmplpd6fmgzjrvvklsbk0cf4";
+    };
+
+    buildInputs = with self; [ mock nose rednose ];
+    propagatedBuildInputs = with self; [ aniso8601 blinker flask jsonschema pytz six tzlocal ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.mit;
+    };
+  };
+
+  rednose = buildPythonPackage rec {
+    name = "${pname}-1.2.1";
+    pname = "rednose";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/${builtins.substring 0 1 pname}/${pname}/${name}.tar.gz";
+      sha256 = "0b0bsna217lr1nykyhl5fgjly15zhdvqd4prg4wy1zrgfv7al6m0";
+    };
+
+    propagatedBuildInputs = with self; [ colorama nose six termstyle ];
+
+    meta = {
+      homepage = http://github.com/flask-restful/flask-restful;
+      description = "Simple framework for creating REST APIs";
+      license = licenses.mit;
     };
   };
 
