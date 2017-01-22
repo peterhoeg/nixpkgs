@@ -1,0 +1,46 @@
+{
+  "name": "ghetto-skype",
+  "author": "Robert Stanfield <robert@stanfield.it>",
+  "license": "GPL-3.0",
+  "private": true,
+  "main": "src/main.js",
+  "directories": {
+    "app": "src"
+  },
+  "build": {
+    "appId": "it.stanfield.ghetto-sky",
+    "mac": {
+      "category": "public.app-category.social-networking",
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "deb",
+      "category": "Network",
+      "executableName": "ghetto-skype"
+    }
+  },
+  "scripts": {
+    "postinstall": "install-app-deps",
+    "pack": "build --dir",
+    "dist": "build",
+    "start": "electron src/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stanfieldr/ghetto-skype.git"
+  },
+  "keywords": [
+    "web",
+    "skype",
+    "wrapper"
+  ],
+  "bugs": {
+    "url": "https://github.com/stanfieldr/ghetto-skype/issues"
+  },
+  "homepage": "https://github.com/stanfieldr/ghetto-skype#readme",
+  "devDependencies": {
+    "electron": "^1.4.12",
+    "electron-builder": "^10.8.1",
+    "electron-rebuild": "^1.4.0"
+  }
+}

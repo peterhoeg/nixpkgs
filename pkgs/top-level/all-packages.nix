@@ -8401,7 +8401,7 @@ in
 
   libpfm = callPackage ../development/libraries/libpfm { };
 
-  libpqxx = callPackage ../development/libraries/libpqxx { 
+  libpqxx = callPackage ../development/libraries/libpqxx {
     gnused = gnused_422;
   };
 
@@ -14861,6 +14861,8 @@ in
   siproxd = callPackage ../applications/networking/siproxd { };
 
   skype = callPackage_i686 ../applications/networking/instant-messengers/skype { };
+
+  ghetto-skype = callPackage ../applications/networking/instant-messengers/ghetto-skype { };
 
   skype4pidgin = callPackage ../applications/networking/instant-messengers/pidgin-plugins/skype4pidgin { };
 
