@@ -1,5 +1,5 @@
-{ fetchurl, stdenv, libtool, makeWrapper
-, coreutils, ctags, ncurses, pythonPackages, sqlite, pkgconfig
+{ stdenv, lib, fetchurl, libtool, makeWrapper
+, coreutils, universal-ctags, ncurses, pythonPackages, sqlite, pkgconfig
 }:
 
 stdenv.mkDerivation rec {
@@ -17,25 +17,29 @@ stdenv.mkDerivation rec {
 
   propagatedBuildInputs = [ pythonPackages.pygments ];
 
+  binPath = lib.makeBinPath [ pythonPackages.pygments universal-ctags];
+
   configureFlags = [
     "--with-ltdl-include=${libtool}/include"
     "--with-ltdl-lib=${libtool.lib}/lib"
     "--with-ncurses=${ncurses.dev}"
-    "--with-sqlite3=${sqlite.dev}"
-    "--with-exuberant-ctags=${ctags}/bin/ctags"
     "--with-posix-sort=${coreutils}/bin/sort"
+    "--with-sqlite3=${sqlite.dev}"
+    "--with-universal-ctags=${universal-ctags}/bin/ctags"
   ];
 
   doCheck = true;
+  enableParallelBuilding = true;
 
   postInstall = ''
-    mkdir -p "$out/share/emacs/site-lisp"
-    cp -v *.el "$out/share/emacs/site-lisp"
+    install -Dm644 *.el $out/share/emacs/site-lisp
 
-    wrapProgram $out/bin/gtags \
-      --prefix PYTHONPATH : "$(toPythonPath ${pythonPackages.pygments})"
-    wrapProgram $out/bin/global \
-      --prefix PYTHONPATH : "$(toPythonPath ${pythonPackages.pygments})"
+    for f in global gtags ; do
+      wrapProgram $out/bin/$f \
+        --prefix PYTHONPATH ':' $(toPythonPath ${pythonPackages.pygments}) \
+        --prefix PATH       ':' ${binPath} \
+        --suffix GTAGSCONF  ':' $out/share/gtags/gtags.conf
+    done
   '';
 
   meta = with stdenv.lib; {
