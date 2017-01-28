@@ -129,4 +129,8 @@ in
     # means we have internet access.
     networking.networkmanager.unmanaged = ["vboxnet0"];
   })]);
+
+  assertions = [
+    { assertion = !config.security.grsecurity.enable; message = "grsecurity does NOT work with VirtualBox"; }
+  ];
 }
