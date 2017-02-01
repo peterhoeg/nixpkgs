@@ -4,23 +4,27 @@
 with stdenv.lib;
 
 let
+  src = fetchFromGitHub {
+    owner  = "heroku";
+    repo   = "cli";
+    rev    = "v${version}";
+    sha256 = "11jccham1vkmh5284l6i30na4a4y7b1jhi2ci2z2wwx8m3gkypq9";
+  };
+
   cli = buildGoPackage rec {
     name = "cli-${version}";
     version = "5.6.14";
 
     goPackagePath = "github.com/heroku/cli";
 
-    src = fetchFromGitHub {
-      owner  = "heroku";
-      repo   = "cli";
-      rev    = "v${version}";
-      sha256 = "11jccham1vkmh5284l6i30na4a4y7b1jhi2ci2z2wwx8m3gkypq9";
-    };
+    inherit src;
   };
 
 in stdenv.mkDerivation rec {
   name = "heroku-${version}";
   version = "3.43.16";
+
+  inherit src;
 
   meta = {
     homepage = "https://toolbelt.heroku.com";
@@ -35,11 +39,6 @@ in stdenv.mkDerivation rec {
   buildInputs = [ makeWrapper ];
 
   doUnpack = false;
-
-  src = fetchurl {
-    url = "https://s3.amazonaws.com/assets.heroku.com/heroku-client/heroku-client-${version}.tgz";
-    sha256 = "08pai3cjaj7wshhyjcmkvyr1qxv5ab980whcm406798ng8f91hn7";
-  };
 
   installPhase = ''
     mkdir -p $out
