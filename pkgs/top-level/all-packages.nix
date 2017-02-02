@@ -9834,6 +9834,13 @@ with pkgs;
     withMesa = lib.elem system lib.platforms.mesaPlatforms;
   };
 
+  wxGTK30-gtk3 = callPackage ../development/libraries/wxGTK-3.0/default.nix {
+    withGtk3 = true;
+    inherit (darwin.stubs) setfile;
+    inherit (darwin.apple_sdk.frameworks) AGL Carbon Cocoa Kernel QTKit;
+    withMesa = lib.elem system lib.platforms.mesaPlatforms;
+  };
+
   wxmac = callPackage ../development/libraries/wxmac {
     inherit (darwin.apple_sdk.frameworks) AGL Cocoa Kernel;
     inherit (darwin.stubs) setfile rez derez;
