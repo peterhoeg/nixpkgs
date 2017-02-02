@@ -1156,6 +1156,11 @@ with pkgs;
 
   clementineFree = clementine.free;
 
+  clementine-qt5 = qt5.callPackage ../applications/audio/clementine/qt5.nix {
+    inherit (gst_all_1) gst-plugins-base;
+    gst_plugins = with gst_all_1; [ gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav ];
+  };
+
   ciopfs = callPackage ../tools/filesystems/ciopfs { };
 
   citrix_receiver = callPackage ../applications/networking/remote/citrix-receiver { };
