@@ -13158,6 +13158,8 @@ with pkgs;
 
   flexget = callPackage ../applications/networking/flexget { };
 
+  tget = callPackage ../applications/networking/tget { };
+
   fldigi = callPackage ../applications/audio/fldigi { };
 
   fluidsynth = callPackage ../applications/audio/fluidsynth {
