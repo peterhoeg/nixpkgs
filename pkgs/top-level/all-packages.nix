@@ -20760,6 +20760,8 @@ in
 
   firejail = callPackage ../os-specific/linux/firejail {};
 
+  firewalld = libsForQt5.callPackage ../os-specific/linux/firewalld {};
+
   fnotifystat = callPackage ../os-specific/linux/fnotifystat { };
 
   forkstat = callPackage ../os-specific/linux/forkstat { };
