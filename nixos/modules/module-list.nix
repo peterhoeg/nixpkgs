@@ -418,6 +418,7 @@
   ./services/networking/ferm.nix
   ./services/networking/firefox/sync-server.nix
   ./services/networking/firewall.nix
+  ./services/networking/firewalld.nix
   ./services/networking/flannel.nix
   ./services/networking/flashpolicyd.nix
   ./services/networking/freenet.nix
