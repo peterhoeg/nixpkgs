@@ -6,7 +6,10 @@ let
 
   inherit (pkgs) mysql gzip;
 
-  cfg = config.services.mysqlBackup ;
+  cfg = config.services.mysqlBackup;
+
+  mysqlScript = db: {
+  };
 
 
   mysqlBackupCron = db : ''
