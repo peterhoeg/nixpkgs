@@ -7,18 +7,15 @@ let
   inherit (pkgs) mysql gzip;
 
   cfg = config.services.mysqlBackup ;
-  location = cfg.location ;
+
+
   mysqlBackupCron = db : ''
     ${cfg.period} ${cfg.user} ${mysql}/bin/mysqldump ${if cfg.singleTransaction then "--single-transaction" else ""} ${db} | ${gzip}/bin/gzip -c > ${location}/${db}.gz
   '';
 
-in
-
-{
+in {
   options = {
-
     services.mysqlBackup = {
-
       enable = mkOption {
         default = false;
         description = ''
@@ -27,11 +24,13 @@ in
       };
 
       period = mkOption {
-        default = "15 01 * * *";
+        default = ["03:45"];
+        type = types.listOf types.str;
         description = ''
-          This option defines (in the format used by cron) when the
-          databases should be dumped.
-          The default is to update at 01:15 (at night) every day.
+          Specification (in the format described by
+          <citerefentry><refentrytitle>systemd.time</refentrytitle>
+          <manvolnum>5</manvolnum></citerefentry>) of the time at
+          which the optimiser will run.
         '';
       };
 
@@ -67,6 +66,13 @@ in
   };
 
   config = mkIf config.services.mysqlBackup.enable {
+
+    systemd.services = {
+      "mysql-backup-${database} =
+      { description = "Nix Store Optimiser";
+        serviceConfig.ExecStart = "${config.mysql.package}/bin/nix-store --optimise";
+        startAt = optionals cfg.enable cfg.dates;
+      };
 
     services.cron.systemCronJobs = map mysqlBackupCron config.services.mysqlBackup.databases;
 
