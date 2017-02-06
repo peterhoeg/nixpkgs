@@ -1,5 +1,5 @@
 { stdenv, lib, fetchFromGitHub, substituteAll, cmake, pkgconfig
-, alsaLib, ffmpeg_2, glib, openssl, pcre, zlib
+, alsaLib, ffmpeg_2, glib, openh264, openssl, pcre, zlib
 , libX11, libXcursor, libXdamage, libXext, libXi, libXinerama, libXrandr, libXrender, libXv
 , libxkbcommon, libxkbfile
 , wayland
@@ -39,7 +39,7 @@ stdenv.mkDerivation rec {
       });
 
   buildInputs = with lib; [
-    alsaLib cups ffmpeg_2 glib openssl pcre pcsclite libpulseaudio zlib
+    alsaLib cups ffmpeg_2 glib openh264 openssl pcre pcsclite libpulseaudio zlib
     gstreamer gst-plugins-base gst-plugins-good
     libX11 libXcursor libXdamage libXext libXi libXinerama libXrandr libXrender libXv
     libxkbcommon libxkbfile
