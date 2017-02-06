@@ -1,12 +1,12 @@
-{ fetchurl, stdenv, dpkg, xorg, alsaLib, makeWrapper, openssl, freetype
+{ fetchurl, stdenv, lib, dpkg, xorg, alsaLib, makeWrapper, openssl, freetype
 , glib, pango, cairo, atk, gdk_pixbuf, gtk2, cups, nspr, nss, libpng, GConf
-, libgcrypt, systemd, fontconfig, dbus, expat, ffmpeg_0_10, curl, zlib, gnome2 }:
+, libgcrypt, systemd, fontconfig, dbus, expat, ffmpeg, curl, zlib, gnome2 }:
 
 assert stdenv.system == "x86_64-linux";
 
 let
   # Please update the stable branch!
-  version = "1.0.47.13.gd8e05b1f-47";
+  version = "1.0.47.13.gd8e05b1f-89";
 
   deps = [
     alsaLib
@@ -16,7 +16,7 @@ let
     curl
     dbus
     expat
-    ffmpeg_0_10
+    ffmpeg
     fontconfig
     freetype
     GConf
@@ -51,7 +51,7 @@ stdenv.mkDerivation {
   src =
     fetchurl {
       url = "http://repository-origin.spotify.com/pool/non-free/s/spotify-client/spotify-client_${version}_amd64.deb";
-      sha256 = "0079vq2nw07795jyqrjv68sc0vqjy6abjh6jjd5cg3hqlxdf4ckz";
+      sha256 = "19jbqjyb4gahcr8c975n3zspfgzmx78bmzryq1x7x4r3sifi2q7n";
     };
 
   buildInputs = [ dpkg makeWrapper ];
@@ -84,13 +84,19 @@ stdenv.mkDerivation {
       rpath="$out/share/spotify:$libdir"
 
       patchelf \
-        --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        --set-rpath $rpath $out/share/spotify/spotify
+        --shrink-rpath \
+        $out/share/spotify/spotify
 
-      librarypath="${stdenv.lib.makeLibraryPath deps}:$libdir"
+      patchelf \
+        --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+        --set-rpath $rpath:${lib.makeLibraryPath deps} \
+        --force-rpath \
+        $out/share/spotify/spotify
+
+      # librarypath="${stdenv.lib.makeLibraryPath deps}:$libdir"
       wrapProgram $out/share/spotify/spotify \
-        --prefix LD_LIBRARY_PATH : "$librarypath" \
         --prefix PATH : "${gnome2.zenity}/bin"
+        # --prefix LD_LIBRARY_PATH : "$librarypath" \
 
       # Desktop file
       mkdir -p "$out/share/applications/"
@@ -110,10 +116,10 @@ stdenv.mkDerivation {
   dontStrip = true;
   dontPatchELF = true;
 
-  meta = {
+  meta = with stdenv.lib; {
     homepage = https://www.spotify.com/;
     description = "Play music from the Spotify music service";
-    license = stdenv.lib.licenses.unfree;
-    maintainers = with stdenv.lib.maintainers; [ eelco ftrvxmtrx sheenobu mudri ];
+    license = licenses.unfree;
+    maintainers = with maintainers; [ eelco ftrvxmtrx sheenobu mudri ];
   };
 }
