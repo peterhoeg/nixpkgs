@@ -1,20 +1,48 @@
-{ stdenv, fetchurl, pkgconfig, djvulibre, poppler, fontconfig, libjpeg }:
+{ stdenv, fetchurl, autoreconfHook, pkgconfig, makeWrapper
+, djvulibre, exiv2, fontconfig, graphicsmagick, libjpeg, poppler, libuuid
+, python2Packages }:
 
-stdenv.mkDerivation rec {
-  version = "0.9.5";
+let
+  fonts = ''
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+    <fontconfig></fontconfig>
+  '';
+
+in stdenv.mkDerivation rec {
   name = "pdf2djvu-${version}";
+  version = "0.9.5";
 
   src = fetchurl {
-    url = "https://github.com/jwilk/pdf2djvu/releases/download/${version}/${name}.tar.xz";
+    url    = "http://github.com/jwilk/pdf2djvu/releases/download/${version}/${name}.tar.xz";
     sha256 = "0fr8b44rsqll2m6qnh9id1lfc980k7rj3aq975mwba4y57rwnlnc";
   };
 
-  nativeBuildInputs = [ pkgconfig ];
+  doCheck = true;
 
-  buildInputs = [ djvulibre poppler fontconfig libjpeg ];
+  nativeBuildInputs = [ autoreconfHook makeWrapper pkgconfig ];
+
+  buildInputs = [ djvulibre graphicsmagick poppler exiv2 fontconfig libjpeg libuuid ]
+  ++ (with python2Packages; [ python nose ]);
 
   preConfigure = ''
-    sed -i 's#\$djvulibre_bin_path#${djvulibre.bin}/bin#g' configure
+    export FONTCONFIG_PATH=$out/etc/fonts
+
+    substituteInPlace configure configure.ac \
+      --replace '$djvulibre_bin_path' ${djvulibre.bin}/bin
+  '';
+
+  postInstall = ''
+    install -Dm644 ${fonts} $FONTCONFIG_PATH/fonts.conf
+  '';
+
+  fixupPhase = ''
+    wrapProgram $out/bin/pdf2djvu \
+      --suffix FONTCONFIG_PATH : $out/etc/fonts
+  '';
+
+  checkPhase = ''
+    make test
   '';
 
   meta = with stdenv.lib; {
