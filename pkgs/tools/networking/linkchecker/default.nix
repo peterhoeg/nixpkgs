@@ -1,11 +1,16 @@
 { stdenv, lib, fetchurl, python2Packages, gettext }:
 
-python2Packages.buildPythonApplication rec {
+with python2Packages;
+
+buildPythonApplication rec {
   name = "LinkChecker-${version}";
   version = "9.3";
 
-  buildInputs = with python2Packages ; [ pytest ];
-  propagatedBuildInputs = with python2Packages ; [ requests2 ] ++ [ gettext ];
+  buildInputs = [ pytest ];
+  propagatedBuildInputs = [
+    argparse requests2
+    gettext
+  ];
 
   src = fetchurl {
     url = "mirror://pypi/L/LinkChecker/${name}.tar.gz";
@@ -19,6 +24,7 @@ python2Packages.buildPythonApplication rec {
     ./no-version-check.patch
   ];
 
+  # GUI is broken: https://github.com/wummel/linkchecker/issues/619
   postInstall = ''
     rm $out/bin/linkchecker-gui
   '';
@@ -29,10 +35,11 @@ python2Packages.buildPythonApplication rec {
     make test PYTESTOPTS="--tb=short" TESTS="tests/test_*.py tests/logger/test_*.py"
   '';
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "Check websites for broken links";
-    homepage = "https://wummel.github.io/linkchecker/";
-    license = lib.licenses.gpl2;
-    maintainers = with lib.maintainers; [ peterhoeg ];
+    homepage = https://wummel.github.io/linkchecker/;
+    license = licenses.gpl2;
+    maintainers = with maintainers; [ peterhoeg ];
+    inherit version;
   };
 }
