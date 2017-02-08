@@ -15004,7 +15004,7 @@ with pkgs;
   bittorrentSync14 = callPackage ../applications/networking/bittorrentsync/1.4.x.nix { };
   bittorrentSync20 = callPackage ../applications/networking/bittorrentsync/2.0.x.nix { };
 
-  dropbox = qt55.callPackage ../applications/networking/dropbox { };
+  dropbox = qt5.callPackage ../applications/networking/dropbox { };
 
   dropbox-cli = callPackage ../applications/networking/dropbox-cli { };
 
@@ -15394,10 +15394,7 @@ with pkgs;
 
   neovim = callPackage ../applications/editors/neovim { };
 
-  neovim-qt = callPackage ../applications/editors/neovim/qt.nix {
-    qt5 = qt55;
-    libmsgpack = libmsgpack_1_4;
-  };
+  neovim-qt = callPackage ../applications/editors/neovim/qt.nix { };
 
   neovim-pygui = pythonPackages.neovim_gui;
 
