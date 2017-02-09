@@ -11049,6 +11049,8 @@ with pkgs;
 
   fusionio-util = callPackage ../os-specific/linux/fusionio/util.nix { };
 
+  fwupd = callPackage ../os-specific/linux/fwupd { };
+
   fxload = callPackage ../os-specific/linux/fxload { };
 
   gfxtablet = callPackage ../os-specific/linux/gfxtablet {};
