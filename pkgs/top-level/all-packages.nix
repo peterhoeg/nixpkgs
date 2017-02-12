@@ -2434,6 +2434,9 @@ with pkgs;
 
   kronometer = qt5.callPackage ../tools/misc/kronometer { };
 
+  kdepartitionmanager = qt5.callPackage ../tools/filesystems/kdepartitionmanager { };
+  kpmcore = qt5.callPackage ../tools/filesystems/kpmcore { };
+
   kdiff3-qt5 = qt5.callPackage ../tools/text/kdiff3/kde5.nix { };
 
   peruse = qt5.callPackage ../tools/misc/peruse { };
