@@ -1,24 +1,33 @@
-{ stdenv, fetchurl, openssl, pkgconfig
-, withPerl ? false, perl
-, withPython ? false, python3
+{ stdenv, fetchFromGitHub, autoconf, automake, doxygen, pkgconfig, libiconv, openssl, swig, zlib, which
+, withIcu ? false, icu
+, withPerl ? true, perl
+, withPython ? true, python3
 , withTcl ? false, tcl
 , withCyrus ? true, cyrus_sasl
 }:
 
 with stdenv.lib;
 stdenv.mkDerivation rec {
-  name = "znc-1.6.3";
+  name = "znc-${version}";
+  version = "1.6.4";
 
-  src = fetchurl {
-    url = "http://znc.in/releases/${name}.tar.gz";
-    sha256 = "09xqi5fs40x6nj9gq99bnw1a7saq96bvqxknxx0ilq7yfvg4c733";
+  src = fetchFromGitHub {
+    owner = "znc";
+    repo = "znc";
+    rev = "znc-${version}";
+    sha256 = "1gnh4qk3qhpw6q419g8rnn35hkm7c2m14fkmwf1g13b42i7h1hwl";
   };
 
-  buildInputs = [ openssl pkgconfig ]
-    ++ optional withPerl perl
-    ++ optional withPython python3
+  buildInputs = [ openssl zlib ]
+    ++ optional withIcu icu
     ++ optional withTcl tcl
-    ++ optional withCyrus cyrus_sasl;
+    ++ optional withCyrus cyrus_sasl
+    ++ optionals withPerl [ swig perl ]
+    ++ optionals withPython [ swig python3 ];
+
+  nativeBuildInputs = [ autoconf automake doxygen pkgconfig which ];
+
+  preConfigure = "./autogen.sh";
 
   configureFlags = optionalString withPerl "--enable-perl "
     + optionalString withPython "--enable-python "
