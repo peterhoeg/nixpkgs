@@ -1,7 +1,7 @@
-{ stdenv, fetchFromGitHub, autoconf, automake, doxygen, pkgconfig, libiconv, openssl, swig, zlib, which
+{ stdenv, fetchgit, autoconf, automake, doxygen, pkgconfig, libiconv, openssl, swig, zlib, which
 , withIcu ? false, icu
-, withPerl ? true, perl
-, withPython ? true, python3
+, withPerl ? false, perl
+, withPython ? false, python3
 , withTcl ? false, tcl
 , withCyrus ? true, cyrus_sasl
 }:
@@ -11,7 +11,7 @@ stdenv.mkDerivation rec {
   name = "znc-${version}";
   version = "1.6.4";
 
-  src = fetchFromGitHub {
+  src = fetchgit {
     owner = "znc";
     repo = "znc";
     rev = "znc-${version}";
