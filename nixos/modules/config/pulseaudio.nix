@@ -246,6 +246,8 @@ in {
           environment = { DISPLAY = ":${toString config.services.xserver.display}"; };
           restartIfChanged = true;
         };
+
+        sockets.pulseaudio.wantedBy = [ "sockets.target" ];
       };
     })
 
