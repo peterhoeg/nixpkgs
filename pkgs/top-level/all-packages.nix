@@ -3808,6 +3808,8 @@ with pkgs;
 
   siege = callPackage ../tools/networking/siege {};
 
+  curl-loader = callPackage ../tools/networking/curl-loader {};
+
   sigil = qt55.callPackage ../applications/editors/sigil { };
 
   # aka., gpg-tools
