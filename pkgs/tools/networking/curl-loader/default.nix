@@ -3,6 +3,10 @@
 let
   pname = "curl-loader";
 
+  my_cares = stdenv.mkDerivation {
+    name = "c-areas-1.75";
+  };
+
 in stdenv.mkDerivation rec {
   name = "${pname}-${version}";
   version = "0.56";
@@ -12,24 +16,22 @@ in stdenv.mkDerivation rec {
     sha256 = "0915jibf2k10afrza72625nsxvqa2rp1vyndv1cy7138mjijn4f2";
   };
 
-  buildInputs = [ c-ares curl libevent openssl zlib ];
+  buildInputs = [ libevent openssl zlib ];
 
   preConfigure = ''
     patchShebangs .
-    # rm -rf packages/{c-ares,libevent}*
-    rm -rf packages
-    mkdir -p build
-    ln -s ${c-ares.out}   build/c-ares
-    # ln -s ${curl.out}     build/curl
-    ln -s ${libevent.out} build/libevent
 
-    sed -i Makefile -e 's,$(TARGET): $(LIBCARES) $(LIBCURL) $(LIBEVENT),$(TARGET): ,'
+    rm -rf packages/libevent*
+
+    sed -i Makefile -e 's,$(TARGET): $(LIBCARES) $(LIBCURL) $(LIBEVENT,$(TARGET): $(LIBCARES) $(LIBCURL),'
   '';
 
-  configureFlags = [
-    "--with-ssl=${openssl.dev}"
+  makeFlags = [ "PREFIX=$(out)"];
+
+  #configureFlags = [
+    #"--with-ssl=${openssl.dev}"
     # "--with-zlib=${zlib.dev}"
-  ];
+  #];
 
   meta = with stdenv.lib; {
     description = "HTTP load tester";
