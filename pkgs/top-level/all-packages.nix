@@ -17749,6 +17749,8 @@ with pkgs;
 
   nixui = callPackage ../tools/package-management/nixui { node_webkit = nwjs_0_12; };
 
+  nix-upgrade-scripts = callPackages ../tools/package-management/nix-upgrade-scripts { };
+
   inherit (callPackages ../tools/package-management/nix-prefetch-scripts { })
     nix-prefetch-bzr
     nix-prefetch-cvs
