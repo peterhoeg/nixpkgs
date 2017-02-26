@@ -3,16 +3,16 @@
 
 buildGoPackage rec {
   name = "docker-machine-kvm-${version}";
-  version = "0.7.0";
+  version = "0.8.2";
 
   goPackagePath = "github.com/dhiltgen/docker-machine-kvm";
   goDeps = ./kvm-deps.nix;
 
   src = fetchFromGitHub {
-    rev = "v${version}";
-    owner = "dhiltgen";
-    repo = "docker-machine-kvm";
-    sha256 = "0zkwwkx74vsfd7v38y9sidi759mhdcpm4409l9y4cx0wmkpavlv6";
+    rev    = "v${version}";
+    owner  = "dhiltgen";
+    repo   = "docker-machine-kvm";
+    sha256 = "1p7s340wlcjvna3xa2x13nsnixfhbn5b7dhf9cqvxds2slizlm3p";
   };
 
   buildInputs = [ libvirt ];
