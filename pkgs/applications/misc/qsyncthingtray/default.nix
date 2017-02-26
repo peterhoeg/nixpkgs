@@ -1,6 +1,7 @@
-{ stdenv, fetchFromGitHub
-, qtbase, qtwebengine
-, qmakeHook }:
+{ stdenv, lib, fetchFromGitHub, procps
+, qtbase, qtwebengine, qtwebkit
+, cmake, makeQtWrapper
+, preferQWebView ? false }:
 
 stdenv.mkDerivation rec {
   version = "0.5.7";
@@ -13,13 +14,22 @@ stdenv.mkDerivation rec {
     sha256 = "0crrdpdmlc4ahkvp5znzc4zhfwsdih655q1kfjf0g231mmynxhvq";
   };
 
-  buildInputs = [ qtbase qtwebengine ];
-  nativeBuildInputs = [ qmakeHook ];
+  buildInputs = [ qtbase qtwebengine ] ++ lib.optional preferQWebView qtwebkit;
+  nativeBuildInputs = [ cmake makeQtWrapper ];
   enableParallelBuilding = true;
   
-  postInstall = ''
+  cmakeFlags = []
+  ++ lib.optional preferQWebView "-DQST_BUILD_WEBKIT=1";
+
+  installPhase = let qst = "qsyncthingtray"; in ''
     mkdir -p $out/bin
-    cp binary/QSyncthingTray $out/bin
+    install -m755 QSyncthingTray $out/bin/${qst}
+    ln -s $out/bin/${qst} $out/bin/QSyncthingTray
+
+    wrapQtProgram $out/bin/${qst} \
+      ${lib.optionalString stdenv.isLinux ''
+      --prefix PATH : ${procps}/bin
+      ''}
   '';
 
   meta = with stdenv.lib; {
@@ -31,7 +41,7 @@ stdenv.mkDerivation rec {
         Written in C++ with Qt.
     '';
     license = licenses.lgpl3;
-    maintainers = with maintainers; [ zraexy ];
+    maintainers = with maintainers; [ zraexy peterhoeg ];
     platforms = platforms.all;
   };
 }
