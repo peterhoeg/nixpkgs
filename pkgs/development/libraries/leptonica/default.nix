@@ -1,20 +1,25 @@
-{stdenv, fetchurl, libpng, libtiff, libjpeg, zlib}:
+{ stdenv, fetchFromGitHub, cmake, pkgconfig
+, libpng, libtiff, libjpeg, libwebp, zlib }:
 
-stdenv.mkDerivation {
-  name = "leptonica-1.72";
+stdenv.mkDerivation rec {
+  name = "leptonica-${version}";
+  version = "1.74.1";
 
-  src = fetchurl {
-    url = http://www.leptonica.org/source/leptonica-1.72.tar.gz;
-    sha256 = "0mhzvqs0im04y1cpcc1yma70hgdac1frf33h73m9z3356bfymmbr";
+  src = fetchFromGitHub {
+    owner  = "DanBloomberg";
+    repo   = "leptonica";
+    rev    = version;
+    sha256 = "1a3kd34cgwssxlyjc4n4wb4xkjxjxknmvnzlcvcipwzsdrmclda8";
   };
 
-  buildInputs = [ libpng libtiff libjpeg zlib ];
+  buildInputs = [ libpng libtiff libjpeg libwebp zlib ];
+  nativeBuildInputs = [ cmake pkgconfig ];
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "Image processing and analysis library";
     homepage = http://www.leptonica.org/;
     # Its own license: http://www.leptonica.org/about-the-license.html
-    license = stdenv.lib.licenses.free;
-    platforms = stdenv.lib.platforms.unix;
+    license = licenses.free;
+    platforms = platforms.unix;
   };
 }
