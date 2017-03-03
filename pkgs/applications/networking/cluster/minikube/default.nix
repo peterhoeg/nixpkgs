@@ -5,15 +5,14 @@ let
          then "linux-amd64"
          else "darwin-amd64";
   checksum = if stdenv.isLinux
-             then "0nd614bzk3rx15ywfx6qknqr6zn24b2d8vfgjks29wy2m4w38v88"
-             else "08csl2abydzsj1qqs47yldj7pi2x94lxzp71cdaqqlzzv7wb8byi";
-
+             then "0njx4vzr0cpr3dba08w0jrlpfb8qrmxq5lqfrk3qrx29x5y6i6hi"
+             else "0i21m1pys6rdxcwsk987l08lhzpcbg4bdrznaam02g6jj6jxvq0x";
 
 # TODO: compile from source
 
 in stdenv.mkDerivation rec {
   pname = "minikube";
-  version = "0.17.0";
+  version = "0.16.0";
   name = "${pname}-${version}";
 
   src = fetchurl {
