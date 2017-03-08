@@ -13235,6 +13235,8 @@ with pkgs;
 
   firmwareLinuxNonfree = callPackage ../os-specific/linux/firmware/firmware-linux-nonfree { };
 
+  firmwareLinuxNvidia = callPackage ../os-specific/linux/firmware/nvidia { };
+
   radeontools = callPackage ../os-specific/linux/radeontools { };
 
   radeontop = callPackage ../os-specific/linux/radeontop { };
