@@ -14304,7 +14304,8 @@ with pkgs;
   lxdvdrip = callPackage ../applications/video/lxdvdrip { };
 
   handbrake = callPackage ../applications/video/handbrake {
-    ffmpeg = ffmpeg_2;
+    # TODO: remove when 3.2 becomes default
+    ffmpeg = ffmpeg_3_2;
   };
 
   lilyterm = callPackage ../applications/misc/lilyterm {
