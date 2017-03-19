@@ -1012,6 +1012,8 @@ with pkgs;
 
   mongodb-tools = callPackage ../tools/misc/mongodb-tools { };
 
+  msr-tools = callPackage ../os-specific/linux/msr-tools { };
+
   mstflint = callPackage ../tools/misc/mstflint { };
 
   mcelog = callPackage ../os-specific/linux/mcelog {
