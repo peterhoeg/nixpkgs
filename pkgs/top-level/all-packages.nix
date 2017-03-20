@@ -13065,6 +13065,8 @@ with pkgs;
   dmtx-utils = callPackage (callPackage ../tools/graphics/dmtx-utils) {
   };
 
+  do-agent = callPackage ../applications/virtualization/do-agent { };
+
   docker = callPackage ../applications/virtualization/docker { };
   docker-proxy = callPackage ../applications/virtualization/docker/proxy.nix { };
 
