@@ -1,36 +1,44 @@
-{ stdenv, fetchFromGitHub, libarchive, pkgconfig, qtbase
-, qtimageformats, qtwebkit, qtx11extras, xcbutilkeysyms, qmakeHook }:
+{ stdenv, fetchFromGitHub, cmake, extra-cmake-modules, pkgconfig
+, libarchive, libpthreadstubs, xorg ? null
+, qtbase, qtimageformats, qtwebkit, qtx11extras, makeQtWrapper }:
 
-stdenv.mkDerivation rec {
-  version = "0.3.1";
+let
+  withX = stdenv.isLinux;
+
+in stdenv.mkDerivation rec {
   name = "zeal-${version}";
+  version = "0.3.1.1";
 
   src = fetchFromGitHub {
-    owner = "zealdocs";
-    repo = "zeal";
-    rev = "v${version}";
-    sha256 = "14ld7zm15677jdlasnfa6c42kiswd4d6yg1db50xbk2yflzzwqqa";
+    owner  = "zealdocs";
+    repo   = "zeal";
+    # rev    = "v${version}";
+    rev    = "c6003e19b93cf45ba96d06b2e7b68efe88c501a3";
+    sha256 = "04q1m9ckqs8l6kha95cv8013wfqyi0p16c7dx0gkglpm18azadb7";
   };
 
   buildInputs = [
-    xcbutilkeysyms pkgconfig qtbase qtimageformats qtwebkit qtx11extras libarchive qmakeHook
-  ];
+    libarchive libpthreadstubs
+    qtbase qtimageformats qtwebkit qtx11extras
+  ] ++ stdenv.lib.optionals withX (with xorg; [ xcbutilkeysyms libXdmcp ]);
 
-  qmakeFlags = [ "PREFIX=/" ];
-
-  installFlags = [ "INSTALL_ROOT=$(out)" ];
+  nativeBuildInputs = [ cmake extra-cmake-modules makeQtWrapper pkgconfig ];
 
   enableParallelBuilding = true;
 
-  meta = {
+  postFixup = ''
+    wrapQtProgram $out/bin/zeal
+  '';
+
+  meta = with stdenv.lib; {
     description = "A simple offline API documentation browser";
     longDescription = ''
       Zeal is a simple offline API documentation browser inspired by Dash (OS X
-      app), available for Linux and Windows.
+      app), available for Linux, xBSD and Windows.
     '';
-    homepage = "http://zealdocs.org/";
-    license = stdenv.lib.licenses.gpl3;
-    platforms = stdenv.lib.platforms.linux;
-    maintainers = with stdenv.lib.maintainers; [ skeidel ];
+    homepage = http://zealdocs.org/;
+    license = licenses.gpl3;
+    platforms = platforms.unix;
+    maintainers = with maintainers; [ skeidel peterhoeg ];
   };
 }
