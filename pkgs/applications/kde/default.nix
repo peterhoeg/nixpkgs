@@ -53,6 +53,7 @@ let
       akonadi-contacts = callPackage ./akonadi-contacts.nix {};
       akonadi-mime = callPackage ./akonadi-mime.nix {};
       ark = callPackage ./ark/default.nix {};
+      audiocd-kio = callPackage ./audiocd-kio.nix {};
       baloo-widgets = callPackage ./baloo-widgets.nix {};
       dolphin = callPackage ./dolphin.nix {};
       dolphin-plugins = callPackage ./dolphin-plugins.nix {};
@@ -77,6 +78,8 @@ let
       kompare = callPackage ./kompare.nix {};
       konsole = callPackage ./konsole.nix {};
       kwalletmanager = callPackage ./kwalletmanager.nix {};
+      libkcddb = callPackage ./libkcddb.nix {};
+      libkcompactdisc = callPackage ./libkcompactdisc.nix {};
       libkdcraw = callPackage ./libkdcraw.nix {};
       libkexiv2 = callPackage ./libkexiv2.nix {};
       libkipi = callPackage ./libkipi.nix {};

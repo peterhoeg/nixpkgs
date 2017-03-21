@@ -2470,6 +2470,8 @@ with pkgs;
 
   krename = libsForQt5.callPackage ../applications/misc/krename { };
 
+  kaudiocreator = libsForQt5.callPackage ../tools/audio/kaudiocreator { };
+
   kronometer = libsForQt5.callPackage ../tools/misc/kronometer { };
 
   kdiff3 = libsForQt5.callPackage ../tools/text/kdiff3 { };
@@ -9388,7 +9390,7 @@ with pkgs;
     ### KDE APPLICATIONS
 
     inherit (kdeApplications.override { libsForQt5 = self; })
-      libkdcraw libkexiv2 libkipi libkomparediff2;
+      audiocd-kio libkdcraw libkexiv2 libkipi libkomparediff2;
 
     ### LIBRARIES
 
@@ -14112,7 +14114,7 @@ with pkgs;
 
   inherit (kdeApplications)
     akonadi ark dolphin ffmpegthumbs filelight gwenview kate
-    kdenlive kcalc kcolorchooser kcontacts kgpg khelpcenter kig konsole marble
+    kdenlive kcalc kcolorchooser kcontacts kgpg khelpcenter kig konsole libkcompactdisc marble
     okteta okular spectacle;
 
   kdeconnect = libsForQt5.callPackage ../applications/misc/kdeconnect { };
