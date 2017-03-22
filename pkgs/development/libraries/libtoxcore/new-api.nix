@@ -48,7 +48,7 @@ stdenv.mkDerivation rec {
   doCheck = false;
 
   meta = with stdenv.lib; {
-    description = "P2P FOSS instant messaging application aimed to replace Skype with crypto";
+    description = "P2P FOSS instant messaging application aimed to replace Skype with crypto - deprecated";
     license = licenses.gpl3Plus;
     maintainers = with maintainers; [ viric jgeerds ];
     platforms = platforms.all;
