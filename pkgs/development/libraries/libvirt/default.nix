@@ -1,6 +1,6 @@
 { stdenv, fetchurl, fetchpatch
 , pkgconfig, makeWrapper
-, libxml2, gnutls, devicemapper, perl, python2
+, dbus, libxml2, gnutls, devicemapper, perl, python2, polkit
 , iproute, iptables, readline, lvm2, utillinux, systemd, libpciaccess, gettext
 , libtasn1, ebtables, libgcrypt, yajl, pmutils, libcap_ng
 , dnsmasq, libnl, libpcap, libxslt, xhtml1, numad, numactl, perlPackages
@@ -9,19 +9,19 @@
 # if you update, also bump pythonPackages.libvirt or it will break
 stdenv.mkDerivation rec {
   name = "libvirt-${version}";
-  version = "3.0.0";
+  version = "3.1.0";
 
   src = fetchurl {
     url = "http://libvirt.org/sources/${name}.tar.xz";
-    sha256 = "0php6wxjcilpir0miwg06yd2ha25zi9fv2apvvgv5c8k1svjd7cx";
+    sha256 = "1a9j6yqfy7i5yv414wk6nv26a5bpfyyg0rpcps6ybi6a1yd04ybq";
   };
 
   patches = [ ./build-on-bsd.patch ];
 
   nativeBuildInputs = [ makeWrapper pkgconfig ];
   buildInputs = [
-    libxml2 gnutls perl python2 readline
-    gettext libtasn1 libgcrypt yajl
+    dbus libxml2 gnutls perl python2 readline
+    gettext libtasn1 libgcrypt yajl polkit
     libxslt xhtml1 perlPackages.XMLXPath curl libpcap
   ] ++ stdenv.lib.optionals stdenv.isLinux [
     libpciaccess devicemapper lvm2 utillinux systemd libcap_ng
@@ -42,18 +42,21 @@ stdenv.mkDerivation rec {
   configureFlags = [
     "--localstatedir=/var"
     "--sysconfdir=/var/lib"
-    "--with-libpcap"
-    "--with-vmware"
-    "--with-vbox"
-    "--with-test"
     "--with-esx"
+    "--with-libpcap"
     "--with-remote"
+    "--with-test"
+    "--with-vbox"
+    "--with-vmware"
   ] ++ stdenv.lib.optionals stdenv.isLinux [
+    "--with-init-script=systemd"
     "--with-numad"
     "--with-macvtap"
-    "--with-virtualport"
-    "--with-init-script=redhat"
+    "--with-storage-lvm"
     "--with-storage-zfs"
+    "--with-lxc"
+    "--with-virtualport"
+    "--without-hal"
   ] ++ stdenv.lib.optionals stdenv.isDarwin [
     "--with-init-script=none"
   ];
