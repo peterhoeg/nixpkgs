@@ -15,6 +15,8 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ makeQtWrapper qmakeHook ];
 
+  doCheck = true;
+
   preConfigure = ''
     qmakeFlags="$qmakeFlags CONFIG+=release DESTDIR=$out"
   '';
@@ -29,16 +31,14 @@ stdenv.mkDerivation rec {
 
   postInstall = ''
     wrapQtProgram $out/bin/qtpass \
-      --suffix PATH : ${git}/bin \
-      --suffix PATH : ${gnupg}/bin \
-      --suffix PATH : ${pass}/bin
+      --suffix PATH : ${stdenv.lib.makeBinPath [ git gnupg pass ]}
   '';
 
   meta = with stdenv.lib; {
     description = "A multi-platform GUI for pass, the standard unix password manager";
     homepage = https://qtpass.org;
     license = licenses.gpl3;
-    maintainers = [ maintainers.hrdinka ];
+    maintainers = with maintainers; [ hrdinka ];
     platforms = platforms.all;
   };
 }
