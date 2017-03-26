@@ -1,5 +1,5 @@
 { lib, fetchurl, buildPythonPackage
-, six, systemd
+, docutils, hypothesis, mock, pytest, six, systemd
 }:
 
 buildPythonPackage rec {
@@ -17,6 +17,7 @@ buildPythonPackage rec {
     '';
 
   propagatedBuildInputs = [ systemd six ];
+  checkInputs = [ docutils hypothesis mock pytest ];
 
   meta = {
     homepage = "http://pyudev.readthedocs.org/";
