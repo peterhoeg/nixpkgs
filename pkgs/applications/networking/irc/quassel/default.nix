@@ -17,6 +17,7 @@
 , ktextwidgets
 , kwidgetsaddons
 , kxmlgui
+, snorenotify
 }:
 
 let
@@ -44,15 +45,15 @@ in with stdenv; mkDerivation rec {
   # Prevent ``undefined reference to `qt_version_tag''' in SSL check
   NIX_CFLAGS_COMPILE = [ "-DQT_NO_VERSION_TAGGING=1" ];
 
-  buildInputs =
-       [ cmake makeWrapper qtbase ]
-    ++ lib.optionals buildCore [qtscript qca-qt5]
-    ++ lib.optionals buildClient [libdbusmenu phonon]
+  buildInputs = [ qtbase snorenotify ]
+    ++ lib.optionals buildCore [ qtscript qca-qt5 ]
+    ++ lib.optionals buildClient [ libdbusmenu phonon ]
     ++ lib.optionals (buildClient && withKDE) [
       extra-cmake-modules kconfigwidgets kcoreaddons
       knotifications knotifyconfig ktextwidgets kwidgetsaddons
       kxmlgui
     ];
+  nativeBuildInputs = [ cmake makeWrapper ];
 
   cmakeFlags = [
     "-DEMBED_DATA=OFF"
@@ -80,7 +81,7 @@ in with stdenv; mkDerivation rec {
       combination of screen and a text-based IRC client such
       as WeeChat, but graphical (based on Qt4/KDE4 or Qt5/KF5).
     '';
-    license = stdenv.lib.licenses.gpl3;
+    license = licenses.gpl3;
     maintainers = with maintainers; [ phreedom ttuegel ];
     repositories.git = https://github.com/quassel/quassel.git;
     inherit (qtbase.meta) platforms;
