@@ -741,7 +741,7 @@ with pkgs;
   catclock = callPackage ../applications/misc/catclock { };
 
   cde = callPackage ../tools/package-management/cde { };
-  
+
   cdemu-daemon = callPackage ../misc/emulators/cdemu/daemon.nix { };
 
   cdemu-client = callPackage ../misc/emulators/cdemu/client.nix { };
@@ -3956,6 +3956,8 @@ with pkgs;
   };
 
   snort = callPackage ../applications/networking/ids/snort { };
+
+  snorenotify = libsForQt5.callPackage ../development/libraries/snorenotify { };
 
   softhsm = callPackage ../tools/security/softhsm { };
 
