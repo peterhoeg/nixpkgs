@@ -1,21 +1,21 @@
-{ stdenv, fetchurl, unzip
+{ stdenv, fetchurl
 , qt4 ? null, qmake4Hook ? null
 , withQt5 ? false, qtbase ? null, qmakeHook ? null
 }:
 
 stdenv.mkDerivation rec {
   pname = "qscintilla";
-  version = "2.9.4";
+  version = "2.10";
 
   name = "${pname}-${if withQt5 then "qt5" else "qt4"}-${version}";
 
   src = fetchurl {
-    url = "mirror://sourceforge/pyqt/QScintilla2/QScintilla-${version}/QScintilla_gpl-${version}.zip";
+    url = "mirror://sourceforge/pyqt/QScintilla2/QScintilla-${version}/QScintilla_gpl-${version}.tar.gz";
     sha256 = "04678skipydx68zf52vznsfmll2v9aahr66g50lcqbr6xsmgr1yi";
   };
 
   buildInputs = if withQt5 then [ qtbase ] else [ qt4 ];
-  nativeBuildInputs = [ unzip ] ++ (if withQt5 then [ qmakeHook ] else [ qmake4Hook ]);
+  nativeBuildInputs = [ (if withQt5 then qmakeHook else qmake4Hook) ];
 
   enableParallelBuilding = true;
 
