@@ -741,7 +741,7 @@ with pkgs;
   catclock = callPackage ../applications/misc/catclock { };
 
   cde = callPackage ../tools/package-management/cde { };
-  
+
   cdemu-daemon = callPackage ../misc/emulators/cdemu/daemon.nix { };
 
   cdemu-client = callPackage ../misc/emulators/cdemu/client.nix { };
@@ -4565,6 +4565,10 @@ with pkgs;
   wicd = callPackage ../tools/networking/wicd { };
 
   wipe = callPackage ../tools/security/wipe { };
+
+  withexeditorhost = callPackage ../tools/misc/withexeditorhost {
+    nodejs = nodejs-7_x;
+  };
 
   wkhtmltopdf = callPackage ../tools/graphics/wkhtmltopdf {
     overrideDerivation = lib.overrideDerivation;
