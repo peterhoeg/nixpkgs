@@ -196,27 +196,27 @@ in {
     };
   };
 
-  ruby_2_2_5 = generic {
+  ruby_2_2_7 = generic {
     version = rubyVersion "2" "2" "5" "";
     sha256 = {
       src = "1qrmlcyc0cy9hgafb1wny2h90rjyyh6d72nvr2h4xjm4jwbb7i1h";
-      git = "0k0av6ypyq08c9axm721f0xi2bcp1443l7ydbxv4v8x4vsxdkmq2";
+      git = "111av6ypyq08c9axm721f0xi2bcp1443l7ydbxv4v8x4vsxdkmq2";
     };
   };
 
-  ruby_2_3_3 = generic {
+  ruby_2_3_4 = generic {
     version = rubyVersion "2" "3" "3" "";
     sha256 = {
       src = "1dqmh42p6siv9aqzdjldsnhljj3f2h30m0v8cf25icjmqp40h514";
-      git = "0cwjf0nrzaa5g81bw0qp65byyadhxvbnvprkshv3ckjl7yi46zf6";
+      git = "0c1110nrzaa5g81bw0qp65byyadhxvbnvprkshv3ckjl7yi46zf6";
     };
   };
 
-  ruby_2_4_0 = generic {
+  ruby_2_4_1 = generic {
     version = rubyVersion "2" "4" "0" "";
     sha256 = {
       src = "0gcyn9328w2vma882l71c9v9ygmmsj2z8j1l44c4l2x92nyx0bqm";
-      git = "1w9zyx8xmka8jdiha57snnbfls2r6dc9g03d8cjx0nxkmwf3r2l3";
+      git = "1w9z111xmka8jdiha57snnbfls2r6dc9g03d8cjx0nxkmwf3r2l3";
     };
   };
 }
