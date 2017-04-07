@@ -12022,6 +12022,8 @@ with pkgs;
 
     pktgen = callPackage ../os-specific/linux/pktgen { };
 
+    hyperv-daemons = callPackage ../os-specific/linux/hyperv-daemons { };
+
     odp-dpdk = callPackage ../os-specific/linux/odp-dpdk { };
 
     ofp = callPackage ../os-specific/linux/ofp { };
