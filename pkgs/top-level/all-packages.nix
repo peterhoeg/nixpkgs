@@ -15121,6 +15121,8 @@ with pkgs;
     inherit (darwin.stubs) rez setfile;
   };
 
+  qemu-osx = callPackage ../applications/virtualization/qemu-osx { };
+
   qgis = callPackage ../applications/gis/qgis {};
 
   qgroundcontrol = libsForQt56.callPackage ../applications/science/robotics/qgroundcontrol { };

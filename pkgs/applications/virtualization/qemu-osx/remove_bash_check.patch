@@ -1,0 +1,15 @@
+diff --git a/create_install_iso.sh b/create_install_iso.sh
+index 674aa66..95b52e2 100755
+--- a/create_install_iso.sh
++++ b/create_install_iso.sh
+@@ -35,10 +35,6 @@ cd "$work_dir"
+ save_IFS="$IFS" || exit 127
+ export LANG='en_US.UTF-8' || exit 127 # prevent localization of output, not really required
+ 
+-[[ `ps -o comm -p $$ | tail -n1 2>/dev/null` =~ bash$ ]] || {
+-	echo "Script is designed to be run only with bash"
+-	exit 127
+-}
+ [[ "$(uname -s)" == Darwin ]] || {
+ 	echo "Script can be run only on Mac OS X"
+ 	exit 127
