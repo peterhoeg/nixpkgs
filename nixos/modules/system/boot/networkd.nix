@@ -8,6 +8,8 @@ let
 
   cfg = config.systemd.network;
 
+  waitOnline = config.networking.waitForOnline;
+
   checkLink = checkUnitConfig "Link" [
     (assertOnlyFields [
       "Description" "Alias" "MACAddressPolicy" "MACAddress" "NamePolicy" "Name" "OriginalName"
@@ -1178,10 +1180,9 @@ in
       users.users.systemd-network.group = "systemd-network";
 
       systemd.additionalUpstreamSystemUnits = [
-        "systemd-networkd-wait-online.service"
         "systemd-networkd.service"
         "systemd-networkd.socket"
-      ];
+      ] ++ optional waitOnline "systemd-networkd-wait-online.service";
 
       systemd.network.units = mapAttrs' (n: v: nameValuePair "${n}.netdev" (netdevToUnit n v)) cfg.netdevs
         // mapAttrs' (n: v: nameValuePair "${n}.network" (networkToUnit n v)) cfg.networks;
@@ -1201,7 +1202,7 @@ in
       };
 
       systemd.services.systemd-networkd-wait-online = {
-        wantedBy = [ "network-online.target" ];
+        wantedBy = lib.optional waitOnline "network-online.target";
       };
 
       systemd.services."systemd-network-wait-online@" = {
