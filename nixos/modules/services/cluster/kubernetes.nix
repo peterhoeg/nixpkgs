@@ -66,7 +66,7 @@ in {
         Kubernetes role that this machine should take.
 
         Master role will enable etcd, apiserver, scheduler and controller manager
-        services. Node role will enable etcd, docker, kubelet and proxy services.
+        services. Node role will enable etcd, docker/rkt, kubelet and proxy services.
       '';
       default = [];
       type = types.listOf (types.enum ["master" "node"]);
@@ -77,6 +77,12 @@ in {
       type = types.package;
       default = pkgs.kubernetes;
       defaultText = "pkgs.kubernetes";
+    };
+
+    runtime = mkOption {
+      description = "Container runtime to use (rkt or docker)";
+      type = types.enum [ "rkt" "docker" ];
+      default = "docker";
     };
 
     verbose = mkOption {
@@ -598,10 +604,15 @@ in {
       systemd.services.kubelet = {
         description = "Kubernetes Kubelet Service";
         wantedBy = [ "kubernetes.target" ];
-        after = [ "network.target" "docker.service" "kube-apiserver.service" ];
-        path = with pkgs; [ gitMinimal openssh docker utillinux iproute ethtool thin-provisioning-tools iptables ];
+        after = [ "network.target" "${cfg.runtime}.service" "kube-apiserver.service" ];
+        path = with pkgs; [
+          gitMinimal openssh utillinux iproute ethtool thin-provisioning-tools iptables
+        ] ++ optional (cfg.runtime == "docker") docker
+          ++ optional (cfg.runtime == "rkt") rkt;
         preStart = ''
+          ${lib.optionalString (cfg.runtime == "docker") ''
           docker load < ${infraContainer}
+          ''}
           rm /opt/cni/bin/* || true
           ${concatMapStringsSep "\n" (p: "ln -fs ${p.plugins}/* /opt/cni/bin") cfg.kubelet.cni.packages}
         '';
@@ -615,6 +626,10 @@ in {
             --port=${toString cfg.kubelet.port} \
             --register-node=${boolToString cfg.kubelet.registerNode} \
             --register-schedulable=${boolToString cfg.kubelet.registerSchedulable} \
+            ${optionalString (cfg.runtime == "rkt") ''
+              --container-runtime=${cfg.runtime} \
+              --rkt-api-endpoint=127.0.0.1:2375 \
+              --rkt-path=${getBin pkgs.rkt}/bin/rkt''} \
             ${optionalString (cfg.kubelet.tlsCertFile != null)
               "--tls-cert-file=${cfg.kubelet.tlsCertFile}"} \
             ${optionalString (cfg.kubelet.tlsKeyFile != null)
@@ -657,7 +672,7 @@ in {
       systemd.services.kube-apiserver = {
         description = "Kubernetes Kubelet Service";
         wantedBy = [ "kubernetes.target" ];
-        after = [ "network.target" "docker.service" ];
+        after = [ "network.target" "${cfg.runtime}.service" ];
         serviceConfig = {
           Slice = "kubernetes.slice";
           ExecStart = ''${cfg.package}/bin/kube-apiserver \
@@ -817,7 +832,8 @@ in {
     })
 
     (mkIf (any (el: el == "master") cfg.roles) {
-      virtualisation.docker.enable = mkDefault true;
+      virtualisation.docker.enable = mkDefault (cfg.runtime == "docker");
+      virtualisation.rkt.enable = mkDefault (cfg.runtime == "rkt");
       services.kubernetes.kubelet.enable = mkDefault true;
       services.kubernetes.kubelet.allowPrivileged = mkDefault true;
       services.kubernetes.apiserver.enable = mkDefault true;
@@ -827,7 +843,8 @@ in {
     })
 
     (mkIf (any (el: el == "node") cfg.roles) {
-      virtualisation.docker.enable = mkDefault true;
+      virtualisation.docker.enable = mkDefault (cfg.runtime == "docker");
+      virtualisation.rkt.enable = mkDefault (cfg.runtime == "rkt");
       virtualisation.docker.logDriver = mkDefault "json-file";
       services.kubernetes.kubelet.enable = mkDefault true;
       services.kubernetes.proxy.enable = mkDefault true;
