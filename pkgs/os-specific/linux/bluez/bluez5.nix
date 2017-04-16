@@ -5,23 +5,25 @@
 assert stdenv.isLinux;
 
 stdenv.mkDerivation rec {
-  name = "bluez-5.43";
+  name = "bluez-5.44";
 
   src = fetchurl {
     url = "mirror://kernel/linux/bluetooth/${name}.tar.xz";
-    sha256 = "05cdnpz0w2lwq2x5ba87q1h2wgb4lfnpbnbh6p7499hx59fw1j8n";
+    sha256 = "11bc6pndivd0rkqr3c8a1xd9ar9bb60gx79piskycicb3wliwchc";
   };
 
   pythonPath = with pythonPackages;
     [ dbus pygobject2 pygobject3 recursivePthLoader ];
 
   buildInputs =
-    [ pkgconfig dbus glib alsaLib pythonPackages.python pythonPackages.wrapPython
+    [ dbus glib alsaLib pythonPackages.python pythonPackages.wrapPython
       readline libsndfile udev libical
       # Disables GStreamer; not clear what it gains us other than a
       # zillion extra dependencies.
       # gstreamer gst-plugins-base
     ];
+
+  nativeBuildInputs = [ pkgconfig ];
 
   outputs = [ "out" "dev" "test" ];
 
