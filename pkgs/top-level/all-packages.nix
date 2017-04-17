@@ -12852,6 +12852,8 @@ with pkgs;
 
   ao = callPackage ../applications/graphics/ao {};
 
+  anbox = callPackage ../applications/virtualization/anbox { };
+
   aqemu = libsForQt5.callPackage ../applications/virtualization/aqemu { };
 
   ardour = callPackage ../applications/audio/ardour {
