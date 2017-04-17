@@ -1,19 +1,21 @@
-{ stdenv, fetchgit, pkgconfig, pidgin, json_glib, glib, http-parser } :
+{ stdenv, fetchFromGitHub, pkgconfig
+, pidgin, json_glib, glib, http-parser } :
 
-let
-  version = "2016-07-11";
-in
 stdenv.mkDerivation rec {
   name = "purple-matrix-unstable-${version}";
+  version = "2017-03-13";
 
-  src = fetchgit {
-    url = "https://github.com/matrix-org/purple-matrix";
-    rev = "f9d36198a57de1cd1740a3ae11c2ad59b03b724a";
-    sha256 = "1mmyvc70gslniphmcpk8sfl6ylik6dnprqghx4n47gsj1sb1cy00";
+  src = fetchFromGitHub {
+    owner  = "matrix-org";
+    repo   = "purple-matrix";
+    rev    = "00c43fe672ef7acd497bad1dc89ec8f5b4172eb3";
+    sha256 = "0w6khsqplcf4c3y8k7yx2xw6sjzbk6m4bsim8mcki78s5z6lxcrk";
   };
 
   nativeBuildInputs = [ pkgconfig ];
   buildInputs = [ pidgin json_glib glib http-parser ];
+
+  enableParallelBuilding = true;
 
   installPhase = ''
     install -Dm755 -t $out/lib/pidgin/ libmatrix.so
@@ -22,9 +24,10 @@ stdenv.mkDerivation rec {
     done
   '';
 
-  meta = {
-    homepage = https://github.com/matrix-org/purple-matrix;
+  meta = with stdenv.lib; {
     description = "Matrix support for Pidgin / libpurple";
-    license = stdenv.lib.licenses.gpl2;
+    homepage    = https://github.com/matrix-org/purple-matrix;
+    license     = licenses.gpl2;
+    inherit (pidgin.meta) platforms;
   };
 }
