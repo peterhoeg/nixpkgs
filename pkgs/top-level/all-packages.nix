@@ -16797,6 +16797,8 @@ with pkgs;
 
   privateer = callPackage ../games/privateer { };
 
+  pvpgn = callPackage ../games/pvpgn { };
+
   qweechat = callPackage ../applications/networking/irc/qweechat { };
 
   qqwing = callPackage ../games/qqwing { };
