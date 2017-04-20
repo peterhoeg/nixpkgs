@@ -2585,7 +2585,9 @@ with pkgs;
 
   makebootfat = callPackage ../tools/misc/makebootfat { };
 
-  matrix-synapse = callPackage ../servers/matrix-synapse { };
+  matrix-synapse = callPackage ../servers/matrix/synapse { };
+
+  matrix-appservice-slack = callPackage ../servers/matrix/appservice-slack { };
 
   memtester = callPackage ../tools/system/memtester { };
 
