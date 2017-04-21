@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
   meta = with stdenv.lib; {
     homepage = http://www.ubnt.com/;
     description = "Controller for Ubiquiti UniFi accesspoints";
-    license = licenses.unfree;
+    license = licenses.free;
     platforms = platforms.unix;
     maintainers = with maintainers; [ wkennington ];
   };
