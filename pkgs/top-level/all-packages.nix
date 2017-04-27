@@ -18097,6 +18097,8 @@ with pkgs;
 
   nix-serve = callPackage ../tools/package-management/nix-serve { };
 
+  nix-upgrade-scripts = callPackages ../tools/package-management/nix-upgrade-scripts { };
+
   nixos-artwork = callPackage ../data/misc/nixos-artwork { };
 
   nixos-container = callPackage ../tools/virtualization/nixos-container { };
