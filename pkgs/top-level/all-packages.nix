@@ -14908,6 +14908,8 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) Security;
   };
 
+  nullmailer = callPackage ../applications/networking/nullmailer { };
+
   imapfilter = callPackage ../applications/networking/mailreaders/imapfilter.nix {
     lua = lua5;
  };
