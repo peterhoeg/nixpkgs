@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, go, bash }:
+{ stdenv, fetchFromGitHub, go, bash, removeReferencesTo }:
 
 stdenv.mkDerivation rec {
   name = "direnv-${version}";
@@ -11,7 +11,7 @@ stdenv.mkDerivation rec {
     sha256 = "04b098i8dlr6frks67ik0kbc281c6j8lkb6v0y33iwqv45n233q3";
   };
 
-  buildInputs = [ go ];
+  buildInputs = [ go removeReferencesTo ];
 
   buildPhase = ''
     make BASH_PATH=${bash}/bin/bash
@@ -19,6 +19,10 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     make install DESTDIR=$out
+  '';
+
+  preFixup = ''
+    find $out/bin -type f -exec remove-references-to -t ${go} '{}' '+'
   '';
 
   meta = with stdenv.lib; {
