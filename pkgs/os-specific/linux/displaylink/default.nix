@@ -6,22 +6,24 @@ let
     else if stdenv.system == "i686-linux" then "x86"
     else throw "Unsupported architecture";
   libPath = lib.makeLibraryPath [ stdenv.cc.cc utillinux libusb1 ];
+  evdiVersion = "1.4.1";
+  ubuntuVersion = "1604";
 
 in stdenv.mkDerivation rec {
   name = "displaylink-${version}";
-  version = "1.1.62";
+  version = "1.3.52";
 
   src = fetchFromGitHub {
-    owner = "DisplayLink";
-    repo = "evdi";
-    rev = "fe779940ff9fc7b512019619e24a5b22e4070f6a";
-    sha256 = "02hw83f6lscms8hssjzf30hl9zly3b28qcxwmxvnqwfhx1q491z9";
+    owner  = "DisplayLink";
+    repo   = "evdi";
+    rev    = "v${evdiVersion}";
+    sha256 = "176cq83qlmhc4c00dwfnqgd021l7s4gyj8604m5zmxbz0r5mnawv";
   };
 
   daemon = fetchurl {
-    name = "displaylink.zip";
-    url = "http://www.displaylink.com/downloads/file?id=607";
-    sha256 = "0jky3xk4dfzbzg386qya9l9952i4m8zhf55fdl06pi9r82k2iijx";
+    name   = "displaylink.zip";
+    url    = "http://www.displaylink.com/downloads/file?id=744";
+    sha256 = "0ridpsxcf761vym0nlpq702qa46ynddzci17bjmyax2pph7khr0k";
   };
 
   nativeBuildInputs = [ unzip makeWrapper ];
@@ -51,7 +53,7 @@ in stdenv.mkDerivation rec {
 
     ( cd daemon
       install -Dt $out/lib/displaylink *.spkg
-      install -Dm755 ${arch}/DisplayLinkManager $out/bin/DisplayLinkManager
+      install -Dm755 ${arch}-ubuntu-${ubuntuVersion}/DisplayLinkManager $out/bin/DisplayLinkManager
       patchelf \
         --set-interpreter $(cat ${stdenv.cc}/nix-support/dynamic-linker) \
         --set-rpath $out/lib:${libPath} \
@@ -63,8 +65,8 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "DisplayLink DL-5xxx, DL-41xx and DL-3x00 Driver for Linux";
-    platforms = [ "x86_64-linux" "i686-linux" ];
+    homepage = http://www.displaylink.com/;
     license = licenses.unfree;
-    homepage = "http://www.displaylink.com/";
+    platforms = [ "x86_64-linux" "i686-linux" ];
   };
 }
