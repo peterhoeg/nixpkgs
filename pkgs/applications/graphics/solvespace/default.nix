@@ -1,22 +1,25 @@
-{ stdenv, fetchgit, cmake, pkgconfig, zlib, libpng, cairo, freetype
-, json_c, fontconfig, gtkmm2, pangomm, glew, mesa_glu, xlibs, pcre
+{ stdenv, fetchgit, cmake, pkgconfig, gettext, zlib, libpng, cairo, freetype
+, json_c, fontconfig, gtkmm3, pangomm, glew, mesa_glu, xlibs, pixman, pcre
+, at_spi2_core, dbus, libxkbcommon, epoxy
 }:
-stdenv.mkDerivation rec {
-  name = "solvespace-2.3-20170416";
-  rev = "b1d87bf284b32e875c8edba592113e691ea10bcd";
+
+let
+  rev = "33b6e5173724ebb207c4d8450a561448b2e07e5d";
+
+in stdenv.mkDerivation rec {
+  name = "solvespace-${version}";
+  version = "3.0";
+
   src = fetchgit {
     url = https://github.com/solvespace/solvespace;
     inherit rev;
-    sha256 = "160qam04pfrwkh9qskfmjkj01wrjwhl09xi6jjxi009yqg3cff9l";
+    sha256 = "0m443kmzdp672cxxbwf36rgrn3hmgrqzx18rmc3bzwqzh0npv7i5";
     fetchSubmodules = true;
   };
 
-  buildInputs = [
-    cmake pkgconfig zlib libpng cairo freetype
-    json_c fontconfig gtkmm2 pangomm glew mesa_glu
-    xlibs.libpthreadstubs xlibs.libXdmcp pcre
-  ];
-  enableParallelBuilding = true;
+  postUnpack = ''
+    rm -rf extlib/{cairo,freetype,libpng,pixman,zlib}
+  '';
 
   preConfigure = ''
     patch CMakeLists.txt <<EOF
@@ -32,11 +35,20 @@ stdenv.mkDerivation rec {
     EOF
   '';
 
-  meta = {
+  buildInputs = [
+    zlib libpng cairo freetype json_c fontconfig gtkmm3 pangomm glew mesa_glu
+    pixman xlibs.libpthreadstubs xlibs.libXdmcp pcre
+    at_spi2_core dbus libxkbcommon epoxy
+  ];
+  nativeBuildInputs = [ cmake gettext pkgconfig ];
+
+  enableParallelBuilding = true;
+
+  meta = with stdenv.lib; {
     description = "A parametric 3d CAD program";
-    license = stdenv.lib.licenses.gpl3;
-    maintainers = with stdenv.lib.maintainers; [ edef ];
-    platforms = stdenv.lib.platforms.linux;
+    license = licenses.gpl3;
+    maintainers = with maintainers; [ edef ];
+    platforms = platforms.linux;
     homepage = http://solvespace.com;
   };
 }
