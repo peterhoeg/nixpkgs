@@ -32,6 +32,13 @@ let
     ipv6.ip6-privacy=2
     ethernet.cloned-mac-address=${cfg.ethernet.macAddress}
     wifi.cloned-mac-address=${cfg.wifi.macAddress}
+
+    ${lib.optionalString cfg.connectivityCheck.enable ''
+    [connectivity]
+    uri=${cfg.connectivityCheck.uri}
+
+    ${cfg.extraConfig}
+    ''}
   '';
 
   /*
@@ -151,6 +158,14 @@ in {
         '';
       };
 
+      dns = mkOption {
+        type = types.enum [ "default" "dnsmasq" "systemd-resolved" ];
+        default = "default";
+        description = ''
+          How to handle DNS resolution.
+        '';
+      };
+
       logLevel = mkOption {
         type = types.enum [ "OFF" "ERR" "WARN" "INFO" "DEBUG" "TRACE" ];
         default = "WARN";
@@ -189,6 +204,38 @@ in {
           configuration if you are connected to a VPN, and then update
           resolv.conf to point to the local nameserver.
         '';
+      };
+
+      extraConfig = mkOption {
+        description = "Additional stanzas added verbatim to the configuration file.";
+        type = types.listOf types.str;
+        default = "";
+      };
+
+      connectivityCheck = {
+        enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = ''
+            Perform a connectivity check.
+          '';
+        };
+
+        uri = mkOption {
+          type = types.str;
+          default = "http://network-test.debian.org/nm";
+          description = ''
+            The URI to which we perform a connectivity check
+          '';
+        };
+
+        interval = mkOption {
+          type = types.int;
+          default = 300;
+          description = ''
+            The interval at which we perform a connectivity check
+          '';
+        };
       };
 
       dispatcherScripts = mkOption {
