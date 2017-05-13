@@ -3,7 +3,7 @@
   cmake, doxygen, pkgconfig, autoreconfHook,
   curl,
   fetchgit,
-  grantlee,
+  grantlee, phonon,
   libgit2,
   libusb,
   libssh2,
@@ -15,13 +15,14 @@
 }:
 
 let
-  version = "4.6.0";
+  version = "4.6.4";
+  baseUrl = "git://git.subsurface-divelog.org";
 
   libmarble = stdenv.mkDerivation rec {
     name = "libmarble-ssrf-${version}";
 
     src = fetchgit {
-      url    = "git://git.subsurface-divelog.org/marble";
+      url    = "${baseUrl}/marble";
       rev    = "refs/tags/v${version}";
       sha256 = "1dm2hdk6y36ls7pxbzkqmyc46hdy2cd5f6pkxa6nfrbhvk5f31zd";
     };
@@ -32,11 +33,14 @@ let
     enableParallelBuilding = true;
 
     cmakeFlags = [
-      "-DQTONLY=TRUE"
-      "-DQT5BUILD=ON"
-      "-DBUILD_MARBLE_TESTS=NO"
+      "-DQTONLY=YES"
+      "-DQT5BUILD=YES"
       "-DWITH_DESIGNER_PLUGIN=NO"
       "-DBUILD_MARBLE_APPS=NO"
+      "-DBUILD_MARBLE_TESTS=NO"
+      # "-DPHONON_INCLUDE_DIR=${phonon}/include"
+      # "-DPHONON_LIBRARY=${phonon}/lib"
+      "-DCMAKE_CXX_FLAGS=-std=c++11"
     ];
 
     meta = with stdenv.lib; {
@@ -52,10 +56,14 @@ let
     name = "libdivecomputer-ssrf-${version}";
 
     src = fetchgit {
-      url    = "git://subsurface-divelog.org/libdc";
+      url    = "${baseUrl}/libdc";
       rev    = "refs/tags/v${version}";
       sha256 = "0s82c8bvqph9c9chwzd76iwrw968w7lgjm3pj4hmad1jim67bs6n";
     };
+
+    cmakeFlags = [
+      "-DCMAKE_CXX_FLAGS=-std=c++11"
+    ];
 
     nativeBuildInputs = [ autoreconfHook ];
 
@@ -74,7 +82,7 @@ in stdenv.mkDerivation rec {
   name = "subsurface-${version}";
 
   src = fetchgit {
-    url    = "git://git.subsurface-divelog.org/subsurface";
+    url    = "${baseUrl}/subsurface";
     rev    = "refs/tags/v${version}";
     sha256 = "1rk5n52p6cnyjrgi7ybhmvh7y31zxrjny0mqpnc1wql69f90h94c";
   };
@@ -90,7 +98,8 @@ in stdenv.mkDerivation rec {
 
   cmakeFlags = [
     "-DMARBLE_LIBRARIES=${libmarble}/lib/libssrfmarblewidget.so"
-    "-DNO_PRINTING=OFF"
+    "-DNO_PRINTING=ON"
+    "-DCMAKE_CXX_FLAGS=-std=c++11"
   ];
 
   meta = with stdenv.lib; {
