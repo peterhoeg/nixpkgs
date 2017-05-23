@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   name = "nim-${version}";
-  version = "0.16.0";
+  version = "0.17.0";
 
   src = fetchurl {
     url = "http://nim-lang.org/download/${name}.tar.xz";
-    sha256 = "0rsibhkc5n548bn9yyb9ycrdgaph5kq84sfxc9gabjs7pqirh6cy";
+    sha256 = "16vsmk4rqnkg9lc9h9jk62ps0x778cdqg6qrs3k6fv2g73cqvq9n";
   };
 
   doCheck = true;
@@ -25,27 +25,34 @@ stdenv.mkDerivation rec {
   #    used for bootstrapping, but koch insists on moving the nim compiler around
   #    as part of building it, so it cannot be read-only
 
-  buildInputs  = [
-    makeWrapper nodejs
-    openssl pcre readline sqlite
-  ];
+  buildInputs  = [ openssl pcre readline sqlite ];
+
+  nativeBuildInputs = [ makeWrapper nodejs ];
 
   buildPhase   = ''
+    runHook preBuild
+
     sh build.sh
     ./bin/nim c koch
     ./koch boot  -d:release \
                  -d:useGnuReadline \
                  ${lib.optionals (stdenv.isDarwin || stdenv.isLinux) "-d:nativeStacktrace"}
     ./koch tools -d:release
+
+    runHook postBuild
   '';
 
   installPhase = ''
+    runHook preInstall
+
     install -Dt $out/bin bin/* koch
     ./koch install $out
     mv $out/nim/bin/* $out/bin/ && rmdir $out/nim/bin
     mv $out/nim/*     $out/     && rmdir $out/nim
     wrapProgram $out/bin/nim \
       --suffix PATH : ${lib.makeBinPath [ stdenv.cc ]}
+
+    runHook postInstall
   '';
 
   checkPhase = "./koch tests";
