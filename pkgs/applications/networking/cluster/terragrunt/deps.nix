@@ -5,8 +5,8 @@
     fetch = {
       type = "git";
       url = "https://github.com/aws/aws-sdk-go";
-      rev = "952498f4a390118ac65ad59cbe0c8b57ed69b6b5";
-      sha256 = "03j2dn4v2wr32jd9iki68ra0r8aghy7hpad94bf8zdgsrjn6rwvj";
+      rev = "fa107560b5f3528a859a1a1511086646731bb1a8";
+      sha256 = "1imjkgmm5wyy0gmrdwrsrm8gb3m4ak0kgayd451ij0lh8sk146sw";
     };
   }
   {
@@ -86,8 +86,8 @@
     fetch = {
       type = "git";
       url = "https://github.com/mitchellh/mapstructure";
-      rev = "cc8532a8e9a55ea36402aa21efdf403a60d34096";
-      sha256 = "0705c0hq7b993sabnjy65yymvpy9w1j84bg9bjczh5607z16nw86";
+      rev = "d0303fe809921458f417bcf828397a65db30a7e4";
+      sha256 = "1fjwi5ghc1ibyx93apz31n4hj6gcq1hzismpdfbg2qxwshyg0ya8";
     };
   }
   {
@@ -95,8 +95,8 @@
     fetch = {
       type = "git";
       url = "https://github.com/stretchr/testify";
-      rev = "4d4bfba8f1d1027c4fdbe371823030df51419987";
-      sha256 = "1d3yz1d2s88byjzmn60jbi1m9s552f7ghzbzik97fbph37i8yjhp";
+      rev = "f6abca593680b2315d2075e0f5e2a9751e3f431a";
+      sha256 = "0n2vidr9zyf6k296grnc6d3rk9hd6qw7mwvnfixlxm8g5y46rzl9";
     };
   }
   {
