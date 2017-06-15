@@ -2588,6 +2588,8 @@ with pkgs;
 
   jwhois = callPackage ../tools/networking/jwhois { };
 
+  pdf-tools = callPackage ../tools/text/pdf-tools { };
+
   k2pdfopt = callPackage ../applications/misc/k2pdfopt { };
 
   kargo = callPackage ../tools/misc/kargo { };
