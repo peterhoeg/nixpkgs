@@ -503,6 +503,8 @@ with pkgs;
 
   azure-cli = nodePackages.azure-cli;
 
+  azure-cli_2 = callPackage ../applications/networking/cluster/azure-cli;
+
   azure-vhd-utils  = callPackage ../tools/misc/azure-vhd-utils { };
 
   awless = callPackage ../tools/virtualization/awless { };
