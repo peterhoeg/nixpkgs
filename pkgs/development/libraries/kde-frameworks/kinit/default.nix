@@ -1,6 +1,7 @@
 {
   kdeFramework, lib, copyPathsToStore,
   extra-cmake-modules, kdoctools,
+  libcap, xorg,
   kconfig, kcrash, ki18n, kio, kparts, kservice, kwindowsystem, plasma-framework
 }:
 
@@ -10,6 +11,7 @@ in
 kdeFramework {
   name = "kinit";
   meta = { maintainers = [ lib.maintainers.ttuegel ]; };
+  buildInputs = [ libcap xorg.libpthreadstubs ];
   nativeBuildInputs = [ extra-cmake-modules kdoctools ];
   propagatedBuildInputs = [
     kconfig kcrash ki18n kio kservice kwindowsystem
