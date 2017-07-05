@@ -1,14 +1,15 @@
 {
   mkDerivation, fetchurl, lib,
   extra-cmake-modules, kdoctools, wrapGAppsHook,
-  kconfig, kinit, kparts
+  karchive, kconfig, kcrash, kguiaddons, kinit, kparts, kwindowsystem
 }:
 
 let
   pname = "krusader";
   version = "2.6.0";
+
 in mkDerivation rec {
-  name = "krusader-${version}";
+  name = "${pname}-${version}";
 
   src = fetchurl {
     url = "mirror://kde/stable/${pname}/${version}/${name}.tar.xz";
@@ -23,5 +24,5 @@ in mkDerivation rec {
   };
 
   nativeBuildInputs = [ extra-cmake-modules kdoctools wrapGAppsHook ];
-  propagatedBuildInputs = [ kconfig kinit kparts ];
+  propagatedBuildInputs = [ karchive kconfig kcrash kguiaddons kinit kparts kwindowsystem ];
 }
