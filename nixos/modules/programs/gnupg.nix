@@ -68,12 +68,6 @@ in
 
     systemd.user.sockets.gpg-agent = {
       wantedBy = [ "sockets.target" ];
-      listenStreams = [ "%t/gnupg/S.gpg-agent" ];
-      socketConfig = {
-        FileDescriptorName = "std";
-        SocketMode = "0600";
-        DirectoryMode = "0700";
-      };
     };
 
     systemd.user.sockets.gpg-agent-ssh = mkIf cfg.agent.enableSSHSupport {
@@ -109,25 +103,8 @@ in
       };
     };
 
-    systemd.user.services.dirmngr = {
-      requires = [ "dirmngr.socket" ];
-      after = [ "dirmngr.socket" ];
-      unitConfig = {
-        RefuseManualStart = "true";
-      };
-      serviceConfig = {
-        ExecStart = "${pkgs.gnupg}/bin/dirmngr --supervised";
-        ExecReload = "${pkgs.gnupg}/bin/gpgconf --reload dirmngr";
-      };
-    };
-
     systemd.user.sockets.dirmngr = {
       wantedBy = [ "sockets.target" ];
-      listenStreams = [ "%t/gnupg/S.dirmngr" ];
-      socketConfig = {
-        SocketMode = "0600";
-        DirectoryMode = "0700";
-      };
     };
 
     systemd.packages = [ pkgs.gnupg ];
