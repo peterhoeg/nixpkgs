@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, fetchFromGitHub
+{ stdenv, lib, fetchFromGitHub
 , coreutils, gnused, getopt, git, tree, gnupg, which, procps, qrencode
 , makeWrapper
 
@@ -8,9 +8,9 @@
 
 with lib;
 
-assert x11Support -> xclip != null
+assert x11Support -> xclip   != null
                   && xdotool != null
-                  && dmenu != null;
+                  && dmenu   != null;
 
 let
   plugins = map (p: (fetchFromGitHub {
@@ -18,21 +18,25 @@ let
     repo   = "pass-${p.name}";
     inherit (p) rev sha256;
   })) [
-    { name = "import"; rev = "491935bd275f29ceac2b876b3a288011d1ce31e7"; sha256 = "02mbh05ab8h7kc30hz718d1d1vkjz43b96c7p0xnd92610d2q66q"; }
-    { name = "update"; rev = "cf576c9036fd18efb9ed29e0e9f811207b556fde"; sha256 = "1hhbrg6a2walrvla6q4cd3pgrqbcrf9brzjkb748735shxfn52hd"; }
+    { name = "import"; rev = "8850b9637217c64dedd1fb059c06bf9d9c5e6de2"; sha256 = "0vfmf405yi6z4s6w23ay6m4krgkwq1rxqw616msjqkikqsffv03l"; }
+    { name = "tomb";   rev = "v1.0";                                     sha256 = "1zzp7wrmznw90ad4pnbkffwrvqzbwpkvk6vl1b9hgiv6xvqx023f"; }
+    { name = "update"; rev = "4d917b805f3ab740e15bdcac84684eb3ca3e5738"; sha256 = "0v01prflxjf1kln39ak7g6nlwhvi2d69v0yrcdykp1xf4y9jk7rs"; }
   ];
 
 in stdenv.mkDerivation rec {
   version = "1.7.1";
   name    = "password-store-${version}";
 
-  src = fetchurl {
-    url    = "http://git.zx2c4.com/password-store/snapshot/${name}.tar.xz";
-    sha256 = "0scqkpll2q8jhzcgcsh9kqz0gwdpvynivqjmmbzax2irjfaiklpn";
+  src = fetchFromGitHub {
+    owner  = "zx2c4";
+    repo   = "password-store";
+    rev    = "${version}";
+    sha256 = "04rqph353qfhnrwji6fmvrbk4yag8brqpbpaysq5z0c9l4p9ci87";
   };
 
-  patches = [ ./set-correct-program-name-for-sleep.patch
-            ] ++ stdenv.lib.optional stdenv.isDarwin ./no-darwin-getopt.patch;
+  patches = [
+    ./set-correct-program-name-for-sleep.patch
+  ] ++ stdenv.lib.optional stdenv.isDarwin ./no-darwin-getopt.patch;
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -55,7 +59,7 @@ in stdenv.mkDerivation rec {
     cp "contrib/dmenu/passmenu" "$out/bin/"
   '';
 
-  wrapperPath = with stdenv.lib; makeBinPath ([
+  wrapperPath = stdenv.lib.makeBinPath ([
     coreutils
     getopt
     git
@@ -72,14 +76,11 @@ in stdenv.mkDerivation rec {
     substituteInPlace $out/bin/pass \
       --replace 'PROGRAM="''${0##*/}"' "PROGRAM=pass"
 
-    # Ensure all dependencies are in PATH
-    wrapProgram $out/bin/pass \
-      --prefix PATH : "${wrapperPath}"
-  '' + stdenv.lib.optionalString x11Support ''
-    # We just wrap passmenu with the same PATH as pass. It doesn't
-    # need all the tools in there but it doesn't hurt either.
-    wrapProgram $out/bin/passmenu \
-      --prefix PATH : "$out/bin:${wrapperPath}"
+    # we wrap everything we find although probably not necessary for passmenu
+    for f in $out/bin/* ; do
+      wrapProgram $f \
+        --prefix PATH : "$out/bin:${wrapperPath}"
+    done
   '';
 
   meta = with stdenv.lib; {
