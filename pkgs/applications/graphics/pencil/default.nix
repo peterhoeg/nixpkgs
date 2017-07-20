@@ -1,15 +1,24 @@
-{ stdenv, fetchurl, dpkg, makeWrapper
+{ stdenv, fetchurl, dpkg, makeWrapper, atomEnv, ffmpeg
 , alsaLib, atk, cairo, cups, dbus, expat, fontconfig, freetype, gdk_pixbuf, glib, gnome2, gtk2, nspr, nss, pango, udev
 , libX11, libXcursor, libXcomposite, libXdamage, libXext, libXfixes
 , libXi, libXrandr, libXrender, libXScrnSaver, libXtst }:
 
-stdenv.mkDerivation rec {
+let
+  plat = {
+    "x86_64-linux" = "amd64";
+  }."${stdenv.system}";
+
+  sha256 = {
+    "x86_64-linux" = "1zb2g99nv0sr9b1nx0jrwdqp0zy835z1fkrpv0aqgshmqsabgqjq";
+  }."${stdenv.system}";
+
+in stdenv.mkDerivation rec {
   version = "3.0.4";
   name = "pencil-${version}";
 
   src = fetchurl {
-    url = "http://pencil.evolus.vn/dl/V${version}/Pencil_${version}_amd64.deb";
-    sha256 = "1zb2g99nv0sr9b1nx0jrwdqp0zy835z1fkrpv0aqgshmqsabgqjq";
+    url = "http://pencil.evolus.vn/dl/V${version}/Pencil_${version}_${plat}.deb";
+    inherit sha256;
   };
 
   unpackPhase = "dpkg-deb -x $src .";
@@ -17,36 +26,42 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ dpkg makeWrapper ];
 
-  libPath = stdenv.lib.makeLibraryPath [
-    alsaLib
-    atk
-    cairo
-    cups
-    dbus
-    expat
-    fontconfig
-    freetype
-    gdk_pixbuf
-    glib
-    gnome2.GConf
-    gtk2
-    nspr
-    nss
-    pango
-    stdenv.cc.cc
-    udev
-    libX11 libXcursor libXcomposite libXdamage libXext libXfixes
-    libXi libXrandr libXrender libXScrnSaver libXtst
+  libPath = stdenv.lib.concatStringsSep ":" [
+    atomEnv.libPath
+    "${stdenv.lib.makeLibraryPath [ ffmpeg ]}"
+    "$out/lib/pencil"
   ];
+
+  # libPath = stdenv.lib.makeLibraryPath [
+  #   alsaLib
+  #   atk
+  #   cairo
+  #   cups
+  #   dbus
+  #   expat
+  #   fontconfig
+  #   freetype
+  #   gdk_pixbuf
+  #   glib
+  #   gnome2.GConf
+  #   gtk2
+  #   nspr
+  #   nss
+  #   pango
+  #   stdenv.cc.cc
+  #   udev
+  #   libX11 libXcursor libXcomposite libXdamage libXext libXfixes
+  #   libXi libXrandr libXrender libXScrnSaver libXtst
+  # ];
 
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/bin
+    mkdir -p $out/{bin,lib/pencil}
     cp -r usr/* $out
-    cp -r opt   $out
+    cp -r opt/Pencil/* $out/lib/pencil/
 
-    ln -s $out/opt/Pencil/pencil $out/bin/pencil
+    ln -s $out/lib/pencil/pencil $out/bin/pencil
 
     # sed -e "s|/usr/share/evolus-pencil|$out/share/evolus-pencil|" \
     #     -i "$out/bin/pencil"
@@ -61,15 +76,15 @@ stdenv.mkDerivation rec {
   preFixup = ''
     patchelf \
       --set-interpreter $(cat $NIX_CC/nix-support/dynamic-linker) \
-      --set-rpath "${libPath}:$out/opt/Pencil" \
-      $out/opt/Pencil/pencil
+      --set-rpath "${libPath}" \
+      $out/lib/pencil/pencil
 
-    for f in $out/opt/Pencil/lib*.so ; do
-      patchelf \
-        --set-rpath "${stdenv.lib.makeLibraryPath [ stdenv.cc.cc ]}:$out/opt/Pencil" \
-        $f
-      chmod 644 $f
-    done
+  #   for f in $out/opt/Pencil/lib*.so ; do
+  #     patchelf \
+  #       --set-rpath "${stdenv.lib.makeLibraryPath [ stdenv.cc.cc ]}:$out/opt/Pencil" \
+  #       $f
+  #     chmod 644 $f
+  #   done
   '';
 
   meta = with stdenv.lib; {
