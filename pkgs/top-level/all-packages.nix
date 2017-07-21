@@ -5193,6 +5193,10 @@ with pkgs;
 
   adobe_flex_sdk = callPackage ../development/compilers/adobe-flex-sdk { };
 
+  qt4pas = libsForQt5.callPackage ../development/libraries/qtpas { };
+
+  qt5pas = libsForQt5.callPackage ../development/libraries/qtpas { withQt5 = true; };
+
   fpc = callPackage ../development/compilers/fpc { };
 
   gambit = callPackage ../development/compilers/gambit { };
