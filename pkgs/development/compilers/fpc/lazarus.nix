@@ -36,6 +36,8 @@ stdenv.mkDerivation rec {
     export LCL_PLATFORM=qt # update to qt5
     export NIX_LDFLAGS="$NIX_LDFLAGS -L${stdenv.cc.libc}/lib -L${qt4pas}/lib -lX11"
 
+    # find . -name Makefile.fpc | xargs fpcmake -w
+
     mkdir -p $out/{bin,lazarus,share}
 
     tar xf ${fpc.src} --strip-components=1 -C $out/share -m

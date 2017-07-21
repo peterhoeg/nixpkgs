@@ -12,12 +12,21 @@ in stdenv.mkDerivation rec {
     sha256 = "0x8vajb3brmh078hxz0pydym1wbxf1dxca7lzxlh268z6q5fsqgj";
   };
 
+  buildInputs = [ stdenv.cc ];
   nativeBuildInputs = [ gawk makeWrapper startFPC ];
 
-  preConfigure = stdenv.lib.optionalString stdenv.isLinux ''
+  configurePhase = ''
+    runHook preConfigure
+
+    ${stdenv.lib.optionalString stdenv.isLinux ''
     substituteInPlace fpcsrc/compiler/systems/t_linux.pas \
       --replace "'/lib/ld-linux"   "'${stdenv.cc.libc}/lib/ld-linux" \
       --replace "'/lib64/ld-linux" "'${stdenv.cc.libc}/lib/ld-linux"
+    ''}
+
+    fpcmake -w
+
+    runHook postConfigure
   '';
 
   makeFlags = [
@@ -32,16 +41,19 @@ in stdenv.mkDerivation rec {
     "INSTALL_PREFIX=\${out}"
   ];
 
+#     cat <<_EOF >>$out/lib/fpc/etc/fpc.cfg
+# # added by nixpkgs:
+# -Fl${stdenv.glibc.out}/lib
+# _EOF
+
   postInstall = ''
     for i in $out/lib/fpc/*/ppc*; do
       ln -fs $i $out/bin/$(basename $i)
     done
     mkdir -p $out/lib/fpc/etc/
     $out/lib/fpc/*/samplecfg $out/lib/fpc/${version} $out/lib/fpc/etc/
-    cat <<_EOF >>$out/lib/fpc/etc/fpc.cfg
-# added by nixpkgs:
--Fl${stdenv.glibc.out}/lib
-_EOF
+    substituteInPlace $out/lib/fpc/etc/fpc.cfg \
+      --replace '-l' '# -l'
   '';
 
   postFixup = ''

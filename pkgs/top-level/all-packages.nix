@@ -112,6 +112,10 @@ with pkgs;
 
   dispad = callPackage ../tools/X11/dispad { };
 
+  fpcmakeHook = makeSetupHook
+    { substitutions = { inherit fpc; }; }
+    ../build-support/setup-hooks/fpcmake.sh;
+
   vsenv = callPackage ../build-support/vsenv {
     vs = vs90wrapper;
   };
