@@ -1,55 +1,91 @@
-{
-stdenv, fetchurl
-, fpc
-, gtk2, glib, pango, atk, gdk_pixbuf
+{ stdenv, fetchurl
+, binutils, fpc, gdb, gnumake
+, qt4, qt4pas, gtk2, glib, pango, atk, gdk_pixbuf
 , libXi, inputproto, libX11, xproto, libXext, xextproto
-, makeWrapper
-}:
-let
-  s =
-  rec {
-    version = "1.6";
-    versionSuffix = ".0-0";
-    url = "mirror://sourceforge/lazarus/Lazarus%20Zip%20_%20GZip/Lazarus%20${version}/lazarus-${version}${versionSuffix}.tar.gz";
-    sha256 = "1a1w9yibi0rsr51bl7csnq6mr59x0934850kiabs80nr3sz05knb";
-    name = "lazarus-${version}";
-  };
-  buildInputs = [
-    fpc gtk2 glib libXi inputproto
-    libX11 xproto libXext xextproto pango atk
-    stdenv.cc makeWrapper gdk_pixbuf
-  ];
-in
-stdenv.mkDerivation {
-  inherit (s) name version;
-  inherit buildInputs;
+, makeWrapper, tree }:
+
+# TODO: update this to qt5 when lazarus 1.8 is released
+
+stdenv.mkDerivation rec {
+  name = "lazarus-${version}";
+  version = "1.6.4";
+
   src = fetchurl {
-    inherit (s) url sha256;
+    url = "mirror://sourceforge/lazarus/Lazarus%20Zip%20_%20GZip/Lazarus%20${version}/${name}-0.tar.gz";
+    sha256 = "1qm56n24v8hm5hdzd0jqzqjypf5ncn4i04b5lmj4w91jmp2m8rik";
   };
-  makeFlags = [
-    "FPC=fpc"
-    "PP=fpc"
-    "REQUIRE_PACKAGES+=tachartlazaruspkg"
+
+  buildInputs = [
+    fpc glib libXi inputproto
+    qt4 qt4pas
+    libX11 xproto libXext xextproto pango atk
+    stdenv.cc gdk_pixbuf
+  ];
+
+  nativeBuildInputs = [ makeWrapper ];
+
+  sourceRoot = "lazarus";
+
+  makeFlags = with stdenv.lib; [
+    "FPC=${getBin fpc}/bin/fpc"
+    "PP=${getBin fpc}/bin/fpc"
     "bigide"
   ];
+
+  installFlags = [
+    "INSTALL_PREFIX=\${out}"
+  ];
+
+  NIX_DEBUG = 1;
+
+  NIX_LDFLAGS = [
+    "-L${stdenv.cc.libc}/lib"
+    "-L${qt4pas}/lib"
+    "-lqt4pas"
+    # "-L${libX11}/lib"
+    # "-lXi"
+    # "-lX11"
+  #   "-lglib-2.0"
+  #   "-lgtk-x11-2.0"
+  #   "-lgdk-x11-2.0"
+  #   "-lc"
+  #   "-lXext"
+  #   "-lpango-1.0"
+  #   "-latk-1.0"
+  #   "-lgdk_pixbuf-2.0"
+  #   "-lcairo"
+  #   "-lgcc_s"
+  ];
+
   preBuild = ''
-    export makeFlags="$makeFlags LAZARUS_INSTALL_DIR=$out/share/lazarus/ INSTALL_PREFIX=$out/"
-    export NIX_LDFLAGS="$NIX_LDFLAGS -L${stdenv.cc.cc.lib}/lib -lXi -lX11 -lglib-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -lc -lXext -lpango-1.0 -latk-1.0 -lgdk_pixbuf-2.0 -lcairo -lgcc_s"
-    export LCL_PLATFORM=gtk2
-    mkdir -p $out/share "$out/lazarus"
+    export LCL_PLATFORM=qt # update to qt5
+
+    # echo $NIX_LDFLAGS
+
+    # exit 1
+
+    mkdir -p $out/{bin,lazarus,share}
+
     tar xf ${fpc.src} --strip-components=1 -C $out/share -m
-    sed -e 's@/usr/fpcsrc@'"$out/share/fpcsrc@" -i ide/include/unix/lazbaseconf.inc
+
+    substituteInPlace ide/include/unix/lazbaseconf.inc \
+      --replace /usr/fpcsrc $out/share/fpcsrc
+    patchShebangs tools
   '';
+
   postInstall = ''
-    wrapProgram $out/bin/startlazarus --prefix NIX_LDFLAGS ' ' "'$NIX_LDFLAGS'" \
-    	--prefix LCL_PLATFORM ' ' "'$LCL_PLATFORM'"
+    wrapProgram $out/bin/startlazarus \
+    	--prefix LCL_PLATFORM ' ' $LCL_PLATFORM \
+      --prefix NIX_LDFLAGS  ' ' "'${stdenv.lib.concatStringsSep " " NIX_LDFLAGS}'" \
+      --prefix PATH         ':' ${stdenv.lib.makeBinPath [ binutils fpc gdb gnumake ]}
   '';
-  meta = {
-    inherit (s) version;
-    license = stdenv.lib.licenses.gpl2Plus ;
-    platforms = stdenv.lib.platforms.linux;
+
+  meta = with stdenv.lib; {
     description = "Lazarus graphical IDE for FreePascal language";
     homepage = http://www.lazarus.freepascal.org;
-    maintainers = [stdenv.lib.maintainers.raskin];
+    license = licenses.gpl2Plus ;
+    maintainers = with maintainers; [ raskin ];
+    platforms = platforms.linux;
+    inherit version;
   };
 }
