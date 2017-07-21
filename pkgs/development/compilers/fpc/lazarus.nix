@@ -26,43 +26,15 @@ stdenv.mkDerivation rec {
 
   sourceRoot = "lazarus";
 
-  makeFlags = with stdenv.lib; [
-    "FPC=${getBin fpc}/bin/fpc"
-    "PP=${getBin fpc}/bin/fpc"
-    "bigide"
-  ];
+  prePatch = ''
+    patchShebangs tools
+  '';
 
-  installFlags = [
-    "INSTALL_PREFIX=\${out}"
-  ];
-
-  NIX_DEBUG = 1;
-
-  NIX_LDFLAGS = [
-    "-L${stdenv.cc.libc}/lib"
-    "-L${qt4pas}/lib"
-    "-lqt4pas"
-    # "-L${libX11}/lib"
-    # "-lXi"
-    # "-lX11"
-  #   "-lglib-2.0"
-  #   "-lgtk-x11-2.0"
-  #   "-lgdk-x11-2.0"
-  #   "-lc"
-  #   "-lXext"
-  #   "-lpango-1.0"
-  #   "-latk-1.0"
-  #   "-lgdk_pixbuf-2.0"
-  #   "-lcairo"
-  #   "-lgcc_s"
-  ];
-
-  preBuild = ''
+  preBuild = with stdenv.lib; ''
+    export INSTALL_PREFIX=$out
+    export makeFlags="$makeFlags FPC=${getBin fpc}/bin/fpc PP=${getBin fpc}/bin/fpc bigide"
     export LCL_PLATFORM=qt # update to qt5
-
-    # echo $NIX_LDFLAGS
-
-    # exit 1
+    export NIX_LDFLAGS="$NIX_LDFLAGS -L${stdenv.cc.libc}/lib -L${qt4pas}/lib -lX11"
 
     mkdir -p $out/{bin,lazarus,share}
 
@@ -70,14 +42,13 @@ stdenv.mkDerivation rec {
 
     substituteInPlace ide/include/unix/lazbaseconf.inc \
       --replace /usr/fpcsrc $out/share/fpcsrc
-    patchShebangs tools
   '';
 
   postInstall = ''
     wrapProgram $out/bin/startlazarus \
-    	--prefix LCL_PLATFORM ' ' $LCL_PLATFORM \
-      --prefix NIX_LDFLAGS  ' ' "'${stdenv.lib.concatStringsSep " " NIX_LDFLAGS}'" \
-      --prefix PATH         ':' ${stdenv.lib.makeBinPath [ binutils fpc gdb gnumake ]}
+    	--prefix LCL_PLATFORM ' ' "$LCL_PLATFORM" \
+      --prefix NIX_LDFLAGS  ' ' "$NIX_LDFLAGS" \
+      --prefix PATH         ':' "${stdenv.lib.makeBinPath [ binutils fpc gdb gnumake ]}"
   '';
 
   meta = with stdenv.lib; {
