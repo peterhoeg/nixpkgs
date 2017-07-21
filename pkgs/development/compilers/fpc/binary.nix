@@ -1,24 +1,30 @@
 { stdenv, fetchurl }:
 
-stdenv.mkDerivation {
-  name = "fpc-2.6.0-binary";
+let
+  sha256 = {
+    "x86_64-linux" = "1n1b92j8n0gbp6gc2a9bar830255v29c3wwqm2v0a78vqgdpzcmm";
+    "i686-linux"   = "1vzm7xjgmsg76pcmkh0vmb5a482qw4wf32l1pmwmd2y3lwkhmnrd";
+  }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
-  src =
-    if stdenv.system == "i686-linux" then
-      fetchurl {
-        url = "mirror://sourceforge/project/freepascal/Linux/2.6.0/fpc-2.6.0.i386-linux.tar";
-        sha256 = "08yklvrfxvk59bxsd4rh1i6s3cjn0q06dzjs94h9fbq3n1qd5zdf";
-      }
-    else if stdenv.system == "x86_64-linux" then
-      fetchurl {
-        url = "mirror://sourceforge/project/freepascal/Linux/2.6.0/fpc-2.6.0.x86_64-linux.tar";
-        sha256 = "0k9vi75k39y735fng4jc2vppdywp82j4qhzn7x4r6qjkad64d8lx";
-      }
-    else throw "Not supported on ${stdenv.system}.";
+  arch = {
+    "x86_64-linux" = "x86_64";
+    "i686-linux"   = "i386";
+  }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
+
+in stdenv.mkDerivation rec {
+  name = "fpc-${version}-binary";
+  version = "3.0.2";
+
+  src = fetchurl {
+    url = "mirror://sourceforge/project/freepascal/Linux/${version}/fpc-${version}.${arch}-linux.tar";
+    inherit sha256;
+  };
 
   builder = ./binary-builder.sh;
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "Free Pascal Compiler from a binary distribution";
+    platforms = platforms.linux;
+    inherit version;
   };
-} 
+}
