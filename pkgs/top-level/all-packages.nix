@@ -952,6 +952,8 @@ with pkgs;
 
   kapacitor = callPackage ../servers/monitoring/kapacitor { };
 
+  lcdproc = callPackage ../servers/monitoring/lcdproc { };
+
   languagetool = callPackage ../tools/text/languagetool {  };
 
   long-shebang = callPackage ../misc/long-shebang {};
