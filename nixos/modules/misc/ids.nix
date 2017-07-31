@@ -295,6 +295,9 @@
 
       nixbld = 30000; # start of range of uids
       nobody = 65534;
+
+      sensu = 300;
+      kodi = 301;
     };
 
     ids.gids = {
@@ -557,6 +560,9 @@
       users = 100;
       nixbld = 30000;
       nogroup = 65534;
+
+      sensu = 300;
+      kodi = 301;
     };
 
   };
