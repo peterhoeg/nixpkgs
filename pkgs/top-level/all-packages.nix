@@ -10844,6 +10844,8 @@ with pkgs;
 
   sensu = callPackage ../servers/monitoring/sensu { };
 
+  sensu-check-openvpn = callPackage ../servers/monitoring/sensu/checks/openvpn.nix { };
+
   uchiwa = callPackage ../servers/monitoring/uchiwa { };
 
   shishi = callPackage ../servers/shishi {
