@@ -7,7 +7,12 @@ gem 'sensu-plugins-influxdb'
 
 # checks
 gem 'sensu-plugins-http'
+gem 'sensu-plugins-ipmi'
 gem 'sensu-plugins-disk-checks'
 gem 'sensu-plugins-logs'
+gem 'sensu-plugins-rabbitmq'
+gem 'sensu-plugins-redis'
+gem 'sensu-plugins-sensu'
+gem 'sensu-plugins-snmp'
 gem 'sensu-plugins-systemd'
 # gem 'sensu-plugins-process-checks'
