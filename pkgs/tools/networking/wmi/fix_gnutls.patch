@@ -1,0 +1,36 @@
+commit eb07a8a6939a1fd97b17e23e0bac81befbe7d4b8
+Author: Peter Hoeg <peter@speartail.com>
+Date:   Wed Jan 3 23:46:37 2018 +0800
+
+    make it compile with a recent gnutls
+
+diff --git a/Samba/source/lib/tls/tls.c b/Samba/source/lib/tls/tls.c
+index 0c3f707..5c12ac9 100644
+--- a/Samba/source/lib/tls/tls.c
++++ b/Samba/source/lib/tls/tls.c
+@@ -505,7 +505,7 @@ struct socket_context *tls_init_server(struct tls_params *params,
+ 	gnutls_transport_set_ptr(tls->session, (gnutls_transport_ptr)tls);
+ 	gnutls_transport_set_pull_function(tls->session, (gnutls_pull_func)tls_pull);
+ 	gnutls_transport_set_push_function(tls->session, (gnutls_push_func)tls_push);
+-	gnutls_transport_set_lowat(tls->session, 0);
++  gnutls_record_check_pending(tls->session);
+ 
+ 	tls->plain_chars = plain_chars;
+ 	if (plain_chars) {
+@@ -576,7 +576,6 @@ struct socket_context *tls_init_client(struct socket_context *socket,
+ 	talloc_free(cafile);
+ 	TLSCHECK(gnutls_init(&tls->session, GNUTLS_CLIENT));
+ 	TLSCHECK(gnutls_set_default_priority(tls->session));
+-	gnutls_certificate_type_set_priority(tls->session, cert_type_priority);
+ 	TLSCHECK(gnutls_credentials_set(tls->session, GNUTLS_CRD_CERTIFICATE, tls->xcred));
+ 
+ 	talloc_set_destructor(tls, tls_destructor);
+@@ -584,7 +583,7 @@ struct socket_context *tls_init_client(struct socket_context *socket,
+ 	gnutls_transport_set_ptr(tls->session, (gnutls_transport_ptr)tls);
+ 	gnutls_transport_set_pull_function(tls->session, (gnutls_pull_func)tls_pull);
+ 	gnutls_transport_set_push_function(tls->session, (gnutls_push_func)tls_push);
+-	gnutls_transport_set_lowat(tls->session, 0);
++  gnutls_record_check_pending(tls->session);
+ 	tls->tls_detect = False;
+ 
+ 	tls->output_pending  = False;

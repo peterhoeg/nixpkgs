@@ -20644,6 +20644,11 @@ with pkgs;
 
   yara = callPackage ../tools/security/yara { };
 
+  wmi = callPackage ../tools/networking/wmi {
+    # it doesn't compile with gcc >= 4.8 due to a change in how functions are inlined
+    stdenv = overrideCC stdenv gcc45;
+  };
+
   zap = callPackage ../tools/networking/zap { };
 
   zdfmediathk = callPackage ../applications/video/zdfmediathk { };
