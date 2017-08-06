@@ -8,7 +8,9 @@ buildPerlPackage rec {
     sha256 = "1d4la72fpsf61hcpslmn03ajm5rfy8hm50piqmsfi7d7dm0qmlyn";
   };
 
-  propagatedBuildInputs = [ IOStringy ModuleBuild ];
+  buildInputs = [ ModuleBuild ];
+
+  propagatedBuildInputs = [ IOStringy ];
 
   meta = with stdenv.lib; {
     homepage    = https://github.com/shlomif/perl-Config-IniFiles;
