@@ -3314,7 +3314,7 @@ with pkgs;
   paper-gtk-theme = callPackage ../misc/themes/paper { };
 
   paperwork = callPackage ../applications/office/paperwork { };
- 
+
   papertrail = callPackage ../tools/text/papertrail { };
 
   par2cmdline = callPackage ../tools/networking/par2cmdline { };
@@ -10704,6 +10704,8 @@ with pkgs;
 
   net_snmp = callPackage ../servers/monitoring/net-snmp { };
 
+  check-esxi-hardware = callPackage ../servers/monitoring/plugins/esxi.nix {};
+
   newrelic-sysmond = callPackage ../servers/monitoring/newrelic-sysmond { };
 
   riemann = callPackage ../servers/monitoring/riemann { };
@@ -11023,7 +11025,7 @@ with pkgs;
   b43Firmware_6_30_163_46 = callPackage ../os-specific/linux/firmware/b43-firmware/6.30.163.46.nix { };
 
   b43FirmwareCutter = callPackage ../os-specific/linux/firmware/b43-firmware-cutter { };
-  
+
   bt-fw-converter = callPackage ../os-specific/linux/firmware/bt-fw-converter { };
 
   broadcom-bt-firmware = callPackage ../os-specific/linux/firmware/broadcom-bt-firmware { };
