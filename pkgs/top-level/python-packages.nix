@@ -29464,6 +29464,22 @@ EOF
     };
   };
 
+  pywbem = buildPythonPackage rec {
+    name  = "pywbem-${version}";
+    version = "0.10.0";
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/p/pywbem/${name}.tar.gz";
+      sha256 = "0if8bjyh6bzc1qx8kddprg3sfw1j361wb2gdsshiy14rfl464fiq";
+    };
+    propagatedBuildInputs = with self; [ m2crypto ply pyyaml six ];
+    meta = with pkgs.stdenv.lib; {
+      description = "Support for the WBEM standard for systems management.";
+      homepage = http://pywbem.github.io/pywbem/;
+      license = licenses.gpl2;
+      maintainers = with maintainers; [ peterhoeg ];
+    };
+  };
+
   unicorn = buildPythonPackage rec {
     name  = "unicorn-${version}";
     version = "1.0.1";

@@ -11343,6 +11343,8 @@ with pkgs;
 
   neo4j = callPackage ../servers/nosql/neo4j { };
 
+  check-esx-wbem = callPackage ../servers/monitoring/plugins/esx.nix {};
+
   net_snmp = callPackage ../servers/monitoring/net-snmp {
     # https://sourceforge.net/p/net-snmp/bugs/2712/
     # remove after net-snmp > 5.7.3
