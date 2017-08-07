@@ -31905,6 +31905,9 @@ EOF
     };
   };
 
+  # We need "normal" libxml2 and not the python package by the same name.
+  pywbem = callPackage ../development/python-modules/pywbem { libxml2 = pkgs.libxml2; };
+
   packaging = buildPythonPackage rec {
     name = "packaging-16.8";
     src = pkgs.fetchurl {
