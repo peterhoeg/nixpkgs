@@ -21,18 +21,19 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ ruby qtbase qttools ];
   nativeBuildInputs = [ makeWrapper qmake ];
+  enableParallelBuilding = true;
 
   # Lots of nice hard-coded paths...
   postPatch = ''
-    cd src/unetbootin
+    cd "src/unetbootin"
 
     substituteInPlace unetbootin.cpp \
-      --replace /sbin/fdisk ${utillinux}/sbin/fdisk \
-      --replace /sbin/sfdisk ${utillinux}/sbin/sfdisk \
-      --replace /sbin/blkid ${utillinux}/sbin/blkid \
-      --replace /bin/df ${coreutils}/bin/df \
-      --replace /usr/bin/syslinux ${syslinux}/bin/syslinux \
-      --replace /usr/bin/extlinux ${syslinux}/sbin/extlinux \
+      --replace /bin/df             ${coreutils}/bin/df \
+      --replace /sbin/blkid         ${utillinux}/sbin/blkid \
+      --replace /sbin/fdisk         ${utillinux}/sbin/fdisk \
+      --replace /sbin/sfdisk        ${utillinux}/sbin/sfdisk \
+      --replace /usr/bin/syslinux   ${syslinux}/bin/syslinux \
+      --replace /usr/bin/extlinux   ${syslinux}/sbin/extlinux \
       --replace /usr/share/syslinux ${syslinux}/share/syslinux
 
     substituteInPlace main.cpp \
@@ -42,10 +43,17 @@ stdenv.mkDerivation rec {
       --replace /usr/bin $out/bin
   '';
 
-  # preConfigure = ''
+  preConfigure = ''
+    qmake -query
+    qmake $qmakeFlags "RESOURCES -= unetbootin.qrc"
+    # qmake
     # lupdate unetbootin.pro
     # lrelease unetbootin.pro
-  # '';
+  '';
+
+  buildPhase = ''
+    ./build-nostatic
+  '';
 
   installPhase = ''
     mkdir -p $out/bin
