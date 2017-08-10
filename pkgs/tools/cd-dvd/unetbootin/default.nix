@@ -1,21 +1,31 @@
-{ stdenv, fetchurl, makeWrapper, qt4, utillinux, coreutils, which, qmake4Hook
-, p7zip, mtools, syslinux }:
+{ stdenv, fetchFromGitHub, fetchpatch, makeWrapper, qtbase, qttools, qmake
+, utillinux, coreutils, ruby, which, p7zip, mtools, syslinux }:
 
 stdenv.mkDerivation rec {
   name = "unetbootin-${version}";
-  version = "613";
+  version = "655";
 
-  src = fetchurl {
-    url = "mirror://sourceforge/unetbootin/UNetbootin/${version}/unetbootin-source-${version}.tar.gz";
-    sha256 = "1f389z5lqimp4hlxm6zlrh1ja474r6ivzb9r43i9bvf0z1n21f0q";
+  src = fetchFromGitHub {
+    owner  = "unetbootin";
+    repo   = "unetbootin";
+    rev    = version;
+    sha256 = "1gis75vy172k7lgh8bwgap74s259y9x1wg3rkqhhqncl2vv0w1py";
   };
 
-  sourceRoot = ".";
+  patches = [
+    (fetchpatch {
+      url = "https://patch-diff.githubusercontent.com/raw/unetbootin/unetbootin/pull/137.patch";
+      sha256 = "121nm4x9x6gzzd8lzwx6jpmdkrs4i283f0q4hddmdzqsy0cf7w5p";
+    })
+  ];
 
-  buildInputs = [ makeWrapper qt4 qmake4Hook ];
+  buildInputs = [ ruby qtbase qttools ];
+  nativeBuildInputs = [ makeWrapper qmake ];
 
   # Lots of nice hard-coded paths...
-  postUnpack = ''
+  postPatch = ''
+    cd src/unetbootin
+
     substituteInPlace unetbootin.cpp \
       --replace /sbin/fdisk ${utillinux}/sbin/fdisk \
       --replace /sbin/sfdisk ${utillinux}/sbin/sfdisk \
@@ -24,16 +34,18 @@ stdenv.mkDerivation rec {
       --replace /usr/bin/syslinux ${syslinux}/bin/syslinux \
       --replace /usr/bin/extlinux ${syslinux}/sbin/extlinux \
       --replace /usr/share/syslinux ${syslinux}/share/syslinux
+
     substituteInPlace main.cpp \
       --replace /usr/share/unetbootin $out/share/unetbootin
+
     substituteInPlace unetbootin.desktop \
       --replace /usr/bin $out/bin
   '';
 
-  preConfigure = ''
-    lupdate unetbootin.pro
-    lrelease unetbootin.pro
-  '';
+  # preConfigure = ''
+    # lupdate unetbootin.pro
+    # lrelease unetbootin.pro
+  # '';
 
   installPhase = ''
     mkdir -p $out/bin
@@ -46,7 +58,7 @@ stdenv.mkDerivation rec {
     cp unetbootin.desktop $out/share/applications
 
     wrapProgram $out/bin/unetbootin \
-      --prefix PATH : ${stdenv.lib.makeBinPath [ which p7zip mtools ]} \
+      --prefix PATH : ${stdenv.lib.makeBinPath [ mtools p7zip which ]} \
       --set QT_X11_NO_MITSHM 1
   '';
 
