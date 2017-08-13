@@ -4,10 +4,11 @@ with lib;
 
 let
   cfg = config.services.miniupnpd;
+  boolToStr = bool: if cfg.natpmp then "yes" else "no";
   configFile = pkgs.writeText "miniupnpd.conf" ''
     ext_ifname=${cfg.externalInterface}
-    enable_natpmp=${if cfg.natpmp then "yes" else "no"}
-    enable_upnp=${if cfg.upnp then "yes" else "no"}
+    enable_natpmp=${boolToStr cfg.natpmp}
+    enable_upnp=${boolToStr cfg.upnp}
 
     ${concatMapStrings (range: ''
       listening_ip=${range}
@@ -85,14 +86,20 @@ in
       iptables -t nat -X MINIUPNPD-PCP-PEER
     '';
 
-    systemd.services.miniupnpd = {
+    systemd.services.miniupnpd = let
+      pidFile = "/run/miniupnpd/miniupnpd.pid";
+    in {
       description = "MiniUPnP daemon";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.miniupnpd}/bin/miniupnpd -f ${configFile}";
-        PIDFile = "/var/run/miniupnpd.pid";
+        RuntimeDirectory = "miniupnpd";
+        ExecStart = "${pkgs.miniupnpd}/bin/miniupnpd -f ${configFile} -P ${pidFile}";
+        PIDFile = pidFile;
         Type = "forking";
+        ProtectSystem = "full";
+        ProtectHome = true;
+        PrivateTmp = true;
       };
     };
   };
