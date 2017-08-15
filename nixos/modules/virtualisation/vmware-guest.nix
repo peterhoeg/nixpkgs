@@ -25,15 +25,13 @@ in
       message = "VMWare guest is not currently supported on ${pkgs.stdenv.system}";
     } ];
 
-    environment.systemPackages = [ open-vm-tools ];
-
     systemd.services.vmware =
       { description = "VMWare Guest Service";
         wantedBy = [ "multi-user.target" ];
         serviceConfig.ExecStart = "${open-vm-tools}/bin/vmtoolsd";
       };
 
-    environment.etc."vmware-tools".source = "${pkgs.open-vm-tools}/etc/vmware-tools/*";
+    environment.etc."vmware-tools".source = "${open-vm-tools}/etc/vmware-tools/*";
 
     services.xserver = mkIf (!cfg.headless) {
       videoDrivers = mkOverride 50 [ "vmware" ];
