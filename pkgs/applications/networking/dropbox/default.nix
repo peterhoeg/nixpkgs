@@ -1,5 +1,5 @@
 { mkDerivation, stdenv, lib, fetchurl, makeDesktopItem
-, makeWrapper, patchelf
+, bash, makeWrapper, patchelf
 , dbus_libs, fontconfig, freetype, gcc, glib
 , libdrm, libffi, libICE, libSM
 , libX11, libXcomposite, libXext, libXmu, libXrender, libxcb
@@ -98,8 +98,8 @@ in mkDerivation {
     RPATH="${ldpath}:$out/${appdir}"
     chmod 755 $out/${appdir}/dropbox
     makeWrapper "$out/${appdir}/dropbox" "$out/bin/dropbox" \
-      --prefix LD_LIBRARY_PATH : "$RPATH"
-
+      --prefix LD_LIBRARY_PATH : "$RPATH" \
+      --prefix PATH : ${lib.makeBinPath [ bash ]}
 
     rm $out/${appdir}/wmctrl
     ln -s ${wmctrl}/bin/wmctrl $out/${appdir}/wmctrl
