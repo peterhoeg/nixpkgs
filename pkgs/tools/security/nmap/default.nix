@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, libpcap, pkgconfig, openssl
+{ stdenv, fetchurl, fetchpatch, libpcap, pkgconfig, openssl
 , graphicalSupport ? false
 , libX11 ? null
 , gtk2 ? null
@@ -26,32 +26,56 @@ in stdenv.mkDerivation rec {
     sha256 = "08bga42ipymmbxd7wy4x5sl26c0ir1fm3n9rc6nqmhx69z66wyd8";
   };
 
-  patches = ./zenmap.patch;
+  patches = [
+    ./zenmap.patch
+    (fetchpatch {
+      url = "https://dev.solus-project.com/source/nmap/browse/master/files/0001-zenmap-Use-pkexec-to-gain-root-privileges.patch?view=raw";
+      sha256 = "1g8iak264igjwk6drc8q8pgp5r7dg5i8s6p8i650bppyjmhnsrn1";
+    })
+  ];
 
-  prePatch = optionalString stdenv.isDarwin ''
-    substituteInPlace libz/configure \
-        --replace /usr/bin/libtool ar \
-        --replace 'AR="libtool"' 'AR="ar"' \
-        --replace 'ARFLAGS="-o"' 'ARFLAGS="-r"'
+  pythonPath = [] ++ stdenv.lib.optionals graphicalSupport (with python2Packages; [
+    pycairo
+    pygobject2
+    pygtk
+  ]);
+
+  prePatch = ''
+    ${optionalString stdenv.isDarwin ''
+      substituteInPlace libz/configure \
+          --replace /usr/bin/libtool ar \
+          --replace 'AR="libtool"' 'AR="ar"' \
+          --replace 'ARFLAGS="-o"' 'ARFLAGS="-r"'
+    ''};
+
+    substituteInPlace zenmap/setup.py \
+      --replace /usr/share $out/share
+
+    #  --replace /usr/bin/zenmap $out/bin/zenmap
+    substituteInPlace zenmap/install_scripts/unix/org.nmap.zenmap.pkexec.policy \
+       --replace /usr/bin /run/current-system/sw/bin
   '';
 
-  configureFlags = []
-    ++ optional (!pythonSupport) "--without-ndiff"
-    ++ optional (!graphicalSupport) "--without-zenmap"
-    ;
-
-  postInstall = optionalString pythonSupport ''
-      wrapProgram $out/bin/ndiff --prefix PYTHONPATH : "$(toPythonPath $out)" --prefix PYTHONPATH : "$PYTHONPATH"
-  '' + optionalString graphicalSupport ''
-      wrapProgram $out/bin/zenmap --prefix PYTHONPATH : "$(toPythonPath $out)" --prefix PYTHONPATH : "$PYTHONPATH" --prefix PYTHONPATH : $(toPythonPath $pygtk)/gtk-2.0 --prefix PYTHONPATH : $(toPythonPath $pygobject)/gtk-2.0 --prefix PYTHONPATH : $(toPythonPath $pycairo)/gtk-2.0
-  '';
-
-  nativeBuildInputs = [ pkgconfig ];
   buildInputs = with python2Packages; [ libpcap openssl ]
-    ++ optionals pythonSupport [ makeWrapper python ]
+    ++ optionals pythonSupport [ python ]
     ++ optionals graphicalSupport [
       libX11 gtk2 pygtk pysqlite pygobject2 pycairo
     ];
+
+  nativeBuildInputs = [
+    makeWrapper pkgconfig python2Packages.wrapPython
+  ];
+
+  enableParallelBuilding = true;
+
+  configureFlags = []
+    ++ optional (!pythonSupport)    "--without-ndiff"
+    ++ optional (!graphicalSupport) "--without-zenmap"
+  ;
+
+  postInstall = ''
+    wrapPythonProgramsIn $out/bin "$out $pythonPath"
+  '';
 
   meta = {
     description = "A free and open source utility for network discovery and security auditing";
