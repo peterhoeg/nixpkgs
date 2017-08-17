@@ -6,15 +6,37 @@
 let
   version = "3.6.6";
 
+  owner  = "rabbitmq";
+  rev = (stdenv.lib.replaceStrings [ "." ] [ "_" ] "rabbitmq_v${version}");
+
+  codegen = stdenv.mkDerivation rec {
+    name = "rabbitmq-codegen-${version}";
+    src = fetchFromGitHub {
+      repo = "rabbitmq-codegen";
+      sha256 = "12999bjbjixij36abn9n8wrzjik62wy7iyqgpafzp4zbgkf49258";
+      inherit owner rev;
+    };
+    buildInputs = [ python ];
+    installPhase = ''
+      mkdir -p $out/bin
+      echo "#!${python.interpreter}" > $out/bin/amqp_codegen.py
+      cat amqp_codegen.py >> $out/bin/amqp_codegen.py
+    '';
+  };
+
   common = stdenv.mkDerivation rec {
     name = "rabbitmq-common-${version}";
     src = fetchFromGitHub {
-      owner  = "rabbitmq";
       repo   = "rabbitmq-common";
-      rev    = stdenv.lib.replaceStrings [ "." ] [ "_" ]"rabbitmq_v${version}";
       sha256 = "1qdbnvq38kpkz2wq1qfwvnp6a6ldi5xcd9s124dyndpfxhh3nh4l";
+      inherit owner rev;
     };
-    buildInputs = [ erlang ];
+    buildInputs = [ codegen erlang python ];
+    preBuild = ''
+      mkdir -p deps
+
+      ln -s ${codegen.src}  deps/rabbitmq_codegen
+    '';
     installPhase = ''
       mkdir -p $out
       mv ebin $out/
@@ -41,15 +63,14 @@ in stdenv.mkDerivation rec {
   name = "rabbitmq-server-${version}";
 
   src = fetchFromGitHub {
-    owner  = "rabbitmq";
     repo   = "rabbitmq-server";
-    rev    = stdenv.lib.replaceStrings [ "." ] [ "_" ]"rabbitmq_v${version}";
     sha256 = "1h3lrar7svajx7ccf6zrn8csr2hlxc8fwnvpx62pndvjw9nzgdm7";
+    inherit owner rev;
   };
 
   buildInputs = [
     erlang libxml2 libxslt zip unzip rsync
-    common ranch
+    codegen common ranch
   ] ++ stdenv.lib.optionals stdenv.isDarwin [ AppKit Carbon Cocoa ];
   nativeBuildInputs = [
     docbook_xml_dtd_45 docbook_xsl xmlto
@@ -61,12 +82,14 @@ in stdenv.mkDerivation rec {
     patchShebangs .
 
     export CLI_ESCRIPTS_DIR=$out/bin
-    # export DEPS_DIR=$out/deps
 
     mkdir -p deps
 
-    ln -s ${common}   deps/rabbit_common
-    ln -s ${ranch}    deps/ranch
+    cp -r ${codegen.src}  deps/rabbitmq_codegen
+    cp -r ${common.src}   deps/rabbit_common
+    cp -r ${ranch.src}    deps/ranch
+    substituteInPlace deps/ranch/Makefile \
+      --replace ebin/ $out/ebin/
   '';
 
   installFlags = "PREFIX=$(out) RMQ_ERLAPP_DIR=$(out)";
