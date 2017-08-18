@@ -2747,6 +2747,8 @@ with pkgs;
 
   kronometer = libsForQt5.callPackage ../tools/misc/kronometer { };
 
+  xsettings-kde = libsForQt5.callPackage ../tools/misc/xsettings-kde { };
+
   kdiff3 = libsForQt5.callPackage ../tools/text/kdiff3 { };
 
   kwalletcli = libsForQt5.callPackage ../tools/security/kwalletcli { };
@@ -9651,7 +9653,7 @@ with pkgs;
   opencollada = callPackage ../development/libraries/opencollada { };
 
   opencore-amr = callPackage ../development/libraries/opencore-amr { };
-  
+
   opencsg = callPackage ../development/libraries/opencsg { };
 
   openct = callPackage ../development/libraries/openct { };
@@ -11363,7 +11365,7 @@ with pkgs;
   munin = callPackage ../servers/monitoring/munin { };
 
   nagiosPluginsOfficial = callPackage ../servers/monitoring/nagios/plugins/official-2.x.nix { };
-  
+
   checkSSLCert = callPackage ../servers/monitoring/nagios/plugins/check_ssl_cert.nix { };
 
   neo4j = callPackage ../servers/nosql/neo4j { };
