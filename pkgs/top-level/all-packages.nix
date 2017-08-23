@@ -6982,6 +6982,8 @@ with pkgs;
     inherit (perlPackages) LocaleGettext;
   };
 
+  force = callPackage ../development/tools/force { };
+
   heroku = callPackage ../development/tools/heroku { };
 
   htmlunit-driver = callPackage ../development/tools/selenium/htmlunit-driver { };
