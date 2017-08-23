@@ -13,12 +13,8 @@ buildGoPackage rec {
 
   goPackagePath = "github.com/heroku/force";
 
-  godeps = ./deps.nix;
-
   preBuild = ''
-    ls -la
-    mkdir -p go/src
-    cp -r $src/Godeps/_workspace/src/* go/src/
+    export GOPATH=$GOPATH:$NIX_BUILD_TOP/go/src/${goPackagePath}/Godeps/_workspace:${src}/Godeps/_workspace/src
   '';
 
   meta = with stdenv.lib; {
