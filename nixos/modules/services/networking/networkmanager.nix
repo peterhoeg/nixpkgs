@@ -15,11 +15,14 @@ let
     else if config.services.unbound.enable then "unbound"
     else "default";
 
+  useResolved = (dns == "systemd-resolved");
+
   configFile = writeText "NetworkManager.conf" ''
     [main]
     plugins=keyfile
     dhcp=${cfg.dhcp}
     dns=${dns}
+    rc-manager=${if useResolved then "unmanaged" else "resolvconf"}
 
     [keyfile]
     ${optionalString (cfg.unmanaged != [])
@@ -37,6 +40,8 @@ let
 
     [device]
     wifi.scan-rand-mac-address=${if cfg.wifi.scanRandMacAddress then "yes" else "no"}
+
+    ${lib.concatStringsSep "\n" cfg.extraConfig}
   '';
 
   /*
@@ -254,6 +259,12 @@ in {
           so you don't need to to that yourself.
         '';
       };
+
+      extraConfig = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "Additional configuration added verbatim to the configuration file.";
+      };
     };
   };
 
@@ -331,6 +342,7 @@ in {
 
     systemd.services."network-manager" = {
       wantedBy = [ "network.target" ];
+      wants = lib.mkIf useResolved [ "systemd-resolved.service" ];
       restartTriggers = [ configFile ];
 
       preStart = ''
