@@ -9,11 +9,21 @@ let
   # /var/lib/misc is for dnsmasq.leases.
   stateDirs = "/var/lib/NetworkManager /var/lib/dhclient /var/lib/misc";
 
+  dns =
+    if cfg.dns == "none" then "none"
+    else if cfg.dns == "dnsmasq" then "dnsmasq"
+    else if config.services.resolved.enable then "systemd-resolved"
+    else if config.services.unbound.enable then "unbound"
+    else "default";
+
+  useResolved = (dns == "systemd-resolved");
+
   configFile = writeText "NetworkManager.conf" ''
     [main]
     plugins=keyfile
     dhcp=${cfg.dhcp}
-    dns=${cfg.dns}
+    dns=${dns}
+    rc-manager=${if useResolved then "unmanaged" else "resolvconf"}
 
     [keyfile]
     ${optionalString (cfg.unmanaged != [])
@@ -389,6 +399,7 @@ in {
 
     systemd.services."network-manager" = {
       wantedBy = [ "network.target" ];
+      wants = lib.mkIf useResolved [ "systemd-resolved.service" ];
       restartTriggers = [ configFile ];
 
       preStart = ''
