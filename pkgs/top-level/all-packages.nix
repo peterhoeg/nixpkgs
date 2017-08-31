@@ -11376,6 +11376,7 @@ with pkgs;
 
   inherit (callPackage ../servers/monitoring/plugins/labs_consol_de.nix { inherit (perlPackages) NetSNMP; })
     check-nwc-health
+    check-video-health
     check-ups-health;
 
   checkSSLCert = callPackage ../servers/monitoring/nagios/plugins/check_ssl_cert.nix { };

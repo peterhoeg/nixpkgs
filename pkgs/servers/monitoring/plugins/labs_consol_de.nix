@@ -4,11 +4,20 @@
 let
   owner = "lausser";
 
-  glplugin = fetchFromGitHub {
+  glpluginSrc = fetchFromGitHub {
     repo   = "GLPlugin";
     rev    = "b92a261ca4bf84e5b20d3025cc9a31ade03c474b";
     sha256 = "0kflnmpjmklq8fy2vf2h8qyvaiznymdi09z2h5qscrfi51xc9gmh";
     inherit owner;
+  };
+
+  glplugin = generic {
+    pname       = "GLPlugin";
+    inherit (glpluginSrc) rev sha256;
+    version     = "20170804";
+    rev         = "e959b412b5cf027c82a446668e026214fdcf8df3";
+    sha256      = "11l74xw62g15rqrbf9ff2bfd5iw159gwhhgbkxwdqi8sp9j6navk";
+    description = "Check plugin for network equipment.";
   };
 
   generic = { pname, version, rev, sha256, description, ... } @ attrs:
@@ -27,7 +36,8 @@ let
     nativeBuildInputs = [ autoreconfHook makeWrapper ];
 
     prePatch = with stdenv.lib; ''
-      ln -s ${glplugin}/* GLPlugin
+      mkdir -p GLPlugin
+      ln -s ${glpluginSrc}/* GLPlugin
       substituteInPlace plugins-scripts/Makefile.am \
         --replace /bin/cat  ${getBin coreutils}/bin/cat \
         --replace /bin/echo ${getBin coreutils}/bin/echo \
@@ -60,6 +70,14 @@ in {
     rev         = "e959b412b5cf027c82a446668e026214fdcf8df3";
     sha256      = "11l74xw62g15rqrbf9ff2bfd5iw159gwhhgbkxwdqi8sp9j6navk";
     description = "Check plugin for network equipment.";
+  };
+
+  check-video-health = generic {
+    pname       = "check_video_health";
+    version     = "20161110";
+    rev         = "e68635929d95201d669ea293cefb99a01d54a74d";
+    sha256      = "13w9smddr8virdrchfjavw3yj5zqvx7w9hxwkk8zasc9qbwy491a";
+    description = "Check plugin for video conferencing systems.";
   };
 
   check-ups-health = generic {
