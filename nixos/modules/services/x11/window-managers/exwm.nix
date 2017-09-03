@@ -24,6 +24,13 @@ in
         type = lib.types.bool;
         description = "Enable an uncustomised exwm configuration.";
       };
+      package = mkOption {
+        default = exwm-emacs;
+        type = types.package;
+        description = ''
+          Override the emacs package. Please note that you jjj
+        '';
+      };
       extraPackages = mkOption {
         default = self: [];
         example = literalExample ''
@@ -46,7 +53,7 @@ in
     services.xserver.windowManager.session = singleton {
       name = "exwm";
       start = ''
-        ${exwm-emacs}/bin/emacs -l ${loadScript}
+        ${cfg.package}/bin/emacs -l ${loadScript}
       '';
     };
     environment.systemPackages = [ exwm-emacs ];
