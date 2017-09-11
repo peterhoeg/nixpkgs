@@ -3278,6 +3278,8 @@ with pkgs;
 
   moneyplex = callPackage ../applications/office/moneyplex { };
 
+  tabula = callPackage ../applications/office/tabula { };
+
   monit = callPackage ../tools/system/monit { };
 
   moreutils = callPackage ../tools/misc/moreutils {
