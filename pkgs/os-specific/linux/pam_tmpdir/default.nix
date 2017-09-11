@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, autoreconfHook, libtool, pkgconfig, pam }:
+{ stdenv, fetchurl, autoreconfHook, libtool, pam }:
 
 stdenv.mkDerivation rec {
   name = "pam_tmpdir-${version}";
@@ -10,25 +10,15 @@ stdenv.mkDerivation rec {
   };
 
   buildInputs = [ pam ];
-  nativeBuildInputs = [ autoreconfHook pkgconfig ];
+  nativeBuildInputs = [ autoreconfHook ];
   enableParallelBuilding = true;
 
   prePatch = ''
-    rm -rf m4
-    cp -r ${libtool}/share/aclocal m4
-    chmod 755 m4
-    chmod 644 m4/*
+    install -m644 ${libtool}/share/aclocal/*.m4 -t m4
     sed -i Makefile.am \
       -e '/chown root/d' \
       -e '/chmod u/d'
   '';
-
-  # Probably a hack, but using DESTDIR and PREFIX makes everything work!
-  # postInstall = ''
-    # mkdir -p $out
-    # cp -r $out/$out/* $out
-    # rm -r $out/nix
-    # '';
 
   meta = with stdenv.lib; {
     description = "PAM module to mount volumes for a user session";
