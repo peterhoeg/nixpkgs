@@ -18925,6 +18925,9 @@ with pkgs;
 
   canon-cups-ufr2 = callPackage ../misc/cups/drivers/canon { };
 
+  hl3170cdw-cupswrapper = callPackage ../misc/cups/drivers/hl3170cdw { };
+  hl3170cdwlpr = callPackage_i686 ../misc/cups/drivers/hl3170cdw/lpr.nix { };
+
   mfcj470dw-cupswrapper = callPackage ../misc/cups/drivers/mfcj470dwcupswrapper { };
   mfcj470dwlpr = callPackage_i686 ../misc/cups/drivers/mfcj470dwlpr { };
 
