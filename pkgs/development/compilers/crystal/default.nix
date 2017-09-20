@@ -93,7 +93,6 @@ in stdenv.mkDerivation rec {
         --suffix LIBRARY_PATH : $libPath \
         --suffix PATH         : ${stdenv.lib.makeBinPath [ llvm_4 ]}
 
-
     install -dm755 $out/lib/crystal
     cp -r src/* $out/lib/crystal/
 
