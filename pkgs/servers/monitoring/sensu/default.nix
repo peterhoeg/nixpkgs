@@ -1,11 +1,10 @@
-{ lib, bundlerEnv, ruby }:
+{ lib, bundlerApp }:
 
-bundlerEnv rec {
-  name = "sensu-${version}";
-  version = (import ./gemset.nix).sensu.version;
-
-  inherit ruby;
+bundlerApp rec {
+  pname = "sensu";
   gemdir = ./.;
+
+  exes = [ "sensu-*" ];
 
   meta = with lib; {
     description = "A monitoring framework that aims to be simple, malleable, and scalable";
