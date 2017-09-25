@@ -2,12 +2,11 @@ source 'https://rubygems.org'
 
 gem 'sensu'
 
-# integration
-gem 'sensu-plugins-influxdb'
+# dependencies undeclared but needed by extensions/plugins
+gem 'history' # needed by extensions-influxdb
 
-# checks
-gem 'sensu-plugins-http'
-gem 'sensu-plugins-disk-checks'
-gem 'sensu-plugins-logs'
-gem 'sensu-plugins-systemd'
-# gem 'sensu-plugins-process-checks'
+# extensions
+gem 'sensu-extensions-check-dependencies'
+gem 'sensu-extensions-influxdb2'
+gem 'sensu-extensions-snmp-trap'
+gem 'sensu-extensions-system-profile'
