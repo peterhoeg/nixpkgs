@@ -14183,6 +14183,8 @@ in
 
   ruby-zoom = callPackage ../tools/text/ruby-zoom { };
 
+  sensu-check-openvpn = callPackage ../servers/monitoring/sensu/checks/openvpn.nix { };
+
   sensu = callPackage ../servers/monitoring/sensu { };
 
   uchiwa = callPackage ../servers/monitoring/uchiwa { };
