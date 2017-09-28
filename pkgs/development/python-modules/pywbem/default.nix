@@ -5,20 +5,14 @@
 
 buildPythonPackage rec {
   name  = "pywbem-${version}";
-  version = "0.10.0";
+  version = "0.10.1";
 
   src = fetchFromGitHub {
     owner  = "pywbem";
     repo   = "pywbem";
     rev    = "v${version}";
-    sha256 = "0jcwklip03xcni0dvsk9va8ilqz21g4fxwqd5kzvv91slaadfcym";
+    sha256 = "1pifbnkkmdb7jn0nhb6j9y7hlq3my45gm75sxph4jm4kxnrpbv91";
   };
-
-  patches = [
-    # fix timezone handling so the tests pass again. Can go when 0.10.1 is released
-    # https://github.com/pywbem/pywbem/issues/755#issuecomment-327508681
-    ./make_cimdatetime_timezone_aware.patch
-  ];
 
   propagatedBuildInputs = [ m2crypto ply pyyaml six ];
 
@@ -43,8 +37,8 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Support for the WBEM standard for systems management.";
-    homepage = http://pywbem.github.io/pywbem/;
-    license = licenses.gpl2;
+    homepage    = http://pywbem.github.io/pywbem/;
+    license     = licenses.gpl2;
     maintainers = with maintainers; [ peterhoeg ];
   };
 }
