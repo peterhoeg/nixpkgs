@@ -16891,7 +16891,7 @@ in {
     };
 
     disabled = !isPy3k;
-    
+
     # No tests in archive
     doCheck = false;
 
@@ -26618,7 +26618,7 @@ EOF
   ROPGadget = callPackage ../development/python-modules/ROPGadget { };
 
   # We need "normal" libxml2 and not the python package by the same name.
-  pywbem = if !(isPy36)
+  pywbem = if true # !(isPy36)
     then callPackage ../development/python-modules/pywbem { libxml2 = pkgs.libxml2; }
     else throw "pywbem not supported for interpreter ${python.executable}";
 
