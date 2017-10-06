@@ -16,11 +16,17 @@ stdenv.mkDerivation rec {
     sha256 = "0gg75mjy2p7lyh8nnivmyn7bjp1zyx26zm8s1fak7d2di2r0mnjc";
   };
 
-  cmakeFlags = [ 
-    "-DWITH_GUI_TESTS=ON" 
+  cmakeFlags = [
+    "-DWITH_GUI_TESTS=ON"
     "-DWITH_XC_AUTOTYPE=ON"
     "-DWITH_XC_YUBIKEY=ON"
   ] ++ (optional withKeePassHTTP "-DWITH_XC_HTTP=ON");
+
+  buildInputs = [ libgcrypt zlib qtbase qttools libXtst libmicrohttpd libgpgerror glibcLocales libyubikey yubikey-personalization libXi qtx11extras ];
+
+  nativeBuildInputs = [ cmake ];
+
+  enableParallelBuilding = true;
 
   doCheck = true;
   checkPhase = ''
@@ -28,13 +34,11 @@ stdenv.mkDerivation rec {
     make test ARGS+="-E testgui --output-on-failure"
   '';
 
-  buildInputs = [ cmake libgcrypt zlib qtbase qttools libXtst libmicrohttpd libgpgerror glibcLocales libyubikey yubikey-personalization libXi qtx11extras ];
-
-  meta = {
+  meta = with stdenv.lib; {
     description = "Fork of the keepassX password-manager with additional http-interface to allow browser-integration an use with plugins such as PasslFox (https://github.com/pfn/passifox). See also keepassX2.";
-    homepage = https://github.com/keepassxreboot/keepassxc;
-    license = stdenv.lib.licenses.gpl2;
-    maintainers = with stdenv.lib.maintainers; [ s1lvester jonafato ];
-    platforms = with stdenv.lib.platforms; linux;
+    homepage    = https://github.com/keepassxreboot/keepassxc;
+    license     = licenses.gpl2;
+    maintainers = with maintainers; [ s1lvester jonafato ];
+    platforms   = with platforms; linux;
   };
 }
