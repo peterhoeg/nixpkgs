@@ -1522,6 +1522,8 @@ with pkgs;
 
   clamav = callPackage ../tools/security/clamav { };
 
+  havp = callPackage ../tools/security/havp { };
+
   clex = callPackage ../tools/misc/clex { };
 
   client-ip-echo = callPackage ../servers/misc/client-ip-echo { };
