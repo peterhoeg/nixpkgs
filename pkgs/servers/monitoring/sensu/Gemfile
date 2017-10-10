@@ -2,12 +2,35 @@ source 'https://rubygems.org'
 
 gem 'sensu'
 
-# integration
-gem 'sensu-plugins-influxdb'
+# dependencies undeclared but extensions/plugins
+gem 'history' # needed by extensions-influxdb
 
-# checks
-gem 'sensu-plugins-http'
-gem 'sensu-plugins-disk-checks'
-gem 'sensu-plugins-logs'
-gem 'sensu-plugins-systemd'
+# integration
+gem 'sensu-plugins-mailer'
+gem 'sensu-plugins-pushover'
+
+# extensions
+gem 'sensu-extensions-check-dependencies'
+# sensu-extensions-influxdb on rubygems.org is not the officially sanctioned extension
+gem 'sensu-extensions-influxdb', github: 'sensu-extensions/sensu-extensions-influxdb2', ref: 'c6ccfbd12fd878d4a30096444d8a022aac433252'
+gem 'sensu-extensions-snmp-trap'
+gem 'sensu-extensions-system-profile'
+
+# checks - cpu and process cannot be installed due to: https://github.com/manveru/bundix/issues/14
+# gem 'sensu-plugins-cpu-checks'
 # gem 'sensu-plugins-process-checks'
+gem 'sensu-plugins-cgroups'
+gem 'sensu-plugins-disk-checks'
+gem 'sensu-plugins-http'
+gem 'sensu-plugins-influxdb' # checks for influxdb, we do not care about the extension
+gem 'sensu-plugins-ipmi'
+gem 'sensu-plugins-load-checks'
+gem 'sensu-plugins-logs'
+gem 'sensu-plugins-network-checks'
+gem 'sensu-plugins-raid-checks', github: 'sensu-plugins/sensu-plugins-raid-checks', ref: '5b13a690f317c96c8b44f90af767de2842adfae4'
+gem 'sensu-plugins-rabbitmq'
+gem 'sensu-plugins-redis'
+gem 'sensu-plugins-sensu'
+gem 'sensu-plugins-snmp'
+gem 'sensu-plugins-systemd'
+gem 'sensu-plugins-uptime-checks'
