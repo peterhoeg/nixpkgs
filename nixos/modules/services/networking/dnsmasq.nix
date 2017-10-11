@@ -101,10 +101,12 @@ in
           BusName = "uk.org.thekelleys.dnsmasq";
           ExecStart = "${dnsmasq}/bin/dnsmasq -k --enable-dbus --user=dnsmasq -C ${dnsmasqConf}";
           ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+          PrivateTmp = true;
+          ProtectSystem = true;
+          ProtectHome = true;
+          Restart = "always";
         };
         restartTriggers = [ config.environment.etc.hosts.source ];
     };
-
   };
-
 }
