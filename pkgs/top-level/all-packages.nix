@@ -10094,8 +10094,7 @@ with pkgs;
 
   pcg_c = callPackage ../development/libraries/pcg-c { };
 
-  pcl = callPackage ../development/libraries/pcl {
-    vtk = vtkWithQt4;
+  pcl = libsForQt5.callPackage ../development/libraries/pcl {
     inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks) Cocoa AGL OpenGL;
   };
