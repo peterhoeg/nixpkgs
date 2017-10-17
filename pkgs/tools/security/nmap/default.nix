@@ -1,4 +1,5 @@
-{ stdenv, fetchurl, fetchpatch, libpcap, pkgconfig, openssl
+{ stdenv, fetchurl, fetchpatch, autoreconfHook, pkgconfig
+, libpcap, libssh2, lua, pcre, openssl, zlib
 , graphicalSupport ? false
 , libX11 ? null
 , gtk2 ? null
@@ -17,14 +18,33 @@ let
   # so automatically enable pythonSupport if graphicalSupport is requested.
   pythonSupport = withPython || graphicalSupport;
 
-in stdenv.mkDerivation rec {
-  name = "nmap${optionalString graphicalSupport "-graphical"}-${version}";
   version = "7.60";
 
   src = fetchurl {
     url = "https://nmap.org/dist/nmap-${version}.tar.bz2";
     sha256 = "08bga42ipymmbxd7wy4x5sl26c0ir1fm3n9rc6nqmhx69z66wyd8";
   };
+
+  libdnet = stdenv.mkDerivation rec {
+    name = "nmap-libdnet";
+
+    inherit src;
+
+    configureFlags = [
+      "--enable-shared"
+    ];
+
+    # nativeBuildInputs = [ autoreconfHook ];
+
+    enableParallelBuilding = true;
+
+    sourceRoot = "nmap-${version}/libdnet-stripped";
+  };
+
+in stdenv.mkDerivation rec {
+  name = "nmap${optionalString graphicalSupport "-graphical"}-${version}";
+
+  inherit src;
 
   patches = [
     ./zenmap.patch
@@ -41,26 +61,30 @@ in stdenv.mkDerivation rec {
   ]);
 
   prePatch = ''
+    # substituteInPlace zenmap/setup.py \
+      # --replace /usr $out
+
     ${optionalString stdenv.isDarwin ''
       substituteInPlace libz/configure \
           --replace /usr/bin/libtool ar \
           --replace 'AR="libtool"' 'AR="ar"' \
           --replace 'ARFLAGS="-o"' 'ARFLAGS="-r"'
-    ''};
+    ''}
+  '';
 
-    substituteInPlace zenmap/setup.py \
-      --replace /usr/share $out/share
-
-    #  --replace /usr/bin/zenmap $out/bin/zenmap
+  postPatch = ''
     substituteInPlace zenmap/install_scripts/unix/org.nmap.zenmap.pkexec.policy \
        --replace /usr/bin /run/current-system/sw/bin
   '';
 
-  buildInputs = with python2Packages; [ libpcap openssl ]
-    ++ optionals pythonSupport [ python ]
-    ++ optionals graphicalSupport [
-      libX11 gtk2 pygtk pysqlite pygobject2 pycairo
-    ];
+  buildInputs = with python2Packages; [
+    # libdnet
+    libpcap libssh2 lua openssl pcre zlib
+  ] ++ optionals pythonSupport [
+    python
+  ] ++ optionals graphicalSupport [
+    libX11 gtk2 pygtk pysqlite pygobject2 pycairo
+  ];
 
   nativeBuildInputs = [
     makeWrapper pkgconfig python2Packages.wrapPython
@@ -68,10 +92,15 @@ in stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  configureFlags = []
-    ++ optional (!pythonSupport)    "--without-ndiff"
+  configureFlags = [
+    # "--with-libdnet=${libdnet}"
+  ] ++ optional (!pythonSupport)    "--without-ndiff"
     ++ optional (!graphicalSupport) "--without-zenmap"
   ;
+
+  makeFlags = [
+    "DESTDIR=/"
+  ];
 
   postInstall = ''
     wrapPythonProgramsIn $out/bin "$out $pythonPath"
