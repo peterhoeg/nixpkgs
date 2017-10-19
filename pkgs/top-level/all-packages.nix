@@ -16294,6 +16294,8 @@ with pkgs;
 
   runc = callPackage ../applications/virtualization/runc {};
 
+  kitty = callPackage ../applications/misc/kitty { };
+
   rxvt = callPackage ../applications/misc/rxvt { };
 
   # urxvt
