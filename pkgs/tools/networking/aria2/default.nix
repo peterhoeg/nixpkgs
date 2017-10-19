@@ -5,29 +5,36 @@
 
 stdenv.mkDerivation rec {
   name = "aria2-${version}";
-  version = "1.32.0";
+  version = "1.33.0";
 
   src = fetchFromGitHub {
-    owner = "aria2";
-    repo = "aria2";
-    rev = "release-${version}";
-    sha256 = "098ahj7nyf5c70221aq5q3aqllb94frz9lzig8rkhqfsa4mmslg5";
+    owner  = "aria2";
+    repo   = "aria2";
+    rev    = "release-${version}";
+    sha256 = "07i9wrj7bs9770ppx943zgn8j9zvffxg2pib4w5ljxapqldhwrsq";
   };
 
-  nativeBuildInputs = [ pkgconfig autoreconfHook ];
+  nativeBuildInputs = [ autoreconfHook pkgconfig ];
 
   buildInputs = [ openssl c-ares libxml2 sqlite zlib libssh2 ] ++
     stdenv.lib.optional stdenv.isDarwin Security;
 
-  configureFlags = [ "--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt" ];
-
   enableParallelBuilding = true;
 
+  configureFlags = [
+    "--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+    "--with-bashcompletiondir=$(out)/share/bash-completion/completions"
+  ];
+
+  postInstall = ''
+    mv $out/share/doc/aria2/xmlrpc/aria* $out/bin
+  '';
+
   meta = with stdenv.lib; {
-    homepage = https://aria2.github.io;
     description = "A lightweight, multi-protocol, multi-source, command-line download utility";
-    license = licenses.gpl2Plus;
-    platforms = platforms.unix;
+    homepage    = https://aria2.github.io;
+    license     = licenses.gpl2Plus;
     maintainers = with maintainers; [ koral jgeerds ];
+    platforms   = platforms.unix;
   };
 }
