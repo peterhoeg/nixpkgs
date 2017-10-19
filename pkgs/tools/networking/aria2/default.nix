@@ -14,20 +14,27 @@ stdenv.mkDerivation rec {
     sha256 = "07i9wrj7bs9770ppx943zgn8j9zvffxg2pib4w5ljxapqldhwrsq";
   };
 
-  nativeBuildInputs = [ pkgconfig autoreconfHook ];
+  nativeBuildInputs = [ autoreconfHook pkgconfig ];
 
   buildInputs = [ openssl c-ares libxml2 sqlite zlib libssh2 ] ++
     stdenv.lib.optional stdenv.isDarwin Security;
 
-  configureFlags = [ "--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt" ];
-
   enableParallelBuilding = true;
 
+  configureFlags = [
+    "--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+    "--with-bashcompletiondir=$(out)/share/bash-completion/completions"
+  ];
+
+  postInstall = ''
+    mv $out/share/doc/aria2/xmlrpc/aria* $out/bin
+  '';
+
   meta = with stdenv.lib; {
-    homepage = https://aria2.github.io;
     description = "A lightweight, multi-protocol, multi-source, command-line download utility";
+    homepage    = https://aria2.github.io;
     license = licenses.gpl2Plus;
-    platforms = platforms.unix;
     maintainers = with maintainers; [ koral jgeerds ];
+    platforms   = platforms.unix;
   };
 }
