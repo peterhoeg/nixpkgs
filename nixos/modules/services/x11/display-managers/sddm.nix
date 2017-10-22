@@ -17,9 +17,7 @@ let
     exec systemd-cat ${dmcfg.xserverBin} ${toString dmcfg.xserverArgs} "$@"
   '';
 
-  Xsetup = pkgs.writeScript "Xsetup" ''
-    #!/bin/sh
-
+  preStart = ''
     # Prior to Qt 5.9.2, there is a QML cache invalidation bug which sometimes
     # strikes new Plasma 5 releases. If the QML cache is not invalidated, SDDM
     # will segfault without explanation. We really tore our hair out for awhile
@@ -29,7 +27,10 @@ let
     # will be regenerated, causing a small but perceptible delay when SDDM
     # starts.
     rm -fr /var/lib/sddm/.cache/sddm-greeter/qmlcache
+  '';
 
+  Xsetup = pkgs.writeScript "Xsetup" ''
+    #!/bin/sh
     ${cfg.setupScript}
   '';
 
@@ -216,6 +217,8 @@ in
       };
 
       execCmd = "exec /run/current-system/sw/bin/sddm";
+
+      inherit preStart;
     };
 
     security.pam.services = {
