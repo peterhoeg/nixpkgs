@@ -1,21 +1,29 @@
-{ stdenv, fetchurl, pkgconfig, yacc, flex, xkeyboard_config, libxcb, libX11 }:
+{ stdenv, fetchFromGitHub, doxygen, meson, ninja, pkgconfig, yacc
+, xkeyboard_config, libxcb, libX11
+, wayland, wayland-protocols }:
 
 stdenv.mkDerivation rec {
-  name = "libxkbcommon-0.7.1";
+  name = "libxkbcommon-${version}";
+  version = "0.7.2";
 
-  src = fetchurl {
-    url = "http://xkbcommon.org/download/${name}.tar.xz";
-    sha256 = "ba59305d2e19e47c27ea065c2e0df96ebac6a3c6e97e28ae5620073b6084e68b";
+  src = fetchFromGitHub {
+    owner  = "xkbcommon";
+    repo   = "libxkbcommon";
+    rev    = "xkbcommon-${version}";
+    sha256 = "1lamz7g1z1vilg6y8ndksd0z502p2faih43fhzqzbg1n9jvy6wh0";
   };
 
   outputs = [ "out" "dev" ];
 
-  nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ yacc flex xkeyboard_config libxcb ];
+  nativeBuildInputs = [ doxygen meson ninja pkgconfig ];
 
-  configureFlags = [
-    "--with-xkb-config-root=${xkeyboard_config}/etc/X11/xkb"
-    "--with-x-locale-root=${libX11.out}/share/X11/locale"
+  buildInputs = [ yacc xkeyboard_config libxcb wayland wayland-protocols ];
+
+  enableParallelBuilding = true;
+
+  mesonFlags = [
+    "-Dxkb-config-root=${xkeyboard_config}/etc/X11/xkb"
+    "-Dx-locale-root=${libX11.out}/share/X11/locale"
   ];
 
   preBuild = stdenv.lib.optionalString stdenv.isDarwin ''
@@ -24,9 +32,9 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "A library to handle keyboard descriptions";
-    homepage = http://xkbcommon.org;
-    license = licenses.mit;
+    homepage    = https://xkbcommon.org;
+    license     = licenses.mit;
     maintainers = with maintainers; [ garbas ttuegel ];
-    platforms = with platforms; unix;
+    platforms   = with platforms; unix;
   };
 }
