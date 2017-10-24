@@ -1,18 +1,28 @@
-{ stdenv, fetchurl, flac, fuse, lame, libid3tag, pkgconfig }:
+{ stdenv, fetchFromGitHub, autoreconfHook, pkgconfig
+, asciidoc, libxslt
+, flac, fuse, lame, libid3tag }:
 
 stdenv.mkDerivation rec {
   name = "mp3fs-${version}";
   version = "0.91";
 
-  src = fetchurl {
-    url = "https://github.com/khenriks/mp3fs/releases/download/v${version}/${name}.tar.gz";
-    sha256 = "14ngiqg24p3a0s6hp33zjl4i46d8qn4v9id36psycq3n3csmwyx4";
+  src = fetchFromGitHub {
+    owner  = "khenriks";
+    repo   = "mp3fs";
+    rev    = "v${version}";
+    sha256 = "0hhrvqd96zpabs8nvychhjxrwy6z4180c2dvalwvrx6q7fhscqlv";
   };
 
   patches = [ ./fix-statfs-operation.patch ];
 
+  postPatch = ''
+    substituteInPlace Makefile.am \
+      --replace a2x 'a2x --no-xmllint'
+  '';
+
   buildInputs = [ flac fuse lame libid3tag ];
-  nativeBuildInputs = [ pkgconfig ];
+
+  nativeBuildInputs = [ asciidoc autoreconfHook libxslt.bin pkgconfig ];
 
   enableParallelBuilding = true;
 
@@ -25,9 +35,9 @@ stdenv.mkDerivation rec {
       which only understands the MP3 format, or transcode files through
       simple drag-and-drop in a file browser.
     '';
-    homepage = http://khenriks.github.io/mp3fs/;
-    license = licenses.gpl3Plus;
-    platforms = platforms.linux;
+    homepage    = https://khenriks.github.io/mp3fs/;
+    license     = licenses.gpl3Plus;
+    platforms   = platforms.linux;
     maintainers = with maintainers; [ nckx ];
   };
 }
