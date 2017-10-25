@@ -1,6 +1,6 @@
 { mkDerivation, fetchurl, lib
-, extra-cmake-modules, kdoctools
-, kauth, kiconthemes, kwidgetsaddons
+, extra-cmake-modules, kdoctools, wrapGAppsHook
+, kauth, kiconthemes, kinit, kwidgetsaddons
 , gpgme, qgpgme }:
 
 let
@@ -15,11 +15,11 @@ in mkDerivation rec {
     sha256 = "0475r2qq8jzpd9wb4fx43n2plbnwq4mfbfhcaq5h8md3nm3h5gva";
   };
 
-  nativeBuildInputs = [ extra-cmake-modules kdoctools ];
+  nativeBuildInputs = [ extra-cmake-modules kdoctools wrapGAppsHook ];
 
   buildInputs = [ gpgme qgpgme ];
 
-  propagatedBuildInputs = [ kauth kiconthemes kwidgetsaddons ];
+  propagatedBuildInputs = [ kauth kiconthemes kinit kwidgetsaddons ];
 
   enableParallelBuilding = true;
 
