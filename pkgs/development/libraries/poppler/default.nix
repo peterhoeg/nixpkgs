@@ -1,5 +1,5 @@
-{ stdenv, lib, fetchurl, fetchpatch, pkgconfig, libiconv, libintlOrEmpty
-, zlib, curl, cairo, freetype, fontconfig, lcms, libjpeg, openjpeg
+{ stdenv, lib, fetchurl, fetchpatch, cmake, pkgconfig, libiconv, libintlOrEmpty
+, zlib, curl, cairo, freetype, fontconfig, lcms, libjpeg, libpthreadstubs, libXdmcp, nss, openjpeg, pcre
 , withData ? true, poppler_data
 , qt4Support ? false, qt4 ? null
 , qt5Support ? false, qtbase ? null
@@ -10,10 +10,10 @@
 }:
 
 let # beware: updates often break cups-filters build
-  version = "0.56.0";
-  sha256 = "0wviayidfv2ix2ql0d4nl9r1ia6qi5kc1nybd9vjx27dk7gvm7c6";
-in
-stdenv.mkDerivation rec {
+  version = "0.61.0";
+  sha256 = "0zrbb1b77k6bm2qdnra08jnbyllv6vj29790igmp6fzs59xf3kak";
+
+in stdenv.mkDerivation rec {
   name = "poppler-${suffix}-${version}";
 
   src = fetchurl {
@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
 
   outputs = [ "out" "dev" ];
 
-  buildInputs = [ libiconv ] ++ libintlOrEmpty ++ lib.optional withData poppler_data;
+  buildInputs = [ libiconv libpthreadstubs libXdmcp nss pcre ] ++ libintlOrEmpty ++ lib.optional withData poppler_data;
 
   # TODO: reduce propagation to necessary libs
   propagatedBuildInputs = with lib;
@@ -33,7 +33,7 @@ stdenv.mkDerivation rec {
     ++ optional qt5Support qtbase
     ++ optional introspectionSupport gobjectIntrospection;
 
-  nativeBuildInputs = [ pkgconfig ];
+  nativeBuildInputs = [ cmake pkgconfig ];
 
   NIX_CFLAGS_COMPILE = [ "-DQT_NO_DEBUG" ];
 
