@@ -8,35 +8,43 @@ stdenv.mkDerivation {
     sha256 = "1hdq6zm2dx2f9h7bjrp6a1hfa1ywgkwydp14i2sszjiszljnm3qi";
   };
 
-  buildInputs = [ gcj unzip ];
+  nativeBuildInputs = [ gcj unzip ];
+
+  enableParallelBuilding = true;
+
+  sourceRoot = "./pdftk";
 
   hardeningDisable = [ "fortify" "format" ];
 
-  preBuild = ''
-    cd pdftk
-    sed -e 's@/usr/bin/@@g' -i Makefile.*
-    NIX_ENFORCE_PURITY= \
-      make \
-      LIBGCJ="${gcj.cc}/share/java/libgcj-${gcj.cc.version}.jar" \
-      GCJ=gcj GCJH=gcjh GJAR=gjar \
-      -iC ../java all
+  postPatch = ''
+    substituteInPlace Makefile.*
+      --replace /usr/bin ""
   '';
 
-  # Makefile.Debian has almost fitting defaults
-  makeFlags = [ "-f" "Makefile.Debian" "VERSUFF=" ];
+  NIX_ENFORCE_PURITY = "";
+
+  makeFlags = [
+    "LIBGCJ='${gcj.cc}/share/java/libgcj-${gcj.cc.version}.jar'"
+    "GCJ=gcj"
+    "GCJH=gcjh"
+    "GJAR=gjar"
+    "-iC" "../java" "all"
+    # Makefile.Debian has almost fitting defaults
+    "-f" "Makefile.Debian"
+    "VERSUFF="
+  ];
 
   installPhase = ''
-    mkdir -p $out/bin $out/share/man/man1
-    cp pdftk $out/bin
-    cp ../pdftk.1 $out/share/man/man1
+    install -Dm755 -t $out/bin pdftk
+    install -Dm644 -t $out/share/man/man1 ../pdftk.1
   '';
 
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "Simple tool for doing everyday things with PDF documents";
     homepage = https://www.pdflabs.com/tools/pdftk-server/;
-    license = stdenv.lib.licenses.gpl2;
-    maintainers = with stdenv.lib.maintainers; [viric raskin];
-    platforms = with stdenv.lib.platforms; linux;
+    license = licenses.gpl2;
+    maintainers = with maintainers; [viric raskin];
+    platforms = with platforms; linux;
   };
 }
