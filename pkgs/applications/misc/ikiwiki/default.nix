@@ -23,7 +23,7 @@ assert mercurialSupport -> (mercurial != null);
 
 let
   name = "ikiwiki";
-  version = "3.20170111";
+  version = "3.20171001";
 
   lib = stdenv.lib;
 in
@@ -32,7 +32,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "mirror://debian/pool/main/i/ikiwiki/${name}_${version}.tar.xz";
-    sha256 = "00d7yzv426fvqbhvzyafddv7fa6b4j2647b0wi371wd5yjj9j3sz";
+    sha256 = "0rhr0977nv4avqmnjpzvrh2kwqj0xpm3vismxvk8mlr9y7rfmgd3";
   };
 
   buildInputs = [ perl TextMarkdown URI HTMLParser HTMLScrubber HTMLTemplate
@@ -80,12 +80,12 @@ stdenv.mkDerivation {
   checkTarget = "test";
   doCheck = true;
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "Wiki compiler, storing pages and history in a RCS";
     homepage = http://ikiwiki.info/;
-    license = stdenv.lib.licenses.gpl2Plus;
-    platforms = stdenv.lib.platforms.linux;
-    maintainers = [ stdenv.lib.maintainers.peti ];
-    broken = true; # https://ikiwiki.info/bugs/imagemagick_6.9.8_test_suite_failure/
+    license = licenses.gpl2Plus;
+    platforms = platforms.linux;
+    maintainers = with maintainers; [ peti ];
+    # broken = true; # https://ikiwiki.info/bugs/imagemagick_6.9.8_test_suite_failure/
   };
 }
