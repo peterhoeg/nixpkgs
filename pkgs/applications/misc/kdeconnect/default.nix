@@ -12,6 +12,7 @@
 , qca-qt5
 , libfakekey
 , libXtst
+, qtbase
 , qtx11extras
 , sshfs
 , makeWrapper
@@ -37,6 +38,23 @@ stdenv.mkDerivation rec {
 
   postInstall = ''
     wrapProgram $out/lib/libexec/kdeconnectd --prefix PATH : ${lib.makeBinPath [ sshfs ]}
+
+    echo "SystemdService=dbus-org.kde.kdeconnect.service" >> $out/share/dbus-1/services/org.kde.kdeconnect.service
+    mkdir -p $out/lib/systemd/user
+    cat << _EOF > $out/lib/systemd/user/dbus-org.kde.kdeconnect.service
+    [Unit]
+    Description=KDE Connect
+
+    [Service]
+    Environment="QML2_IMPORT_PATH=/run/current-system/sw/${qtbase.qtPluginPrefix}"
+    Environment="QT_PLUGIN_PATH=/run/current-system/sw/${qtbase.qtQmlPrefix}"
+    Type=dbus
+    BusName=org.kde.kdeconnectd
+    ExecStart=$out/lib/libexec/kdeconnectd
+    Restart=on-failure
+    Slice=kde.slice
+    _EOF
+    rm $out/etc/xdg/autostart/kdeconnectd.desktop
   '';
 
   enableParallelBuilding = true;
