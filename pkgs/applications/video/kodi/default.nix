@@ -1,7 +1,7 @@
 { stdenv, lib, fetchFromGitHub, fetchurl, autoconf, automake, libtool, makeWrapper
 , pkgconfig, cmake, gnumake, yasm, python2
 , libgcrypt, libgpgerror, libunistring
-, boost, avahi, lame, autoreconfHook
+, boost, avahi, shairplay, lame, autoreconfHook
 , gettext, pcre-cpp, yajl, fribidi, which
 , openssl, gperf, tinyxml2, taglib, libssh, swig, jre
 , libX11, xproto, inputproto, libxml2
@@ -130,7 +130,7 @@ in stdenv.mkDerivation rec {
       libmpeg2 libsamplerate libmad
       libogg libvorbis flac libxslt systemd
       lzo libcdio libmodplug libass libbluray
-      sqlite mysql.lib avahi lame
+      sqlite mysql.lib avahi shairplay lame
       curl bzip2 zip unzip glxinfo xdpyinfo
       libcec libcec_platform dcadec libuuid
       libgcrypt libgpgerror libunistring
