@@ -123,6 +123,8 @@ in {
 
   asn1crypto = callPackage ../development/python-modules/asn1crypto { };
 
+  astral = callPackage ../development/python-modules/astral { };
+
   astropy = callPackage ../development/python-modules/astropy {  };
 
   augeas = callPackage ../development/python-modules/augeas {
