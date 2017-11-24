@@ -16994,7 +16994,7 @@ with pkgs;
   uwimap = callPackage ../tools/networking/uwimap { };
 
   uzbl = callPackage ../applications/networking/browsers/uzbl {
-    webkit = webkitgtk24x-gtk2;
+    webkit = webkitgtk;
   };
 
   utox = callPackage ../applications/networking/instant-messengers/utox { };

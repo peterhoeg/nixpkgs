@@ -1,31 +1,46 @@
-{ stdenv, fetchurl, pkgconfig, python3, makeWrapper
-, webkit, glib_networking, gsettings_desktop_schemas, python2Packages
+{ stdenv, fetchFromGitHub, pkgconfig, python3, makeWrapper
+, webkit, glib_networking, gnutls, gsettings_desktop_schemas, python2Packages
 }:
+
 # This package needs python3 during buildtime,
 # but Python 2 + packages during runtime.
 
 stdenv.mkDerivation rec {
-  name = "uzbl-v0.9.0";
+  name = "uzbl-${version}";
+  version = "20170902";
 
-  meta = with stdenv.lib; {
-    description = "Tiny externally controllable webkit browser";
-    homepage    = "http://uzbl.org/";
-    license     = licenses.gpl3;
-    platforms   = platforms.linux;
-    maintainers = with maintainers; [ raskin dgonyeo ];
+  src = fetchFromGitHub {
+    owner = "uzbl";
+    repo = "uzbl";
+    rev = "676b47e36a03a9ad07f13589e44875800a1878f9";
+    sha256 = "0yx9mxhhpfk6lp4va1gd4q3fsi0y99bz68y3yvy8a5lndhpl0xvj";
   };
 
-  src = fetchurl {
-    name = "${name}.tar.gz";
-    url = "https://github.com/uzbl/uzbl/archive/v0.9.0.tar.gz";
-    sha256 = "0iskhv653fdm5raiidimh9fzlsw28zjqx7b5n3fl1wgbj6yz074k";
-  };
+  nativeBuildInputs = [ makeWrapper pkgconfig python3 ];
+
+  buildInputs = [ gnutls gsettings_desktop_schemas webkit ];
+
+  propagatedBuildInputs = with python2Packages; [ pygtk six ];
+
+  format = "other";
+
+  enableParallelBuilding = true;
+
+  configureFlags = [
+    "PREFIX=$out"
+    "PYINSTALL_EXTRA=--prefix=$out"
+  ];
 
   preConfigure = ''
-    makeFlags="$makeFlags PREFIX=$out"
-    makeFlags="$makeFlags PYINSTALL_EXTRA=--prefix=$out"
-    mkdir -p $out/${python3.sitePackages}/
-    export PYTHONPATH=$PYTHONPATH:$out/${python3.sitePackages}
+    mkdir -p $out/${python2Packages.python.sitePackages}/
+    export PYTHONPATH=$PYTHONPATH:$out/${python2Packages.python.sitePackages}
+  '';
+
+  installPhase = ''
+    exit 1
+    runHook preInstall
+    make install
+    runHook postInstall
   '';
 
   preFixup = ''
@@ -37,8 +52,12 @@ stdenv.mkDerivation rec {
     done
   '';
 
-  nativeBuildInputs = [ pkgconfig python3 makeWrapper ];
+  meta = with stdenv.lib; {
+    description = "Tiny externally controllable webkit browser";
+    homepage    = "http://uzbl.org/";
+    license     = licenses.gpl3;
+    platforms   = platforms.linux;
+    maintainers = with maintainers; [ raskin dgonyeo ];
+  };
 
-  buildInputs = [ gsettings_desktop_schemas webkit ];
-  propagatedBuildInputs = with python2Packages; [ pygtk six ];
 }
