@@ -1,7 +1,7 @@
 { stdenv, lib, fetchFromGitHub, fetchurl, autoconf, automake, libtool, makeWrapper
 , pkgconfig, cmake, gnumake, yasm, python2
 , libgcrypt, libgpgerror, libunistring
-, boost, avahi, lame, autoreconfHook
+, boost, avahi, shairplay, lame, autoreconfHook
 , gettext, pcre-cpp, yajl, fribidi, which
 , openssl, gperf, tinyxml2, taglib, libssh, swig, jre
 , libX11, xproto, inputproto, libxml2
@@ -130,7 +130,7 @@ in stdenv.mkDerivation rec {
       libmpeg2 libsamplerate libmad
       libogg libvorbis flac libxslt systemd
       lzo libcdio libmodplug libass libbluray
-      sqlite mysql.lib avahi lame
+      sqlite mysql.lib avahi lame shairplay
       curl bzip2 zip unzip glxinfo xdpyinfo
       libcec libcec_platform dcadec libuuid
       libgcrypt libgpgerror libunistring
@@ -189,7 +189,7 @@ in stdenv.mkDerivation rec {
         wrapProgram $out/bin/$p \
           --prefix PATH            ":" "${lib.makeBinPath [ python2 glxinfo xdpyinfo ]}" \
           --prefix LD_LIBRARY_PATH ":" "${lib.makeLibraryPath
-              [ curl systemd libmad libvdpau libcec libcec_platform rtmpdump libass ]}"
+              [ curl systemd libmad libvdpau libcec libcec_platform rtmpdump shairplay libass ]}"
       done
 
       substituteInPlace $out/share/xsessions/kodi.desktop \
