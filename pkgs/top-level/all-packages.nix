@@ -10811,7 +10811,7 @@ with pkgs;
 
   telepathy_farstream = callPackage ../development/libraries/telepathy/farstream {};
 
-  telepathy_qt = callPackage ../development/libraries/telepathy/qt { qtbase = qt4; };
+  telepathy_qt = libsForQt5.callPackage ../development/libraries/telepathy/qt { };
 
   tevent = callPackage ../development/libraries/tevent {
     python = python2;
