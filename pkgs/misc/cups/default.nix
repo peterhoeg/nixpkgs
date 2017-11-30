@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pkgconfig, zlib, libjpeg, libpng, libtiff, pam
+{ stdenv, fetchFromGitHub, fetchpatch, pkgconfig, zlib, libjpeg, libpng, libtiff, pam
 , dbus, systemd, acl, gmp, darwin
 , libusb ? null, gnutls ? null, avahi ? null, libpaper ? null
 }:
@@ -9,18 +9,28 @@
 with stdenv.lib;
 stdenv.mkDerivation rec {
   name = "cups-${version}";
-  version = "2.2.2";
+  version = "2.2.6";
 
   passthru = { inherit version; };
 
-  src = fetchurl {
-    url = "https://github.com/apple/cups/releases/download/v${version}/cups-${version}-source.tar.gz";
-    sha256 = "1xp4ji4rz3xffsz6w6nd60ajxvvihn02pkyp2l4smhqxbmyvp2gm";
+  src = fetchFromGitHub {
+    owner  = "apple";
+    repo   = "cups";
+    rev    = "v${version}";
+    sha256 = "147m1f7ibk3rmhldjc1k5av8pyivbza9ii0h5f0y1sdycphynylj";
   };
 
   outputs = [ "out" "lib" "dev" "man" ];
 
+  patches = [
+    (fetchpatch {
+      url = "https://git.archlinux.org/svntogit/packages.git/plain/trunk/cups-systemd-socket.patch?h=packages/cups";
+      sha256 = "1ddgdlg9s0l2ph6l8lx1m1lx6k50gyxqi3qiwr44ppq1rxs80ny5";
+    })
+  ];
+
   nativeBuildInputs = [ pkgconfig ];
+
   buildInputs = [ zlib libjpeg libpng libtiff libusb gnutls libpaper ]
     ++ optionals stdenv.isLinux [ avahi pam dbus systemd acl ]
     ++ optionals stdenv.isDarwin (with darwin; [
@@ -45,19 +55,14 @@ stdenv.mkDerivation rec {
   ] ++ optionals stdenv.isLinux [
     "--enable-dbus"
     "--enable-pam"
-  ] ++ optional (libusb != null) "--enable-libusb"
-    ++ optional (gnutls != null) "--enable-ssl"
-    ++ optional (avahi != null) "--enable-avahi"
+  ] ++ optional (libusb != null)   "--enable-libusb"
+    ++ optional (gnutls != null)   "--enable-ssl"
+    ++ optional (avahi != null)    "--enable-avahi"
     ++ optional (libpaper != null) "--enable-libpaper"
     ++ optionals stdenv.isDarwin [
     "--with-bundledir=$out"
     "--disable-launchd"
   ];
-
-  # XXX: Hackery until https://github.com/NixOS/nixpkgs/issues/24693
-  preBuild = if stdenv.isDarwin then ''
-    export DYLD_FRAMEWORK_PATH=/System/Library/Frameworks
-  '' else null;
 
   installFlags =
     [ # Don't try to write in /var at build time.
@@ -96,7 +101,8 @@ stdenv.mkDerivation rec {
       for f in "$out"/lib/systemd/system/*; do
         substituteInPlace "$f" \
           --replace "org.cups.cupsd" "cups" \
-          --replace "org.cups." ""
+          --replace "org.cups." "" \
+          --replace /var/run /run
 
         if [[ "$f" =~ .*cupsd\..* ]]; then
           mv "$f" "''${f/org\.cups\.cupsd/cups}"
