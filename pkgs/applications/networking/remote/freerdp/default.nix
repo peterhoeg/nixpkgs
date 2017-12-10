@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, cmake, pkgconfig
+{ stdenv, lib, fetchFromGitHub, cmake, docbook_xml_xslt, libxslt, pkgconfig
 , alsaLib, ffmpeg_2, glib, openssl, pcre, zlib
 , libX11, libXcursor, libXdamage, libXext, libXi, libXinerama, libXrandr, libXrender, libXv
 , libxkbcommon, libxkbfile
@@ -24,6 +24,7 @@ stdenv.mkDerivation rec {
   };
 
   # outputs = [ "bin" "out" "dev" ];
+  outputs = [ "bin" "dev" "lib" "man" "out" ];
 
   prePatch = ''
     export HOME=$TMP
@@ -43,7 +44,7 @@ stdenv.mkDerivation rec {
   ] ++ optional stdenv.isLinux systemd;
 
   nativeBuildInputs = [
-    cmake pkgconfig
+    cmake docbook_xml_xslt libxslt pkgconfig
   ];
 
   enableParallelBuilding = true;
@@ -59,6 +60,14 @@ stdenv.mkDerivation rec {
     ++ optional (pcsclite != null)            "-DWITH_PCSC=ON"
     ++ optional buildServer                   "-DWITH_SERVER=ON"
     ++ optional (optimize && stdenv.isx86_64) "-DWITH_SSE2=ON";
+
+  postInstall = ''
+    mkdir -p $bin
+    mv $out/bin $bin
+
+    mkdir -p $lib
+    mv $out/lib $lib
+  '';
 
   meta = with lib; {
     description = "A Remote Desktop Protocol Client";
