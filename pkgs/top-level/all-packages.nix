@@ -12165,6 +12165,8 @@ with pkgs;
 
   ruby-zoom = callPackage ../tools/text/ruby-zoom { };
 
+  huginn = callPackage ../servers/monitoring/huginn { };
+
   sensu = callPackage ../servers/monitoring/sensu { };
 
   uchiwa = callPackage ../servers/monitoring/uchiwa { };
