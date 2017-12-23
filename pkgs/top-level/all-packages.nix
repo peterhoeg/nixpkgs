@@ -17088,7 +17088,7 @@ with pkgs;
 
   timewarrior = callPackage ../applications/misc/timewarrior { };
 
-  timidity = callPackage ../tools/misc/timidity { };
+  timidity = callPackage ../applications/audio/timidity { };
 
   tint2 = callPackage ../applications/misc/tint2 { };
 
