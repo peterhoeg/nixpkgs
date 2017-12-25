@@ -1,7 +1,26 @@
-{ stdenv, fetchFromGitHub, autoreconfHook, pkgconfig
+{ stdenv, fetchFromGitHub, autoreconfHook, pkgconfig, writeText
 , avahi, libao }:
 
-stdenv.mkDerivation rec {
+let
+  description = "Apple AirPlay and RAOP protocol server";
+
+  unit = writeText "shairplay.service" ''
+    [Unit]
+    Description=${description}
+    Requires=network.target sound.target
+    Wants=avahi-daemon.service
+    After=avahi-daemon.service
+
+    [Service]
+    Type=simple
+    ExecStart=@out@/bin/shairplay -a %H
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+  '';
+
+in stdenv.mkDerivation rec {
   name = "shairplay-${version}";
   version = "2016-01-01";
 
@@ -18,7 +37,20 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  # the build will fail without complaining about a reference to /tmp
+  postPatch = ''
+    substituteInPlace src/shairplay.c \
+      --replace '"airport.key"' '"$out/share/shairplay/airport.key"'
+  '';
+
+  postInstall = ''
+    install -Dm644 -t $out/share/shairplay airport.key
+
+    mkdir -p $out/lib/systemd/system
+    substitute ${unit} $out/lib/systemd/system/shairplay.service \
+      --subst-var out
+  '';
+
+  # the build will fail complaining about a reference to /tmp
   preFixup = ''
     patchelf \
       --set-rpath "${stdenv.lib.makeLibraryPath buildInputs}:$out/lib" \
@@ -26,10 +58,10 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    inherit (src.meta) homepage;
-    description = "Apple airplay and raop protocol server";
     license     = licenses.mit;
     maintainers = with maintainers; [ peterhoeg ];
     platforms   = platforms.unix;
+    inherit description;
+    inherit (src.meta) homepage;
   };
 }
