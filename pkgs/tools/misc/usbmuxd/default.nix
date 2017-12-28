@@ -1,4 +1,6 @@
-{ stdenv, fetchurl, libplist, libusb1, pkgconfig, libimobiledevice }:
+{ stdenv, fetchurl, pkgconfig
+, libplist, libusb1, libimobiledevice,
+, systemd, udev }:
 
 stdenv.mkDerivation rec {
   name = "usbmuxd-${version}";
@@ -10,21 +12,24 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ pkgconfig ];
-  propagatedBuildInputs = [ libusb1 libplist libimobiledevice ];
 
-  preConfigure = ''
-    configureFlags="$configureFlags --with-udevrulesdir=$out/lib/udev/rules.d"
-    configureFlags="$configureFlags --with-systemdsystemunitdir=$out/lib/systemd/system"
-  '';
+  buildInputs = [
+    libusb1 libplist libimobiledevice
+  ] ++ lib.optionals stdenv.isLinux [ udev systemd ];
 
-  meta = {
+  configureFlags = [
+    "--with-udevrulesdir=$out/lib/udev/rules.d"
+    "--with-systemdsystemunitdir=$out/lib/systemd/system"
+  ];
+
+  meta = with stdenv.lib; {
     homepage = http://marcansoft.com/blog/iphonelinux/usbmuxd/;
     description = "USB Multiplex Daemon (for talking to iPhone or iPod)";
     longDescription = ''
       usbmuxd: USB Multiplex Daemon. This bit of software is in charge of
       talking to your iPhone or iPod Touch over USB and coordinating access to
       its services by other applications.'';
-    platforms = stdenv.lib.platforms.linux;
     maintainers = [ ];
+    platforms = platforms.unix;
   };
 }
