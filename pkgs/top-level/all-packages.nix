@@ -12590,6 +12590,8 @@ with pkgs;
 
   sensu = callPackage ../servers/monitoring/sensu { };
 
+  sensu-check-wmiplus = callPackage ../servers/monitoring/sensu/checks/wmiplus.nix { };
+
   uchiwa = callPackage ../servers/monitoring/uchiwa { };
 
   shishi = callPackage ../servers/shishi {
