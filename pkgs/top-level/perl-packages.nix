@@ -2506,6 +2506,8 @@ let
     };
   };
 
+  ConfigIniFiles = callPackage ../development/perl-modules/ConfigIniFiles {};
+
   ConfigMerge = buildPerlPackage {
     name = "Config-Merge-1.04";
     src = fetchurl {
