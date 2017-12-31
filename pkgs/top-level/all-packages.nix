@@ -1220,7 +1220,7 @@ with pkgs;
   mpdris2 = callPackage ../tools/audio/mpdris2 { };
 
   nfdump = callPackage ../tools/networking/nfdump { };
-  
+
   nrsc5 = callPackage ../applications/misc/nrsc5 { };
 
   onboard = callPackage ../applications/misc/onboard { };
@@ -2965,10 +2965,6 @@ with pkgs;
 
   kpcli = callPackage ../tools/security/kpcli { };
 
-  # kget is part of kde-applications but the released version is still for KDE 4
-  # This needs to move to the proper place when the "frameworks" branch is released
-  kget = libsForQt5.callPackage ../applications/networking/kget { };
-
   krename = libsForQt5.callPackage ../applications/misc/krename { };
 
   kronometer = libsForQt5.callPackage ../tools/misc/kronometer { };
@@ -4205,7 +4201,7 @@ with pkgs;
 
   qhull = callPackage ../development/libraries/qhull { };
 
-  qjoypad = callPackage ../tools/misc/qjoypad { };
+  qjoypad = libsForQt5.callPackage ../tools/misc/qjoypad { };
 
   qpdf = callPackage ../development/libraries/qpdf { };
 
@@ -5115,7 +5111,7 @@ with pkgs;
 
   uhttpmock = callPackage ../development/libraries/uhttpmock { };
 
-  uim = kde4.callPackage ../tools/inputmethods/uim { };
+  uim = callPackage ../tools/inputmethods/uim { };
 
   uhub = callPackage ../servers/uhub { };
 
@@ -7889,10 +7885,8 @@ with pkgs;
 
   xpwn = callPackage ../development/mobile/xpwn {};
 
-  xxdiff = callPackage ../development/tools/misc/xxdiff {
-    bison = bison2;
-  };
-  xxdiff-tip = qt56.callPackage ../development/tools/misc/xxdiff/tip.nix { };
+  xxdiff = libsForQt5.callPackage ../development/tools/misc/xxdiff { };
+  xxdiff-tip = xxdiff;
 
   yacc = bison;
 
@@ -8980,8 +8974,6 @@ with pkgs;
       };
     in
       recurseIntoAttrs (makeOverridable mkFrameworks attrs);
-
-  kdelibs4 = kdeApplications.kdelibs;
 
   keybinder = callPackage ../development/libraries/keybinder {
     automake = automake111x;
@@ -12497,6 +12489,8 @@ with pkgs;
 
   firejail = callPackage ../os-specific/linux/firejail {};
 
+  firewalld = callPackage ../os-specific/linux/firewalld {};
+
   fnotifystat = callPackage ../os-specific/linux/fnotifystat { };
 
   forkstat = callPackage ../os-specific/linux/forkstat { };
@@ -13070,8 +13064,6 @@ with pkgs;
 
   gocode = callPackage ../development/tools/gocode { };
 
-  kgocode = callPackage ../applications/misc/kgocode { };
-
   gotags = callPackage ../development/tools/gotags { };
 
   golint = callPackage ../development/tools/golint { };
@@ -13167,6 +13159,8 @@ with pkgs;
   qemu_test = lowPrio (qemu.override { hostCpuOnly = true; nixosTestRunner = true; });
 
   firmwareLinuxNonfree = callPackage ../os-specific/linux/firmware/firmware-linux-nonfree { };
+
+  firmwareLinuxNvidia = callPackage ../os-specific/linux/firmware/nvidia { };
 
   radeontools = callPackage ../os-specific/linux/radeontools { };
 
@@ -13976,11 +13970,6 @@ with pkgs;
 
   msgviewer = callPackage ../applications/networking/mailreaders/msgviewer { };
 
-  amarok = kde4.callPackage ../applications/audio/amarok {
-    ffmpeg = ffmpeg_2;
-    stdenv = overrideCC stdenv gcc5;
-  };
-
   amarok-kf5 = libsForQt5.callPackage ../applications/audio/amarok/kf5.nix { };
 
   AMB-plugins = callPackage ../applications/audio/AMB-plugins { };
@@ -14217,10 +14206,6 @@ with pkgs;
   calcurse = callPackage ../applications/misc/calcurse { };
 
   calibre = libsForQt5.callPackage ../applications/misc/calibre { };
-
-  calligra2 = kde4.callPackage ../applications/office/calligra/2.nix {
-    vc = vc_0_7;
-  };
 
   calligra = libsForQt5.callPackage ../applications/office/calligra {
     inherit (kdeApplications) akonadi-calendar akonadi-contacts;
@@ -15577,8 +15562,6 @@ with pkgs;
 
   k9copy = libsForQt5.callPackage ../applications/video/k9copy {};
 
-  kadu = kde4.callPackage ../applications/networking/instant-messengers/kadu { };
-
   kanboard = callPackage ../applications/misc/kanboard { };
 
   kdeApplications =
@@ -15595,7 +15578,7 @@ with pkgs;
   inherit (kdeApplications)
     akonadi akregator ark dolphin ffmpegthumbs filelight gwenview k3b
     kaddressbook kate kcachegrind kcalc kcolorchooser kcontacts kdenlive kdf keditbookmarks
-    kgpg khelpcenter kig kleopatra kmail kmix kolourpaint kompare konsole
+    kget kgpg khelpcenter kig kleopatra kmail kmix kolourpaint kompare konsole
     kontact korganizer krdc krfb kwalletmanager marble minuet okteta okular spectacle;
 
   kdeconnect = libsForQt5.callPackage ../applications/misc/kdeconnect { };
@@ -15904,7 +15887,7 @@ with pkgs;
 
   mirage = callPackage ../applications/graphics/mirage { };
 
-  mixxx = callPackage ../applications/audio/mixxx {
+  mixxx = libsForQt5.callPackage ../applications/audio/mixxx {
     inherit (vamp) vampSDK;
   };
 
@@ -16474,7 +16457,7 @@ with pkgs;
     python = python3;
   };
 
-  psi = kde4.callPackage ../applications/networking/instant-messengers/psi { };
+  psi = callPackage ../applications/networking/instant-messengers/psi { };
 
   psi-plus = callPackage ../applications/networking/instant-messengers/psi-plus { };
 
@@ -16539,8 +16522,7 @@ with pkgs;
     qt = qt4;
   };
 
-  # 0.5.7 segfaults when opening the main panel with qt 5.7 and fails to compile with qt 5.8
-  qsyncthingtray = libsForQt56.callPackage ../applications/misc/qsyncthingtray { };
+  qsyncthingtray = libsForQt5.callPackage ../applications/misc/qsyncthingtray { };
 
   qstopmotion = callPackage ../applications/video/qstopmotion { };
 
@@ -17826,7 +17808,7 @@ with pkgs;
 
   yarp = callPackage ../applications/science/robotics/yarp {};
 
-  yate = callPackage ../applications/misc/yate { };
+  yate = libsForQt5.callPackage ../applications/misc/yate { };
 
   yed = callPackage ../applications/graphics/yed {};
 
@@ -18222,7 +18204,7 @@ with pkgs;
 
   openjk = callPackage ../games/openjk { };
 
-  openmw = callPackage ../games/openmw { };
+  openmw = libsForQt5.callPackage ../games/openmw { };
 
   openmw-tes3mp = libsForQt5.callPackage ../games/openmw/tes3mp.nix {
     stdenv = overrideCC stdenv gcc7;
@@ -18329,6 +18311,12 @@ with pkgs;
   };
 
   scummvm = callPackage ../games/scummvm { };
+
+  inherit (callPackage ../games/scummvm/games.nix { })
+    beneath-a-steel-sky
+    drascula-the-vampire-strikes-back
+    flight-of-the-amazon-queen
+    lure-of-the-temptress;
 
   scorched3d = callPackage ../games/scorched3d { };
 
@@ -18594,24 +18582,6 @@ with pkgs;
 
   kakasi = callPackage ../tools/text/kakasi { };
 
-  kde4 =
-    let
-      deps = lib.makeScope newScope (self: {
-        inherit (python2Packages) python;
-        kdelibs = kdelibs4;
-        boost = boost155;
-        ffmpeg = ffmpeg_2; # ffmpegthumb doesn't build otherwise
-      });
-
-      self = lib.makeScope deps.newScope (self: with self;
-        import ../desktops/kde-4.14 {
-          callPackageOrig = pkgs.callPackage;
-          inherit (self) callPackage;
-          inherit stdenv qt48 kdelibs;
-        }
-      );
-    in recurseIntoAttrs self;
-
   lumina = libsForQt5.callPackage ../desktops/lumina { };
 
   lxqt = recurseIntoAttrs (import ../desktops/lxqt {
@@ -18684,7 +18654,7 @@ with pkgs;
   inherit (kdeFrameworks) kded kinit frameworkintegration;
 
   inherit (plasma5)
-    bluedevil breeze-gtk breeze-qt4 breeze-qt5 breeze-grub breeze-plymouth
+    bluedevil breeze-gtk breeze-qt5 breeze-grub breeze-plymouth
     kactivitymanagerd kde-cli-tools kde-gtk-config kdeplasma-addons kgamma5
     kinfocenter kmenuedit kscreen kscreenlocker ksshaskpass ksysguard
     kwallet-pam kwayland-integration kwin kwrited milou oxygen plasma-desktop
@@ -19566,6 +19536,8 @@ with pkgs;
   nix-repl = callPackage ../tools/package-management/nix-repl { };
 
   nix-serve = callPackage ../tools/package-management/nix-serve { };
+
+  nix-upgrade-scripts = callPackages ../tools/package-management/nix-upgrade-scripts { };
 
   nixos-artwork = callPackage ../data/misc/nixos-artwork { };
   nixos-icons = callPackage ../data/misc/nixos-artwork/icons.nix { };
