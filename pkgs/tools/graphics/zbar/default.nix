@@ -1,14 +1,16 @@
 { stdenv, fetchurl, imagemagickBig, pkgconfig, python2Packages, perl
-, libX11, libv4l, qt4, lzma, gtk2, fetchpatch, autoreconfHook
+, libX11, libv4l, qt5, lzma, gtk2, fetchpatch, autoreconfHook
 , enableVideo ? stdenv.isLinux
 }:
 
 let
   inherit (python2Packages) pygtk python;
+
 in stdenv.mkDerivation rec {
   name = "${pname}-${version}";
   pname = "zbar";
   version = "0.10";
+
   src = fetchurl {
     url = "mirror://sourceforge/project/${pname}/${pname}/${version}/${name}.tar.bz2";
     sha256 = "1imdvf5k34g1x2zr6975basczkz3zdxg6xnci50yyp5yvcwznki3";
@@ -35,12 +37,18 @@ in stdenv.mkDerivation rec {
       url = "https://git.recluse.de/raw/debian/pkg-zbar.git/d3eba6e2c3acb0758d19519015bf1a53ffb8e645/debian!patches!threading-fix.patch";
       sha256 = "1jjgrx9nc7788vfriai4z26mm106sg5ylm2w5rdyrwx7420x1wh7";
     })
+    (fetchpatch {
+      name = "qt5.patch";
+      url = "https://patch-diff.githubusercontent.com/raw/ZBar/ZBar/pull/8.patch";
+      sha256 = "1lspv7m8zg80vvy1k5cs0b4qvz40i2c2a7w4a9yprzf1zysqxf0d";
+    })
   ];
 
-  buildInputs =
-    [ imagemagickBig pkgconfig python pygtk perl libX11
-      lzma autoreconfHook ] ++
-    stdenv.lib.optionals enableVideo [ libv4l gtk2 qt4 ];
+  buildInputs = [
+    imagemagickBig python pygtk perl libX11 lzma
+  ] ++ stdenv.lib.optionals enableVideo [ libv4l gtk2 qt5.qtbase ];
+
+  nativeBuildInputs = [ autoreconfHook pkgconfig ];
 
   configureFlags = stdenv.lib.optionals (!enableVideo) [
     "--disable-video" "--without-gtk" "--without-qt"
