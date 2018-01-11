@@ -245,6 +245,9 @@ with stdenv.lib;
   USB_SERIAL_KEYSPAN_USA49W y
   USB_SERIAL_KEYSPAN_USA49WLC y
 
+  # USB HID devices
+  ${lib.optionalString (versionAtLeast version "4.16") "HID_JABRA m"}
+
   # Device mapper (RAID, LVM, etc.)
   MD y
 
