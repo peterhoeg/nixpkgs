@@ -47,7 +47,17 @@ in {
       default = false;
       type = types.bool;
       description = ''
-        Enable suppor for nVidia video hardware
+        Enable support for nVidia video hardware
+      '';
+    };
+
+    package = mkOption {
+      default = kernelPackages.nvidia_x11;
+      type = types.enum (with kernelPackages; [ nvidia_x11 nvidia_x11_beta nvidia_x11_legacy173 nvidia_x11_legacy304 nvidia_x11_legacy340 ];
+      description = ''
+        The driver package to use.
+
+        NOTE: This only applies to the binary `nvidia` driver.
       '';
     };
 
@@ -65,7 +75,7 @@ in {
       description = ''
         Expose atomic ioctl
 
-        NOTE: This only applies to the  `nouveau` driver.
+        NOTE: This only applies to the `nouveau` driver.
       '';
     };
 
@@ -81,7 +91,7 @@ in {
 
         In order to get decent performance, you will enable to enable this at least at the conservative level. It may however, cause problems on some setups which is why it is disabled by default.
 
-        NOTE: This only applies to the  `nouveau` driver.
+        NOTE: This only applies to the `nouveau` driver.
       '';
     };
 
@@ -91,7 +101,7 @@ in {
       description = ''
         Load the binary nvidia firmware with the nouveau driver.
 
-        NOTE: This only applies to the  `nouveau` driver.
+        NOTE: This only applies to the `nouveau` driver.
       '';
     };
 
