@@ -7,11 +7,6 @@ let
   };
 
   chipModel = [
-    # gt200 should be nva0 but we don't have those and all nvaX are links to the same files anyway
-    { chip = "nva3"; model = "gt200"; }
-    { chip = "nva3"; model = "gt215"; }
-    { chip = "nva5"; model = "gt216"; }
-    { chip = "nva8"; model = "gt218"; }
     { chip = "nve4"; model = "gk104"; }
     { chip = "nve6"; model = "gk106"; }
     { chip = "nve7"; model = "gk107"; }
@@ -31,6 +26,8 @@ in stdenv.mkDerivation rec {
   nativeBuildInputs = [ which xz ];
 
   installPhase = ''
+    runHook preInstall
+
     dir=$out/lib/firmware
     ${stdenv.shell} ${src} --extract-only
     ${python2Packages.python.interpreter} ${extractor}
@@ -46,6 +43,8 @@ in stdenv.mkDerivation rec {
       ln -rs $dir/nouveau/${entry.chip}_fuc41ac $dir/nvidia/${entry.model}/gpccs_inst.bin
       ln -rs $dir/nouveau/${entry.chip}_fuc41ad $dir/nvidia/${entry.model}/gpccs_data.bin
     '') chipModel)}
+
+    runHook postInstall
   '';
 
   meta = with stdenv.lib; {
@@ -53,8 +52,8 @@ in stdenv.mkDerivation rec {
     longDescription = ''
       This package contains proprietary firmware blobs for nVidia graphics cards
       up to and including the "Kepler" range.
-s
-      If you card is supported but not handled by this package, please find yours
+
+      If you card is supported but not handled by this package, please find your
       here https://nouveau.freedesktop.org/wiki/CodeNames/ and let us know.
     '';
     homepage = http://nvidia.com;

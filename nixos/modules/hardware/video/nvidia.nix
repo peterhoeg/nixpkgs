@@ -5,8 +5,9 @@
 with lib;
 
 let
-
   drivers = config.services.xserver.videoDrivers;
+
+  cfg = config.hardware.video.nvidia;
 
   # FIXME: should introduce an option like
   # ‘hardware.video.nvidia.package’ for overriding the default NVIDIA
@@ -34,57 +35,136 @@ let
       paths = [ pkgs.libglvnd nvidia.out ];
     };
 
-  enabled = nvidia_x11 != null;
-in
+  enableNvidia = nvidia_x11 != null;
 
-{
+  boolToStr = bool:
+    lib.toString (if bool then 1 else 0);
 
-  config = mkIf enabled {
-    assertions = [
+in {
+
+  options.hardware.video.nvidia = {
+    enable = mkOption {
+      default = false;
+      type = types.bool;
+      description = ''
+        Enable suppor for nVidia video hardware
+      '';
+    };
+
+    preferNouveau = mkOption {
+      default = true;
+      type = types.bool;
+      description = ''
+        Prefer the Open Source nouveau driver instead of the propriatary nvidia driver.
+      '';
+    };
+
+    atomic = mkOption {
+      default = true;
+      type = types.bool;
+      description = ''
+        Expose atomic ioctl
+
+        NOTE: This only applies to the  `nouveau` driver.
+      '';
+    };
+
+    boostMode = mkOption {
+      default = 0;
+      type = types.enum [ 0 1 2 ];
+      description = ''
+        Enable re-clocking/boost mode.
+
+        0 = disable
+        1 = enable (conservative)
+        2 = enable (aggressive)
+
+        In order to get decent performance, you will enable to enable this at least at the conservative level. It may however, cause problems on some setups which is why it is disabled by default.
+
+        NOTE: This only applies to the  `nouveau` driver.
+      '';
+    };
+
+    externalFirmware = mkOption {
+      default = false;
+      type = types.bool;
+      description = ''
+        Load the binary nvidia firmware with the nouveau driver.
+
+        NOTE: This only applies to the  `nouveau` driver.
+      '';
+    };
+
+    xDriver = mkOption {
+      default = "modesetting";
+      type = types.enum [ "modesetting" "nouveau" ];
+      description = ''
+        The driver to use for X.
+      '';
+    };
+  };
+
+  config = lib.mkIf (enableNvidia || cfg.preferNouveau) {
+    assertions = lib.mkIf enableNvidia [
       {
         assertion = config.services.xserver.displayManager.gdm.wayland;
         message = "NVidia drivers don't support wayland";
       }
     ];
 
-    services.xserver.drivers = singleton
-      { name = "nvidia"; modules = [ nvidia_x11.bin ]; libPath = [ nvidia_x11 ]; };
+    boot = {
+      blacklistedKernelModules = if cfg.preferNouveau then [ "nvidia" ] else [ "nouveau" "nvidiafb" ];
 
-    services.xserver.screenSection =
-      ''
-        Option "RandRRotation" "on"
+      extraModulePackages = lib.optional (!cfg.preferNouveau) nvidia_x11.bin;
+
+      extraModprobeConfig = lib.mkIf cfg.preferNouveau ''
+        options nouveau atomic=${boolToStr cfg.atomic} modeset=1 config=NvGrUseFw=${boolToStr cfg.externalFirmware},NvBoost=${toString cfg.boostMode}
       '';
 
-    environment.etc."nvidia/nvidia-application-profiles-rc" = mkIf nvidia_x11.useProfiles {
-      source = "${nvidia_x11.bin}/share/nvidia/nvidia-application-profiles-rc";
+      kernelModules = if (cfg.preferNouveau && config.services.xserver.enable)
+        then [ "nouveau"]
+        # nvidia-uvm is required by CUDA applications.
+        else [ "nvidia-uvm" ] ++
+          lib.optionals config.services.xserver.enable [ "nvidia" "nvidia_modeset" "nvidia_drm" ];
     };
 
-    hardware.opengl.package = nvidiaPackage nvidia_x11 pkgs;
-    hardware.opengl.package32 = nvidiaPackage nvidia_libs32 pkgs_i686;
+    environment = {
+      etc."nvidia/nvidia-application-profiles-rc" = mkIf (!cfg.preferNouveau && nvidia_x11.useProfiles) {
+        source = "${nvidia_x11.bin}/share/nvidia/nvidia-application-profiles-rc";
+      };
 
-    environment.systemPackages = [ nvidia_x11.bin nvidia_x11.settings ]
-      ++ lib.filter (p: p != null) [ nvidia_x11.persistenced ];
+      systemPackages = mkIf (!cfg.preferNouveau) [ nvidia_x11.bin nvidia_x11.settings ]
+        ++ lib.filter (p: p != null) [ nvidia_x11.persistenced ];
+    };
 
-    boot.extraModulePackages = [ nvidia_x11.bin ];
+    hardware = {
+      firmware = lib.mkIf (cfg.preferNouveau && cfg.externalFirmware) [ pkgs.firmwareLinuxNvidia ];
 
-    # nvidia-uvm is required by CUDA applications.
-    boot.kernelModules = [ "nvidia-uvm" ] ++
-      lib.optionals config.services.xserver.enable [ "nvidia" "nvidia_modeset" "nvidia_drm" ];
+      opengl.package   = lib.mkIf (!cfg.preferNouveau) nvidiaPackage nvidia_x11 pkgs;
+      opengl.package32 = lib.mkIf (!cfg.preferNouveau) nvidiaPackage nvidia_libs32 pkgs_i686;
+    };
 
+    services = {
+      acpid.enable = true;
 
-    # Create /dev/nvidia-uvm when the nvidia-uvm module is loaded.
-    services.udev.extraRules =
-      ''
+      # Create /dev/nvidia-uvm when the nvidia-uvm module is loaded.
+      udev.extraRules = lib.mkIf (!cfg.preferNouveau) ''
         KERNEL=="nvidia", RUN+="${pkgs.stdenv.shell} -c 'mknod -m 666 /dev/nvidiactl c $(grep nvidia-frontend /proc/devices | cut -d \  -f 1) 255'"
         KERNEL=="nvidia_modeset", RUN+="${pkgs.stdenv.shell} -c 'mknod -m 666 /dev/nvidia-modeset c $(grep nvidia-frontend /proc/devices | cut -d \  -f 1) 254'"
         KERNEL=="card*", SUBSYSTEM=="drm", DRIVERS=="nvidia", RUN+="${pkgs.stdenv.shell} -c 'mknod -m 666 /dev/nvidia%n c $(grep nvidia-frontend /proc/devices | cut -d \  -f 1) %n'"
         KERNEL=="nvidia_uvm", RUN+="${pkgs.stdenv.shell} -c 'mknod -m 666 /dev/nvidia-uvm c $(grep nvidia-uvm /proc/devices | cut -d \  -f 1) 0'"
       '';
 
-    boot.blacklistedKernelModules = [ "nouveau" "nvidiafb" ];
+      xserver = {
+        drivers = mkIf (!cfg.preferNouveau) singleton
+          { name = "nvidia"; modules = [ nvidia_x11.bin ]; libPath = [ nvidia_x11 ]; };
 
-    services.acpid.enable = true;
+        screenSection = mkIf (!cfg.preferNouveau) ''
+          Option "RandRRotation" "on"
+        '';
 
+        # videoDrivers = optional cfg.preferNouveau cfg.xDriver;
+      };
+    };
   };
-
 }
