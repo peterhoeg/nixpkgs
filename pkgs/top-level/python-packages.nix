@@ -6026,6 +6026,8 @@ in {
     };
   };
 
+  home-assistant = callPackage ../development/python-modules/home-assistant { };
+
   hsaudiotag = buildPythonPackage (rec {
     name = "hsaudiotag-1.1.1";
     disabled = isPy3k;
