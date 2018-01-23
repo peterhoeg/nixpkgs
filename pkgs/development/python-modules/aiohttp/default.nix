@@ -12,9 +12,8 @@
 }:
 
 buildPythonPackage rec {
-  pname = "aiohttp";
-  version = "2.2.5";
   name = "${pname}-${version}";
+  version = "2.3.9";
 
   src = fetchPypi {
     inherit pname version;
