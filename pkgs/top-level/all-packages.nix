@@ -824,6 +824,8 @@ with pkgs;
 
   libqmatrixclient = libsForQt5.callPackage ../development/libraries/libqmatrixclient { };
 
+  nheko = libsForQt5.callPackage ../applications/networking/instant-messengers/nheko { };
+
   quaternion = libsForQt5.callPackage ../applications/networking/instant-messengers/quaternion { };
 
   tensor = libsForQt5.callPackage ../applications/networking/instant-messengers/tensor { };
