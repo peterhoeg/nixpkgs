@@ -256,7 +256,8 @@ in rec {
   #tests.gnome3-gdm = callTest tests/gnome3-gdm.nix {}; # broken since 2016-10-25
   tests.graphite = callTest tests/graphite.nix {};
   tests.hardened = callTest tests/hardened.nix { };
-  tests.hibernate = callTest tests/hibernate.nix { system = "x86_64-linux"; };
+  tests.hibernate = callTest tests/hibernate.nix {};
+  tests.home-assistant = callTest tests/home-assistant.nix { };
   tests.hound = callTest tests/hound.nix {};
   tests.i3wm = callTest tests/i3wm.nix {};
   tests.installer = callSubTests tests/installer.nix {};
