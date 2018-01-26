@@ -3842,6 +3842,8 @@ in {
 
   pytest-asyncio = callPackage ../development/python-modules/pytest-asyncio { };
 
+  pytest-aiohttp = callPackage ../development/python-modules/pytest-aiohttp { };
+
   pytestcache = buildPythonPackage rec {
     name = "pytest-cache-1.0";
     src = pkgs.fetchurl {
