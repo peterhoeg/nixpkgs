@@ -11161,6 +11161,8 @@ with pkgs;
 
   leaps = callPackage ../development/tools/leaps { };
 
+  ws = callPackage ../development/tools/ws { };
+
   ### DEVELOPMENT / JAVA MODULES
 
   javaPackages = recurseIntoAttrs (callPackage ./java-packages.nix { });
