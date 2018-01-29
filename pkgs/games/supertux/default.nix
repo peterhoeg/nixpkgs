@@ -1,19 +1,30 @@
-{ stdenv, fetchurl, cmake, pkgconfig, SDL2, SDL2_image , curl
-, libogg, libvorbis, mesa, openal, boost, glew
+{ stdenv, fetchFromGitHub, fetchpatch, cmake, pkgconfig, SDL2, SDL2_image, curl
+, libogg, libvorbis, mesa, openal, boost, glew, physfs
 }:
 
 stdenv.mkDerivation rec {
   name = "supertux-${version}";
   version = "0.5.1";
 
-  src = fetchurl {
-    url = "https://github.com/SuperTux/supertux/releases/download/v${version}/SuperTux-v${version}-Source.tar.gz";
-    sha256 = "1i8avad7w7ikj870z519j383ldy29r6f956bs38cbr8wk513pp69";
+  src = fetchFromGitHub {
+    owner  = "SuperTux";
+    repo   = "supertux";
+    rev    = "v${version}";
+    sha256 = "1f1sqp7miq4lpk6dcxmmqkrhf26h90wcrc491jiwpifk0sjnla7h";
   };
+
+  patches = [
+    (fetchpatch {
+      url = "https://trac.macports.org/raw-attachment/ticket/55172/physfs-livecheck.diff";
+      sha256 = "1h0cc9c2hd341a2gnfwawcc13pxwpgcn94b091vzmcn6ajajkmw0";
+    })
+  ];
 
   nativeBuildInputs = [ pkgconfig cmake ];
 
-  buildInputs = [ SDL2 SDL2_image curl libogg libvorbis mesa openal boost glew ];
+  buildInputs = [ SDL2 SDL2_image boost curl libogg libvorbis mesa openal physfs glew ];
+
+  enableParallelBuilding = true;
 
   cmakeFlags = [ "-DENABLE_BOOST_STATIC_LIBS=OFF" ];
 
