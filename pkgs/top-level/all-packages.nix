@@ -17237,6 +17237,8 @@ with pkgs;
 
   syncplay = callPackage ../applications/networking/syncplay { };
 
+  restorething = callPackage ../applications/networking/syncthing/restorething.nix { };
+
   syncthing = callPackage ../applications/networking/syncthing { };
 
   syncthing012 = callPackage ../applications/networking/syncthing012 { };
