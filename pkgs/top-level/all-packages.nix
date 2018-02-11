@@ -11149,7 +11149,7 @@ with pkgs;
   strigi = callPackage ../development/libraries/strigi { clucene_core = clucene_core_2; };
 
   subdl = callPackage ../applications/video/subdl { };
-  
+
   subtitleeditor = callPackage ../applications/video/subtitleeditor { };
 
   suil-qt4 = callPackage ../development/libraries/audio/suil {
@@ -18680,8 +18680,8 @@ with pkgs;
   space-orbit = callPackage ../games/space-orbit { };
 
   spring = callPackage ../games/spring {
-    boost = boost155;
-    cmake = cmake_2_8;
+    # boost = boost155;
+    # cmake = cmake_2_8;
   };
 
   springLobby = callPackage ../games/spring/springlobby.nix { };
