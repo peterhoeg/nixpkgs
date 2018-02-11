@@ -4,20 +4,19 @@
 
 stdenv.mkDerivation rec {
   name = "springlobby-${version}";
-  version = "0.255";
+  version = "0.263";
 
   src = fetchurl {
     url = "http://www.springlobby.info/tarballs/springlobby-${version}.tar.bz2";
-    sha256 = "12iv6h1mz998lzxc2jwkza0m1yvaaq8h05k36i85xyp7g90197jw";
+    sha256 = "07pi02wx0b8nvb4yz1l8cmbjzwyi01fd6jmc84am928ragdca95d";
   };
 
-  nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [
-    cmake wxGTK30 openal curl gettext libtorrentRasterbar pcre jsoncpp
-    boost libpng libX11 libnotify gtk2 doxygen makeWrapper glib minizip alure
-  ];
+  nativeBuildInputs = [ cmake doxygen makeWrapper pkgconfig ];
 
-  patches = [ ./revert_58b423e.patch ]; # Allows springLobby to continue using system installed spring until #707 is fixed
+  buildInputs = [
+    wxGTK30 openal curl gettext libtorrentRasterbar pcre jsoncpp
+    boost libpng libX11 libnotify gtk2 glib minizip alure
+  ];
 
   enableParallelBuilding = true;
 
