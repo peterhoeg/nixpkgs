@@ -9791,6 +9791,8 @@ with pkgs;
     graphviz = graphviz-nox;
   };
 
+  libinput-gestures = callPackage ../tools/inputmethods/libinput-gestures { };
+
   libisofs = callPackage ../development/libraries/libisofs { };
 
   libisoburn = callPackage ../development/libraries/libisoburn { };
