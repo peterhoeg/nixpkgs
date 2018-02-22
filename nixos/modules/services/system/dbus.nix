@@ -57,6 +57,14 @@ in
           Make the user instance socket activated.
         '';
       };
+
+      preferBroker = mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Use dbus-broker instead of the legacy dbus daemon.
+        '';
+      };
     };
   };
 
@@ -80,7 +88,9 @@ in
 
     users.extraGroups.messagebus.gid = config.ids.gids.messagebus;
 
-    systemd.packages = [ pkgs.dbus.daemon ];
+    systemd.packages = [
+      pkgs.dbus.daemon
+    ] ++ lib.optional cfg.preferBroker pkgs.dbus-broker;
 
     security.wrappers.dbus-daemon-launch-helper = {
       source = "${pkgs.dbus.daemon}/libexec/dbus-daemon-launch-helper";
@@ -96,17 +106,27 @@ in
       config.system.path
     ];
 
-    systemd.services.dbus = {
-      # Don't restart dbus-daemon. Bad things tend to happen if we do.
-      reloadIfChanged = true;
-      restartTriggers = [ configDir ];
+    systemd.services = {
+      dbus = {
+        enable = !cfg.preferBroker;
+        # Don't restart dbus-daemon. Bad things tend to happen if we do.
+        reloadIfChanged = true;
+        restartTriggers = [ configDir ];
+      };
+      dbus-broker = lib.mkIf cfg.preferBroker {
+        aliases = [ "dbus.service" ];
+      };
     };
 
     systemd.user = {
       services.dbus = {
+        enable = !cfg.preferBroker;
         # Don't restart dbus-daemon. Bad things tend to happen if we do.
         reloadIfChanged = true;
         restartTriggers = [ configDir ];
+      };
+      services.dbus-broker = lib.mkIf cfg.preferBroker {
+        aliases = [ "dbus.service" ];
       };
       sockets.dbus.wantedBy = mkIf cfg.socketActivated [ "sockets.target" ];
     };
