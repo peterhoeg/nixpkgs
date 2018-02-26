@@ -2773,6 +2773,8 @@ in {
 
   onkyo-eiscp = callPackage ../development/python-modules/onkyo-eiscp { };
 
+  pyunifi = callPackage ../development/python-modules/pyunifi { };
+
   tablib = buildPythonPackage rec {
     name = "tablib-${version}";
     version = "0.12.1";
