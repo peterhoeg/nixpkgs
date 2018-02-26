@@ -2771,6 +2771,8 @@ in {
 
   curtsies = callPackage ../development/python-modules/curtsies { };
 
+  onkyo-eiscp = callPackage ../development/python-modules/onkyo-eiscp { };
+
   tablib = buildPythonPackage rec {
     name = "tablib-${version}";
     version = "0.12.1";
