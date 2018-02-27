@@ -21818,6 +21818,8 @@ EOF
   pysigset = callPackage ../development/python-modules/pysigset { };
 
   us = callPackage ../development/python-modules/us { };
+
+  websocket-client = callPackage ../development/python-modules/websocket-client { };
 });
 
 in fix' (extends overrides packages)
