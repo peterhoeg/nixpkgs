@@ -70,8 +70,8 @@
     "weather.metoffice" = ps: with ps; [  ];
     "light.decora_wifi" = ps: with ps; [  ];
     "device_tracker.upc_connect" = ps: with ps; [ defusedxml ];
-    "sensor.deluge" = ps: with ps; [  ];
-    "switch.deluge" = ps: with ps; [  ];
+    "sensor.deluge" = ps: with ps; [ deluge-client ];
+    "switch.deluge" = ps: with ps; [ deluge-client ];
     "media_player.denonavr" = ps: with ps; [  ];
     "media_player.directv" = ps: with ps; [  ];
     "sensor.discogs" = ps: with ps; [ discogs_client ];
@@ -115,7 +115,7 @@
     "sensor.gpsd" = ps: with ps; [  ];
     "light.greenwave" = ps: with ps; [  ];
     "media_player.gstreamer" = ps: with ps; [  ];
-    "ffmpeg" = ps: with ps; [  ];
+    "ffmpeg" = ps: with ps; [ ha-ffmpeg ];
     "media_player.philips_js" = ps: with ps; [  ];
     "mqtt.server" = ps: with ps; [ hbmqtt ];
     "climate.heatmiser" = ps: with ps; [  ];
@@ -190,7 +190,7 @@
     "switch.orvibo" = ps: with ps; [  ];
     "mqtt" = ps: with ps; [ paho-mqtt ];
     "shiftr" = ps: with ps; [ paho-mqtt ];
-    "media_player.panasonic_viera" = ps: with ps; [  ];
+    "media_player.panasonic_viera" = ps: with ps; [ wakeonlan ];
     "media_player.dunehd" = ps: with ps; [  ];
     "device_tracker.aruba" = ps: with ps; [ pexpect ];
     "device_tracker.asuswrt" = ps: with ps; [ pexpect ];
@@ -369,7 +369,7 @@
     "media_player.russound_rnet" = ps: with ps; [  ];
     "media_player.russound_rio" = ps: with ps; [  ];
     "media_player.yamaha" = ps: with ps; [  ];
-    "media_player.samsungtv" = ps: with ps; [  ];
+    "media_player.samsungtv" = ps: with ps; [ wakeonlan ];
     "satel_integra" = ps: with ps; [  ];
     "sensor.deutsche_bahn" = ps: with ps; [  ];
     "scsgate" = ps: with ps; [  ];
@@ -411,8 +411,8 @@
     "volvooncall" = ps: with ps; [  ];
     "sensor.vasttrafik" = ps: with ps; [  ];
     "vultr" = ps: with ps; [ vultr ];
-    "wake_on_lan" = ps: with ps; [  ];
-    "switch.wake_on_lan" = ps: with ps; [  ];
+    "wake_on_lan" = ps: with ps; [ wakeonlan ];
+    "switch.wake_on_lan" = ps: with ps; [ wakeonlan ];
     "sensor.waqi" = ps: with ps; [  ];
     "cloud" = ps: with ps; [  ];
     "waterfurnace" = ps: with ps; [  ];
@@ -426,8 +426,8 @@
     "sensor.ted5000" = ps: with ps; [ xmltodict ];
     "sensor.yr" = ps: with ps; [ xmltodict ];
     "sensor.yahoo_finance" = ps: with ps; [  ];
-    "sensor.yweather" = ps: with ps; [  ];
-    "weather.yweather" = ps: with ps; [  ];
+    "sensor.yweather" = ps: with ps; [ yahooweather ];
+    "weather.yweather" = ps: with ps; [ yahooweather ];
     "light.yeelight" = ps: with ps; [  ];
     "light.yeelightsunflower" = ps: with ps; [  ];
     "media_extractor" = ps: with ps; [  ];
