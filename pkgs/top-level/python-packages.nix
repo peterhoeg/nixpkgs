@@ -1653,6 +1653,8 @@ in {
     };
   };
 
+  appdaemon = callPackage ../development/python-modules/appdaemon { };
+
   billiard = buildPythonPackage rec {
     name = "billiard-${version}";
     version = "3.5.0.2";
