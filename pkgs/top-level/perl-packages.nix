@@ -9,9 +9,7 @@
 
 let self = _self // overrides; _self = with self; {
 
-  inherit perl;
-
-  inherit (pkgs) buildPerlPackage;
+  inherit (pkgs) buildPerlPackage callPackage fetchurl fetchFromGitHub stdenv perl fetchsvn gnused;
 
   inherit (stdenv.lib) maintainers;
 
