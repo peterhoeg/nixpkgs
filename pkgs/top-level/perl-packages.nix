@@ -14,7 +14,7 @@ let
   self = _self // overrides;
   _self = with self; {
 
-  inherit perl;
+  inherit (pkgs) buildPerlPackage callPackage fetchurl fetchFromGitHub stdenv perl fetchsvn gnused;
 
   callPackage = pkgs.newScope self;
 
