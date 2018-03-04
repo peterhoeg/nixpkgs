@@ -13028,43 +13028,7 @@ in {
     };
   };
 
-
-  pycdio = buildPythonPackage rec {
-    name = "pycdio-0.21";
-    disabled = !isPy27;
-
-    src = pkgs.fetchurl {
-      url = "mirror://pypi/p/pycdio/${name}.tar.gz";
-      sha256 = "1bkcmg838l2yffsw5lln93ap5f8ks3vmqwg02mygmdmay647rc3v";
-    };
-
-    prePatch = ''
-      sed -i -e "s|if type(driver_id)==int|if type(driver_id) in (int, long)|g" cdio.py
-    '';
-
-    preConfigure = ''
-      patchShebangs .
-    '';
-
-    nativeBuildInputs = [ pkgs.pkgconfig ];
-    buildInputs = [ self.setuptools self.nose pkgs.swig pkgs.libcdio ]
-      ++ stdenv.lib.optional stdenv.isDarwin pkgs.libiconv;
-
-    # Run tests using nosetests but first need to install the binaries
-    # to the root source directory where they can be found.
-    checkPhase = ''
-      ./setup.py install_lib -d .
-      nosetests
-    '';
-
-    meta = {
-      homepage = http://www.gnu.org/software/libcdio/;
-      description = "Wrapper around libcdio (CD Input and Control library)";
-      maintainers = with maintainers; [ rycee ];
-      license = licenses.gpl3Plus;
-    };
-
-  };
+  pycdio = callPackage ../development/python-modules/pycdio { };
 
   pycosat = callPackage ../development/python-modules/pycosat { };
 
