@@ -12715,9 +12715,7 @@ in {
     };
   };
 
-
   py = callPackage ../development/python-modules/py { };
-
 
   pyacoustid = buildPythonPackage rec {
     name = "pyacoustid-1.1.0";
@@ -12827,6 +12825,8 @@ in {
       homepage = "https://github.com/rohe/pysaml2";
     };
   };
+
+  python-pushover = callPackage ../development/python-modules/pushover {};
 
   mongodict = buildPythonPackage rec {
     name = "mongodict-${version}";
