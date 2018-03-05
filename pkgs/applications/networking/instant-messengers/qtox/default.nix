@@ -3,9 +3,12 @@
   libpthreadstubs, libXdmcp, libXScrnSaver,
   qtbase, qtsvg, qttools, qttranslations,
   ffmpeg, filter-audio, libexif, libsodium, libopus,
-  libvpx, openal, opencv, pcre, qrencode, sqlcipher }:
+  libvpx, openal, pcre, qrencode, sqlcipher }:
 
-mkDerivation rec {
+let
+  libtoxcore = libtoxcore.override
+
+in mkDerivation rec {
   name = "qtox-${version}";
   version = "1.13.0";
 
@@ -21,7 +24,7 @@ mkDerivation rec {
     libpthreadstubs libXdmcp libXScrnSaver
     qtbase qtsvg qttranslations
     ffmpeg filter-audio libexif libopus libsodium
-    libvpx openal opencv pcre qrencode sqlcipher
+    libvpx openal pcre qrencode sqlcipher
   ];
 
   nativeBuildInputs = [ cmake pkgconfig qttools ];
