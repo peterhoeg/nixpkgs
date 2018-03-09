@@ -6,7 +6,7 @@
 , openssl, gperf, cppunit, GConf, ORBit2, poppler, utillinux
 , librsvg, gnome_vfs, mesa, bsh, CoinMP, libwps, libabw
 , autoconf, automake, openldap, bash, hunspell, librdf_redland, nss, nspr
-, libwpg, dbus-glib, glibc, qt4, clucene_core, libcdr, lcms, vigra
+, libwpg, dbus-glib, glibc, qt5, clucene_core, libcdr, lcms, vigra
 , unixODBC, mdds, sane-backends, mythes, libexttextcat, libvisio
 , fontsConf, pkgconfig, libzip, bluez5, libtool, maven, carlito
 , libatomic_ops, graphite2, harfbuzz, libodfgen, libzmf
@@ -15,7 +15,7 @@
 , defaultIconTheme, glib, ncurses, xmlsec, epoxy, gpgme
 , langs ? [ "ca" "de" "en-GB" "en-US" "eo" "es" "fr" "hu" "it" "nl" "pl" "ru" "sl" ]
 , withHelp ? true
-, kdeIntegration ? false
+, kdeIntegration ? true
 }:
 
 let
@@ -86,8 +86,6 @@ in stdenv.mkDerivation rec {
   postPatch = ''
     sed -e 's@/usr/bin/xdg-open@xdg-open@g' -i shell/source/unix/exec/shellexec.cxx
   '';
-
-  QT4DIR = qt4;
 
   # Fix boost 1.59 compat
   # Try removing in the next version
@@ -198,7 +196,7 @@ in stdenv.mkDerivation rec {
     "--enable-python=system"
     "--enable-dbus"
     "--enable-release-build"
-    (lib.enableFeature kdeIntegration "kde4")
+    (lib.enableFeature kdeIntegration "kde5")
     "--with-package-format=installed"
     "--enable-epm"
     "--with-jdk-home=${jdk.home}"
@@ -257,7 +255,7 @@ in stdenv.mkDerivation rec {
       libXaw libXext libXi libXinerama libxml2 libxslt libXtst
       libXdmcp libpthreadstubs mesa mythes gst_all_1.gstreamer
       gst_all_1.gst-plugins-base glib
-      neon nspr nss openldap openssl ORBit2 pam perl pkgconfig poppler
+      neon nspr nss openldap openssl ORBit2 pam perl poppler
       python3 sablotron sane-backends unzip vigra which zip zlib
       mdds bluez5 glibc libcmis libwps libabw libzmf libtool
       libxshmfence libatomic_ops graphite2 harfbuzz gpgme utillinux
@@ -265,8 +263,8 @@ in stdenv.mkDerivation rec {
       libodfgen CoinMP librdf_rasqal defaultIconTheme gettext
       gdb
     ]
-    ++ lib.optional kdeIntegration kdelibs4;
-  nativeBuildInputs = [ wrapGAppsHook ];
+    ++ lib.optional kdeIntegration (with qt5; [ qtbase ]);
+  nativeBuildInputs = [ pkgconfig wrapGAppsHook ];
 
   passthru = {
     inherit srcs;
