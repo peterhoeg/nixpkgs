@@ -10505,6 +10505,10 @@ with pkgs;
 
   mosquitto = callPackage ../servers/mqtt/mosquitto { };
 
+  mqtt-spy = callPackage ../applications/networking/mqtt-spy {
+    jre = oraclejre8psu;
+  };
+
   mps = callPackage ../development/libraries/mps { };
 
   libmpeg2 = callPackage ../development/libraries/libmpeg2 { };
