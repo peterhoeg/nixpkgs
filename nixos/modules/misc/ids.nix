@@ -262,7 +262,7 @@
       graylog = 243;
       sniproxy = 244;
       nzbget = 245;
-      mosquitto = 246;
+      # mosquitto = 246; # converted to DynamicUser = true
       toxvpn = 247;
       squeezelite = 248;
       turnserver = 249;
@@ -536,7 +536,7 @@
       emby = 242;
       sniproxy = 244;
       nzbget = 245;
-      mosquitto = 246;
+      # mosquitto = 246; # converted to DynamicUser = true
       #toxvpn = 247; # unused
       #squeezelite = 248; #unused
       turnserver = 249;
