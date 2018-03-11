@@ -5,6 +5,8 @@ with lib;
 let
   cfg = config.services.mosquitto;
 
+  dataDir = "/var/lib/mosquitto";
+
   listenerConf = optionalString cfg.ssl.enable ''
     listener ${toString cfg.ssl.port} ${cfg.ssl.host}
     cafile ${cfg.ssl.cafile}
@@ -13,11 +15,10 @@ let
   '';
 
   passwordConf = optionalString cfg.checkPasswords ''
-    password_file ${cfg.dataDir}/passwd
+    password_file ${dataDir}/passwd
   '';
 
   mosquittoConf = pkgs.writeText "mosquitto.conf" ''
-    pid_file /run/mosquitto/pid
     acl_file ${aclFile}
     persistence true
     allow_anonymous ${boolToString cfg.allowAnonymous}
@@ -105,14 +106,6 @@ in
         };
       };
 
-      dataDir = mkOption {
-        default = "/var/lib/mosquitto";
-        type = types.path;
-        description = ''
-          The data directory.
-        '';
-      };
-
       users = mkOption {
         type = types.attrsOf (types.submodule {
           options = {
@@ -196,37 +189,24 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       serviceConfig = {
-        Type = "forking";
-        User = "mosquitto";
-        Group = "mosquitto";
+        DynamicUser = true;
         RuntimeDirectory = "mosquitto";
-        WorkingDirectory = cfg.dataDir;
+        StateDirectory = "mosquitto";
+        WorkingDirectory = dataDir;
         Restart = "on-failure";
-        ExecStart = "${pkgs.mosquitto}/bin/mosquitto -c ${mosquittoConf} -d";
+        ExecStart = "${pkgs.mosquitto}/bin/mosquitto -c ${mosquittoConf}";
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
-        PIDFile = "/run/mosquitto/pid";
       };
       preStart = ''
-        rm -f ${cfg.dataDir}/passwd
-        touch ${cfg.dataDir}/passwd
+        rm -f ${dataDir}/passwd
+        touch ${dataDir}/passwd
       '' + concatStringsSep "\n" (
         mapAttrsToList (n: c:
           if c.hashedPassword != null then
-            "echo '${n}:${c.hashedPassword}' >> ${cfg.dataDir}/passwd"
+            "echo '${n}:${c.hashedPassword}' >> ${dataDir}/passwd"
           else optionalString (c.password != null)
-            "${pkgs.mosquitto}/bin/mosquitto_passwd -b ${cfg.dataDir}/passwd ${n} ${c.password}"
+            "${pkgs.mosquitto}/bin/mosquitto_passwd -b ${dataDir}/passwd ${n} ${c.password}"
         ) cfg.users);
     };
-
-    users.users.mosquitto = {
-      description = "Mosquitto MQTT Broker Daemon owner";
-      group = "mosquitto";
-      uid = config.ids.uids.mosquitto;
-      home = cfg.dataDir;
-      createHome = true;
-    };
-
-    users.groups.mosquitto.gid = config.ids.gids.mosquitto;
-
   };
 }

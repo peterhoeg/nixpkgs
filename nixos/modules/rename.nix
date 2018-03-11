@@ -211,6 +211,9 @@ with lib;
     (mkRenamedOptionModule [ "services" "locate" "period" ] [ "services" "locate" "interval" ])
     (mkRemovedOptionModule [ "services" "locate" "includeStore" ] "Use services.locate.prunePaths" )
 
+    # mosquitto
+    (mkRemovedOptionModule [ "services" "mosquitto" "dataDir" ] "Data files are placed under /var/lib/mosquitto" )
+
     # nfs
     (mkRenamedOptionModule [ "services" "nfs" "lockdPort" ] [ "services" "nfs" "server" "lockdPort" ])
     (mkRenamedOptionModule [ "services" "nfs" "statdPort" ] [ "services" "nfs" "server" "statdPort" ])
