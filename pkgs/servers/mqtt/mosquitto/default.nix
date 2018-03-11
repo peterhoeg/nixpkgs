@@ -1,36 +1,37 @@
-{ stdenv, fetchurl, openssl, libuuid, cmake, libwebsockets, c-ares, libuv }:
+{ stdenv, lib, fetchurl, openssl, libuuid, cmake, libwebsockets, c-ares, libuv }:
 
 stdenv.mkDerivation rec {
-  pname = "mosquitto";
+  name = "mosquitto-${version}";
   version = "1.4.15";
 
-  name = "${pname}-${version}";
-
   src = fetchurl {
-    url = "http://mosquitto.org/files/source/mosquitto-${version}.tar.gz";
+    url = "http://mosquitto.org/files/source/${name}.tar.gz";
     sha256 = "10wsm1n4y61nz45zwk4zjhvrfd86r2cq33370m5wjkivb8j3wfvx";
   };
 
-  buildInputs = [ openssl libuuid libwebsockets c-ares libuv ]
-    ++ stdenv.lib.optional stdenv.isDarwin cmake;
+  buildInputs = [ openssl libuuid libwebsockets c-ares libuv ];
 
-  makeFlags = stdenv.lib.optionals stdenv.isLinux [
-    "DESTDIR=$(out)"
-    "PREFIX="
-  ];
+  nativeBuildInputs = [ cmake ];
+
+  enableParallelBuilding = true;
 
   postPatch = ''
     substituteInPlace config.mk \
-      --replace "/usr/local" ""
-    substituteInPlace config.mk \
+      --replace "/usr/local" "" \
       --replace "WITH_WEBSOCKETS:=no" "WITH_WEBSOCKETS:=yes"
+
+    for d in lib lib/cpp src ; do
+      substituteInPlace $d/CMakeLists.txt \
+        --replace /sbin/ldconfig ldconfig
+    done
   '';
 
-  meta = {
-    homepage = http://mosquitto.org/;
+  meta = with lib; {
     description = "An open source MQTT v3.1/3.1.1 broker";
-    platforms = stdenv.lib.platforms.unix;
+    homepage    = https://mosquitto.org/;
     # http://www.eclipse.org/legal/epl-v10.html (free software, copyleft)
-    license = stdenv.lib.licenses.epl10;
+    license     = licenses.epl10;
+    maintainers = with maintainers; [ peterhoeg ];
+    platforms   = platforms.unix;
   };
 }
