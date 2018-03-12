@@ -2801,6 +2801,7 @@ in {
 
   openidc-client = callPackage ../development/python-modules/openidc-client/default.nix {};
 
+  python_openzwave = callPackage ../development/python-modules/openzwave {};
 
   idna = callPackage ../development/python-modules/idna { };
 

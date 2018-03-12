@@ -10744,6 +10744,8 @@ with pkgs;
 
   openwsman = callPackage ../development/libraries/openwsman {};
 
+  libopenzwave = callPackage ../development/libraries/openzwave {};
+
   ortp = callPackage ../development/libraries/ortp { };
 
   openrct2 = callPackage ../games/openrct2/default.nix { };
