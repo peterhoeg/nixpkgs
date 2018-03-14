@@ -4,10 +4,17 @@ with lib;
 
 let
   cfg = config.services.miniupnpd;
+
+  chain = "MINIUPNPD";
+
+  boolToStr = bool: if bool then "yes" else "no";
+
   configFile = pkgs.writeText "miniupnpd.conf" ''
     ext_ifname=${cfg.externalInterface}
-    enable_natpmp=${if cfg.natpmp then "yes" else "no"}
-    enable_upnp=${if cfg.upnp then "yes" else "no"}
+    enable_natpmp=${boolToStr cfg.natpmp}
+    enable_upnp=${boolToStr cfg.upnp}
+    secure_mode=${boolToStr cfg.secureMode}
+    lease_file=/var/lib/miniupnpd/upnp.leases
 
     ${concatMapStrings (range: ''
       listening_ip=${range}
@@ -18,21 +25,29 @@ let
 in
 {
   options = {
-    services.miniupnpd = {
+    services.miniupnpd = with types; {
       enable = mkEnableOption "MiniUPnP daemon";
 
       externalInterface = mkOption {
-        type = types.str;
+        type = str;
         description = ''
           Name of the external interface.
         '';
       };
 
       internalIPs = mkOption {
-        type = types.listOf types.str;
+        type = listOf str;
         example = [ "192.168.1.1/24" "enp1s0" ];
         description = ''
           The IP address ranges to listen on.
+        '';
+      };
+
+      secureMode = mkOption {
+        type = bool;
+        default = true;
+        description = ''
+          Secure mode where a device can only set up mappings for its own IP address.
         '';
       };
 
@@ -59,30 +74,30 @@ in
   config = mkIf cfg.enable {
     # from miniupnpd/netfilter/iptables_init.sh
     networking.firewall.extraCommands = ''
-      iptables -t nat -N MINIUPNPD
-      iptables -t nat -A PREROUTING -i ${cfg.externalInterface} -j MINIUPNPD
-      iptables -t mangle -N MINIUPNPD
-      iptables -t mangle -A PREROUTING -i ${cfg.externalInterface} -j MINIUPNPD
-      iptables -t filter -N MINIUPNPD
-      iptables -t filter -A FORWARD -i ${cfg.externalInterface} ! -o ${cfg.externalInterface} -j MINIUPNPD
-      iptables -t nat -N MINIUPNPD-PCP-PEER
-      iptables -t nat -A POSTROUTING -o ${cfg.externalInterface} -j MINIUPNPD-PCP-PEER
+      iptables -t nat      -N ${chain} || true
+      iptables -t nat      -A PREROUTING -i ${cfg.externalInterface}                               -j ${chain}
+      iptables -t mangle   -N ${chain} || true
+      iptables -t mangle   -A PREROUTING -i ${cfg.externalInterface}                               -j ${chain}
+      ip46tables -t filter -N ${chain} || true
+      ip46tables -t filter -A FORWARD    -i ${cfg.externalInterface} ! -o ${cfg.externalInterface} -j ${chain}
+      iptables -t nat      -N ${chain}-PCP-PEER || true
+      iptables -t nat      -A POSTROUTING                              -o ${cfg.externalInterface} -j ${chain}-PCP-PEER
     '';
 
     # from miniupnpd/netfilter/iptables_removeall.sh
     networking.firewall.extraStopCommands = ''
-      iptables -t nat -F MINIUPNPD
-      iptables -t nat -D PREROUTING -i ${cfg.externalInterface} -j MINIUPNPD
-      iptables -t nat -X MINIUPNPD
-      iptables -t mangle -F MINIUPNPD
-      iptables -t mangle -D PREROUTING -i ${cfg.externalInterface} -j MINIUPNPD
-      iptables -t mangle -X MINIUPNPD
-      iptables -t filter -F MINIUPNPD
-      iptables -t filter -D FORWARD -i ${cfg.externalInterface} ! -o ${cfg.externalInterface} -j MINIUPNPD
-      iptables -t filter -X MINIUPNPD
-      iptables -t nat -F MINIUPNPD-PCP-PEER
-      iptables -t nat -D POSTROUTING -o ${cfg.externalInterface} -j MINIUPNPD-PCP-PEER
-      iptables -t nat -X MINIUPNPD-PCP-PEER
+      iptables -t nat -F ${chain}
+      iptables -t nat -D PREROUTING     -i ${cfg.externalInterface}                               -j ${chain}
+      iptables -t nat -X ${chain}
+      iptables -t mangle -F ${chain}
+      iptables -t mangle -D PREROUTING  -i ${cfg.externalInterface}                               -j ${chain}
+      iptables -t mangle -X ${chain}
+      ip46tables -t filter -F ${chain}
+      ip46tables -t filter -D FORWARD   -i ${cfg.externalInterface} ! -o ${cfg.externalInterface} -j ${chain}
+      ip46tables -t filter -X ${chain}
+      iptables -t nat -F ${chain}-PCP-PEER
+      iptables -t nat -D POSTROUTING                                  -o ${cfg.externalInterface} -j ${chain}-PCP-PEER
+      iptables -t nat -X ${chain}-PCP-PEER
     '';
 
     systemd.services.miniupnpd = {
@@ -90,9 +105,12 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.miniupnpd}/bin/miniupnpd -f ${configFile}";
-        PIDFile = "/var/run/miniupnpd.pid";
+        DynamicUser = true;
+        CapabilityBoundingSet = "CAP_NET_RAW CAP_NET_ADMIN";
+        StateDirectory = "miniupnpd";
         Type = "forking";
+        ExecStart = "${pkgs.miniupnpd}/bin/miniupnpd -f ${configFile}";
+        PIDFile = "/run/miniupnpd.pid";
       };
     };
   };
