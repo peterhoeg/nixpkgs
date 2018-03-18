@@ -20893,4 +20893,6 @@ with pkgs;
   simplehttp2server = callPackage ../servers/simplehttp2server { };
 
   diceware = callPackage ../tools/security/diceware { };
+
+  gcompris = libsForQt5.callPackage ../applications/education/gcompris { };
 }
