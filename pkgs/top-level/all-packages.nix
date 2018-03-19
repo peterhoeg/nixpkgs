@@ -21813,6 +21813,8 @@ with pkgs;
 
   putty = callPackage ../applications/networking/remote/putty { };
 
+  py-wmi-client = pythonPackages.py-wmi-client;
+
   redprl = callPackage ../applications/science/logic/redprl { };
 
   retroarchBare = callPackage ../misc/emulators/retroarch {
