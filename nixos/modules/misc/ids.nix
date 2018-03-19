@@ -579,6 +579,13 @@
       monero = 287;
       ceph = 288;
 
+      #########
+      # NOTE! #
+      # #######
+      # Before adding additional static ids and gids, please ensure that the
+      # service in question cannot run using "DynamicUser = true" in its
+      # serviceConfig.
+
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal
       # uids and gids. Also, don't use gids above 399!
