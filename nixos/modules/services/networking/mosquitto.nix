@@ -205,7 +205,7 @@ in
           if c.hashedPassword != null then
             "echo '${n}:${c.hashedPassword}' >> ${dataDir}/passwd"
           else optionalString (c.password != null)
-            "${pkgs.mosquitto}/bin/mosquitto_passwd -b ${dataDir}/passwd ${n} ${c.password}"
+            "${pkgs.mosquitto}/bin/mosquitto_passwd -b ${dataDir}/passwd ${n} '${c.password}'"
         ) cfg.users);
     };
   };
