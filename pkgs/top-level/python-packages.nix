@@ -1707,6 +1707,8 @@ in {
 
   tablib = callPackage ../development/python-modules/tablib { };
 
+  py-wmi-client = callPackage ../development/python-modules/py-wmi-client { };
+
   wakeonlan = callPackage ../development/python-modules/wakeonlan { };
 
   openant = buildPythonPackage rec {
