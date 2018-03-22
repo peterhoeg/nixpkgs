@@ -72,6 +72,9 @@ with lib;
     (mkRenamedOptionModule [ "services" "xserver" "startOpenSSHAgent" ] [ "programs" "ssh" "startAgent" ])
     (mkAliasOptionModule [ "services" "openssh" "knownHosts" ] [ "programs" "ssh" "knownHosts" ])
 
+    # TPM
+    (mkRenamedOptionModule [ "services" "hardware" "tcsd" ] [ "services" "hardware" "tpm" ])
+
     # VirtualBox
     (mkRenamedOptionModule [ "services" "virtualbox" "enable" ] [ "virtualisation" "virtualbox" "guest" "enable" ])
     (mkRenamedOptionModule [ "services" "virtualboxGuest" "enable" ] [ "virtualisation" "virtualbox" "guest" "enable" ])

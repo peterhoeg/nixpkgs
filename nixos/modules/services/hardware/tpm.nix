@@ -3,9 +3,14 @@
 { config, pkgs, lib, ... }:
 
 with lib;
+
 let
 
-  cfg = config.services.tcsd;
+  cfg = config.services.hardware.tpm;
+
+  dataDir = "/var/lib/tpm";
+
+  pkg = if cfg.version == "1.2" then pkgs.trousers else pkgs.tpm2-tools;
 
   tcsdConf = pkgs.writeText "tcsd.conf" ''
     port = 30003
@@ -34,11 +39,11 @@ in
 
   options = {
 
-    services.tcsd = {
+    services.hardware.tpm = with types; {
 
       enable = mkOption {
         default = false;
-        type = types.bool;
+        type = bool;
         description = ''
           Whether to enable tcsd, a Trusted Computing management service
           that provides TCG Software Stack (TSS).  The tcsd daemon is
@@ -47,25 +52,13 @@ in
         '';
       };
 
-      user = mkOption {
-        default = "tss";
-        type = types.string;
-        description = "User account under which tcsd runs.";
-      };
-
-      group = mkOption {
-        default = "tss";
-        type = types.string;
-        description = "Group account under which tcsd runs.";
-      };
-
-      stateDir = mkOption {
-        default = "/var/lib/tpm";
-        type = types.path;
+      version = mkOption {
+        default = "1.2";
+        type = enum [ "1.2" "2.0" ];
         description = ''
-          The location of the system persistent storage file.
-          The system persistent storage file holds keys and data across
-          restarts of the TCSD and system reboots. 
+          Version of hardware to support.
+
+          We cannot auto-detect this, so you need to specify 1.2 or 2.0 based on available hardware.
         '';
       };
 
@@ -117,35 +110,21 @@ in
 
   config = mkIf cfg.enable {
 
-    environment.systemPackages = [ pkgs.trousers ];
+    environment.systemPackages = [ pkg ];
 
-#    system.activationScripts.tcsd =
-#      ''
-#        chown ${cfg.user}:${cfg.group} ${tcsdConf}
-#      '';
-
-    systemd.services.tcsd = {
-      description = "TCSD";
-      after = [ "systemd-udev-settle.service" ];
-      wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.trousers ];
-      preStart =
-        ''
-        mkdir -m 0700 -p ${cfg.stateDir}
-        chown -R ${cfg.user}:${cfg.group} ${cfg.stateDir}
-        '';
-      serviceConfig.ExecStart = "${pkgs.trousers}/sbin/tcsd -f -c ${tcsdConf}";
+    systemd.services = {
+      tcsd = lib.mkIf (cfg.version == "1.2") {
+        description = "TCSD";
+        wantedBy = [ "multi-user.target" ];
+        path = [ pkg ];
+        serviceConfig = {
+          DynamicUser = true;
+          User = "tss";
+          Group = "tss";
+          ExecStart = "${pkgs.trousers}/sbin/tcsd -f -c ${tcsdConf}";
+          Restart = "on-failure";
+        };
+      };
     };
-
-    users.extraUsers = optionalAttrs (cfg.user == "tss") (singleton
-      { name = "tss";
-        group = "tss";
-        uid = config.ids.uids.tss;
-      });
-
-    users.extraGroups = optionalAttrs (cfg.group == "tss") (singleton
-      { name = "tss";
-        gid = config.ids.gids.tss;
-      });
   };
 }

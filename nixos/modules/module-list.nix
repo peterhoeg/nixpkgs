@@ -250,7 +250,7 @@
   ./services/hardware/pommed.nix
   ./services/hardware/sane.nix
   ./services/hardware/sane_extra_backends/brscan4.nix
-  ./services/hardware/tcsd.nix
+  ./services/hardware/tpm.nix
   ./services/hardware/tlp.nix
   ./services/hardware/thinkfan.nix
   ./services/hardware/trezord.nix
