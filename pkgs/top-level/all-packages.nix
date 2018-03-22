@@ -5075,6 +5075,10 @@ with pkgs;
 
   tpm-quote-tools = callPackage ../tools/security/tpm-quote-tools { };
 
+  tpm2-tools = callPackage ../tools/security/tpm-tools/tpm2.nix { };
+
+  tpm2-tss = callPackage ../tools/security/tpm-tools/tss.nix { };
+
   tpm-tools = callPackage ../tools/security/tpm-tools { };
 
   tpm-luks = callPackage ../tools/security/tpm-luks { };
