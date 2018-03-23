@@ -8,14 +8,14 @@ let
 
   cfg = config.services.hardware.tpm;
 
-  dataDir = "/var/lib/tpm";
+  stateDir = "/var/lib/tpm";
 
-  pkg = if cfg.version == "1.2" then pkgs.trousers else pkgs.tpm2-tools;
+  pkg = if cfg.version == "1.2" then pkgs.tpm-tools else pkgs.tpm2-tools;
 
   tcsdConf = pkgs.writeText "tcsd.conf" ''
     port = 30003
     num_threads = 10
-    system_ps_file = ${cfg.stateDir}/system.data
+    system_ps_file = ${stateDir}/system.data
     # This is the log of each individual measurement done by the system.
     # By re-calculating the PCR registers based on this information, even
     # finer details about the measured environment can be inferred than
@@ -75,7 +75,7 @@ in
       };
 
       platformCred = mkOption {
-        default = "${cfg.stateDir}/platform.cert";
+        default = "${stateDir}/platform.cert";
         type = types.path;
         description = ''
           Path to the platform credential for your TPM. Your TPM
@@ -88,7 +88,7 @@ in
       };
 
       conformanceCred = mkOption {
-        default = "${cfg.stateDir}/conformance.cert";
+        default = "${stateDir}/conformance.cert";
         type = types.path;
         description = ''
           Path to the conformance credential for your TPM.
@@ -96,7 +96,7 @@ in
       };
 
       endorsementCred = mkOption {
-        default = "${cfg.stateDir}/endorsement.cert";
+        default = "${stateDir}/endorsement.cert";
         type = types.path;
         description = ''
           Path to the endorsement credential for your TPM.
@@ -112,13 +112,19 @@ in
 
     environment.systemPackages = [ pkg ];
 
+    # tpm 2 devices need to be world readable - writable?
+    services.udev.extraRules = lib.mkIf (cfg.version == "2.0") ''
+      SUBSYSTEM=="tpm", ACTION=="add", MODE="0644"
+    '';
+
     systemd.services = {
       tcsd = lib.mkIf (cfg.version == "1.2") {
         description = "TCSD";
         wantedBy = [ "multi-user.target" ];
-        path = [ pkg ];
+        path = with pkgs; [ trousers ];
         serviceConfig = {
           DynamicUser = true;
+          StateDirectory = "tss";
           User = "tss";
           Group = "tss";
           ExecStart = "${pkgs.trousers}/sbin/tcsd -f -c ${tcsdConf}";
