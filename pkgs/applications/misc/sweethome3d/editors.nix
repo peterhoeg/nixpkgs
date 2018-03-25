@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchcvs, makeWrapper, makeDesktopItem, jdk, jre, ant
+{ stdenv, fetchurl, fetchcvs, unzip, makeWrapper, makeDesktopItem, jdk, jre, ant
 , gtk3, gsettings-desktop-schemas, p7zip, sweethome3dApp }:
 
 let
@@ -28,8 +28,10 @@ let
 
     buildInputs = [ ant jre jdk makeWrapper gtk3 gsettings-desktop-schemas ];
 
+    nativeBuildInputs = [ unzip ];
+
     patchPhase = ''
-      sed -i -e 's,../SweetHome3D,${application.src},g' build.xml
+      # sed -i -e 's,../SweetHome3D,${application.src},g' build.xml
       sed -i -e 's,lib/macosx/java3d-1.6/jogl-all.jar,lib/java3d-1.6/jogl-all.jar,g' build.xml
     '';
 
@@ -69,26 +71,22 @@ in {
     name = sweetName module version;
     description = "Easily create SH3T files and edit the properties of the texture images it contain";
     license = stdenv.lib.licenses.gpl2Plus;
-    src = fetchcvs {
-      cvsRoot = ":pserver:anonymous@sweethome3d.cvs.sourceforge.net:/cvsroot/sweethome3d";
-      sha256 = "15wxdns3hc8yq362x0rj53bcxran2iynxznfcb9js85psd94zq7h";
-      module = module;
-      tag = "V_" + d2u version;
+    src = fetchurl {
+      url= "mirror://sourceforge/sweethome3d/${module}-${version}-src.zip";
+      sha256 = "0glgcb9as2qa72fwlh35qiddh28mifrimsfjp53xyl2g60rw5yib";
     };
     desktopName = "Sweet Home 3D - Textures Library Editor";
   };
 
   furniture-editor = mkEditorProject rec {
-    version = "1.19";
+    version = "1.22";
     module = "FurnitureLibraryEditor";
     name = sweetName module version;
     description = "Quickly create SH3F files and edit the properties of the 3D models it contain";
     license = stdenv.lib.licenses.gpl2;
-    src = fetchcvs {
-      cvsRoot = ":pserver:anonymous@sweethome3d.cvs.sourceforge.net:/cvsroot/sweethome3d";
-      sha256 = "0rr4nqil1mngak3ds5vz7f1whrgcgzpk6fb0qcr5ljms0jx0ylvs";
-      module = module;
-      tag = "V_" + d2u version;
+    src = fetchurl {
+      url= "mirror://sourceforge/sweethome3d/${module}-${version}-src.zip";
+      sha256 = "0gvvha9n4axpplfjr7n0jy4nx7j746bw9absjyk3f8z5h0wx7r1x";
     };
     desktopName = "Sweet Home 3D - Furniture Library Editor";
   };

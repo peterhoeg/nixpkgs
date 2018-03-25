@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, fetchcvs, makeWrapper, makeDesktopItem, jdk, jre, ant
+{ lib, stdenv, fetchurl, fetchcvs, makeWrapper, makeDesktopItem, unzip, jdk, jre, ant
 , gtk3, gsettings-desktop-schemas, p7zip, libXxf86vm }:
 
 let
@@ -38,6 +38,8 @@ let
 
     buildInputs = [ ant jdk jre makeWrapper p7zip gtk3 gsettings-desktop-schemas ];
 
+    nativeBuildInputs = [ unzip ];
+
     buildPhase = ''
       ant furniture textures help
       mkdir -p $out/share/{java,applications}
@@ -74,16 +76,14 @@ let
 in rec {
 
   application = mkSweetHome3D rec {
-    version = "5.4";
+    version = "5.7";
     module = "SweetHome3D";
     name = stdenv.lib.toLower module + "-application-" + version;
     description = "Design and visualize your future home";
     license = stdenv.lib.licenses.gpl2Plus;
-    src = fetchcvs {
-      cvsRoot = ":pserver:anonymous@sweethome3d.cvs.sourceforge.net:/cvsroot/sweethome3d";
-      sha256 = "09sk4svmaiw8dabcya3407iq5yjwxbss8pik1rzalrlds2428vyw";
-      module = module;
-      tag = "V_" + d2u version;
+    src = fetchurl {
+      url= "mirror://sourceforge/sweethome3d/${module}-${version}-src.zip";
+      sha256 = "0pfqi9zyniz8mi0sfvwpvgq9wmdsp15afr2j8d4gnb4s3jr00cmb";
     };
     desktopName = "Sweet Home 3D";
     icons = {
