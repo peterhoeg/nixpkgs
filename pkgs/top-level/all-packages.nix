@@ -16932,7 +16932,9 @@ with pkgs;
 
   imapfilter = callPackage ../applications/networking/mailreaders/imapfilter.nix {
     lua = lua5;
- };
+  };
+
+  smailq = callPackage ../applications/networking/smailq { };
 
   maxlib = callPackage ../applications/audio/pd-plugins/maxlib { };
 
