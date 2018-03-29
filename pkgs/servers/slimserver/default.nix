@@ -1,63 +1,29 @@
-{ stdenv, buildPerlPackage, fetchurl
+{ stdenv, buildPerlPackage, fetchFromGitHub
 , perl, perlPackages }:
 
 buildPerlPackage rec {
   name = "slimserver-${version}";
   version = "7.9.0";
 
-  src = fetchurl {
-    url = "https://github.com/Logitech/slimserver/archive/${version}.tar.gz";
-    sha256 = "07rhqipg7m28x0nqdd83nyzi88dp9cf8rr2pamdyrfcwyp1h1b44";
+  src = fetchFromGitHub {
+    owner  = "Logitech";
+    repo   = "slimserver";
+    rev    = version;
+    sha256 = "0idfq0bhg6czajwbvxk4vd1wc46c2v9v3mhjx1ri4my9b75qy1dm";
   };
 
-  buildInputs = [
-    perl
-    perlPackages.AnyEvent
-    perlPackages.AudioScan
-    perlPackages.CarpClan
-    perlPackages.CGI
-    perlPackages.ClassXSAccessor
-    perlPackages.DataDump
-    perlPackages.DataURIEncode
-    perlPackages.DBDSQLite
-    perlPackages.DBI
-    perlPackages.DBIxClass
-    perlPackages.DigestSHA1
-    perlPackages.EV
-    perlPackages.ExporterLite
-    perlPackages.FileBOM
-    perlPackages.FileCopyRecursive
-    perlPackages.FileNext
-    perlPackages.FileReadBackwards
-    perlPackages.FileSlurp
-    perlPackages.FileWhich
-    perlPackages.HTMLParser
-    perlPackages.HTTPCookies
-    perlPackages.HTTPDaemon
-    perlPackages.HTTPMessage
-    perlPackages.ImageScale
-    perlPackages.IOSocketSSL
-    perlPackages.IOString
-    perlPackages.JSONXSVersionOneAndTwo
-    perlPackages.Log4Perl
-    perlPackages.LWPUserAgent
-    perlPackages.NetHTTP
-    perlPackages.ProcBackground
-    perlPackages.SubName
-    perlPackages.TemplateToolkit
-    perlPackages.TextUnidecode
-    perlPackages.TieCacheLRU
-    perlPackages.TieCacheLRUExpires
-    perlPackages.TieRegexpHash
-    perlPackages.TimeDate
-    perlPackages.URI
-    perlPackages.URIFind
-    perlPackages.UUIDTiny
-    perlPackages.XMLParser
-    perlPackages.XMLSimple
-    perlPackages.YAMLLibYAML
-  ];
-
+  buildInputs = [ perl ] ++ (with perlPackages; [
+    AnyEvent AudioScan CarpClan CGI ClassXSAccessor
+    DataDump DataURIEncode DBDSQLite DBI DBIxClass
+    DigestSHA1 EV ExporterLite FileBOM FileCopyRecursive
+    FileNext FileReadBackwards FileSlurp FileWhich
+    HTMLParser HTTPCookies HTTPDaemon HTTPMessage
+    ImageScale IOSocketSSL IOString JSONXSVersionOneAndTwo
+    Log4Perl LWPUserAgent NetHTTP ProcBackground SubName
+    TemplateToolkit TextUnidecode TieCacheLRU TieCacheLRUExpires
+    TieRegexpHash TimeDate URI URIFind UUIDTiny
+    XMLParser XMLSimple YAMLLibYAML
+  ]);
 
   prePatch = ''
     mkdir CPAN_used
@@ -66,9 +32,7 @@ buildPerlPackage rec {
     rm -rf CPAN
     rm -rf Bin
     touch Makefile.PL
-    '';
-
-  preConfigurePhase = "";
+  '';
 
   buildPhase = "
     mv lib tmp
@@ -77,21 +41,25 @@ buildPerlPackage rec {
     cp -rf tmp/* lib/perl5/site_perl
   ";
 
-  doCheck = false;
+  doCheck = true;
 
   installPhase = ''
+    runHook preInstall
+
     cp -r . $out
+
+    runHook postInstall
   '';
 
   outputs = [ "out" ];
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/Logitech/slimserver;
     description = "Server for Logitech Squeezebox players. This server is also called Logitech Media Server";
+    homepage = https://github.com/Logitech/slimserver;
     # the firmware is not under a free license!
     # https://github.com/Logitech/slimserver/blob/public/7.9/License.txt
     license = licenses.unfree;
-    maintainers = [ maintainers.phile314 ];
+    maintainers = with maintainers; [ phile314 ];
     platforms = platforms.linux;
   };
 }
