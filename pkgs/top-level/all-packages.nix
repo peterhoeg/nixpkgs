@@ -619,6 +619,8 @@ with pkgs;
 
   dkimpy = pythonPackages.dkimpy;
 
+  domterm = libsForQt5.callPackage ../applications/misc/domterm { };
+
   ecdsautils = callPackage ../tools/security/ecdsautils { };
 
   elvish = callPackage ../shells/elvish { };
