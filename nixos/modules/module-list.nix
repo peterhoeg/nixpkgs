@@ -751,6 +751,7 @@
   ./services/web-apps/youtrack.nix
   ./services/web-servers/apache-httpd/default.nix
   ./services/web-servers/caddy.nix
+  ./services/web-servers/darkhttpd.nix
   ./services/web-servers/fcgiwrap.nix
   ./services/web-servers/hitch/default.nix
   ./services/web-servers/hydron.nix
