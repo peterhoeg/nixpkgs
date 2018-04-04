@@ -21120,6 +21120,8 @@ with pkgs;
 
   iterm2 = callPackage ../applications/misc/iterm2 {};
 
+  ozwcp = callPackage ../tools/networking/ozwcp { };
+
   sequeler = callPackage ../applications/misc/sequeler {
     inherit (gnome3) gtksourceview libgda libgee;
   };
