@@ -43,6 +43,8 @@ def fetch_reqs(version='master'):
                 if component not in requirements:
                     requirements[component] = []
             elif line[0] != '#':
+                if line.find('#') > -1:
+                    line = line[line.find('#') + 1:]
                 for component in components:
                     requirements[component].append(line)
     return requirements
