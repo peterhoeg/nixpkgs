@@ -1,6 +1,6 @@
 { stdenv, fetchFromGitHub
-, doxygen, libxml2, git, which, pkgconfig, graphviz-nox, fontconfig
-, udev }:
+, doxygen, fontconfig, graphviz-nox, libxml2, pkgconfig, which
+, systemd }:
 
 let
   version = "2018-04-04";
@@ -15,36 +15,42 @@ in stdenv.mkDerivation rec {
     sha256 = "0yby8ygzjn5zp5vhysxaadbzysqanwd2zakz379299qs454pr2h9";
   };
 
-  nativeBuildInputs = [ doxygen libxml2 git which pkgconfig graphviz-nox fontconfig ];
-  buildInputs = [ udev ];
+  nativeBuildInputs = [ doxygen fontconfig graphviz-nox libxml2 pkgconfig which ];
 
-  installFlags = [
-    "PREFIX="
-    "pkgconfigdir=lib/pkgconfig"
-    "sysconfigdir=etc/openzwave"
-  ];
+  buildInputs = [ systemd ];
 
-  preInstall = ''
-    installFlagsArray+=("DESTDIR=$out")
+  enableParallelBuilding = true;
+
+  installPhase = ''
+    runHook preInstall
+
+    DESTDIR=$out PREFIX= pkgconfigdir=lib/pkgconfig make install $installFlags
+
+    runHook postInstall
   '';
 
   FONTCONFIG_FILE="${fontconfig.out}/etc/fonts/fonts.conf";
   FONTCONFIG_PATH="${fontconfig.out}/etc/fonts/";
 
   postPatch = ''
-    sed -i "s#/etc/openzwave/#$out/etc/openzwave/#" cpp/src/Options.cpp
+    substituteInPlace cpp/src/Options.cpp \
+      --replace /etc/openzwave $out/etc/openzwave
   '';
 
   fixupPhase = ''
-    sed -i "s#dir=#dir=$out#" $out/lib/pkgconfig/libopenzwave.pc
-    sed -i "s#pcfile=#pcfile=$out/#" $out/bin/ozw_config
+    substituteInPlace $out/lib/pkgconfig/libopenzwave.pc \
+      --replace prefix= prefix=$out \
+      --replace dir=    dir=$out
+
+    substituteInPlace $out/bin/ozw_config \
+      --replace pcfile=${pkgconfig} pcfile=$out
   '';
 
   meta = with stdenv.lib; {
     description = "C++ library to control Z-Wave Networks via a USB Z-Wave Controller";
     homepage = http://www.openzwave.net/;
     license = licenses.gpl3;
-    maintainers = [ maintainers.etu ];
+    maintainers = with maintainers; [ etu ];
     platforms = platforms.linux;
   };
 }
