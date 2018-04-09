@@ -20445,6 +20445,8 @@ with pkgs;
 
   moltengamepad = callPackage ../misc/drivers/moltengamepad { };
 
+  openzwave = callPackage ../development/libraries/openzwave { };
+
   mongoc = callPackage ../development/libraries/mongoc { };
 
   mupen64plus = callPackage ../misc/emulators/mupen64plus { };
