@@ -1,6 +1,6 @@
 { stdenv, buildPythonPackage, fetchPypi, isPy3k
 , pkgconfig
-, udev, libyaml, openzwave, cython
+, systemd, libyaml, openzwave, cython
 , six, pydispatcher, urwid }:
 
 buildPythonPackage rec {
@@ -16,21 +16,25 @@ buildPythonPackage rec {
   };
 
   nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ udev libyaml openzwave cython six pydispatcher urwid ];
 
+  buildInputs = [ systemd libyaml openzwave cython six pydispatcher urwid ];
+
+  # primary location for the .xml files is in /etc/openzwave so we override the
+  # /usr/local/etc lookup instead as that allows us to dump new .xml files into
+  # /etc/openzwave if needed
   postPatch = ''
-    # Patch in default path to config
-    sed -i 's#"/etc/openzwave/"#"${openzwave}/etc/openzwave"#' src-lib/libopenzwave/libopenzwave.pyx
+    substituteInPlace src-lib/libopenzwave/libopenzwave.pyx \
+      --replace /usr/local/etc/openzwave ${openzwave}/etc/openzwave
   '';
 
-  preConfigure = ''
-    PKG_CONFIG_PATH+=":${openzwave}/usr/lib/pkgconfig"
-  '';
+  # no tests available
+  doCheck = false;
 
   meta = with stdenv.lib; {
+    description = "Python wrapper for the OpenZWave C++ library";
     homepage = https://github.com/OpenZWave/python-openzwave;
     license = licenses.gpl3Plus;
-    maintainers = [ maintainers.etu ];
-    description = "Python-openzwave is a python wrapper for the openzwave c++ library.";
+    maintainers = with maintainers; [ etu ];
+    inherit (openzwave.meta) platforms;
   };
 }
