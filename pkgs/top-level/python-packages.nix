@@ -18330,6 +18330,8 @@ EOF
 
   sseclient = callPackage ../development/python-modules/sseclient { };
 
+  warrant = callPackage ../development/python-modules/warrant { };
+
   textacy = callPackage ../development/python-modules/textacy { };
 
   pyemd  = callPackage ../development/python-modules/pyemd { };
