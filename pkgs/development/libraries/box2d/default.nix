@@ -1,34 +1,45 @@
-{ stdenv, fetchurl, unzip, cmake, libGLU_combined, freeglut, libX11, xproto, inputproto
-, libXi, pkgconfig }:
+{ stdenv, fetchFromGitHub, cmake }:
 
 stdenv.mkDerivation rec {
   name = "box2d-${version}";
-  version = "2.3.0";
+  version = "2.3.1";
 
-  src = fetchurl {
-    url = "https://github.com/erincatto/Box2D/archive/v${version}.tar.gz";
-    sha256 = "1dmbswh4x2n5l3c9h0k72m0z4rdpzfy1xl8m8p3rf5rwkvk3bkg2";
+  src = fetchFromGitHub {
+    owner = "erincatto";
+    repo = "Box2D";
+    rev = "v${version}";
+    sha256 = "12rw4nwv5mp0nfrjjyzgymcw2ghdi7nfa6hj01mdch1khgnpaqk7";
   };
 
-  sourceRoot = "Box2D-${version}/Box2D";
+  sourceRoot = "source/Box2D";
 
-  nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [
-    unzip cmake libGLU_combined freeglut libX11 xproto inputproto libXi
-  ];
+  nativeBuildInputs = [ cmake ];
 
-  cmakeFlags = [ "-DBOX2D_INSTALL=ON" "-DBOX2D_BUILD_SHARED=ON" ];
+  postPatch = ''
+    # Technically not needed yet but will be when it moves to premake
+    substituteInPlace premake4.lua \
+      --replace StaticLib SharedLib
 
-  prePatch = ''
+    # 2.3.1 is still tagged as 2.3.0
+    substituteInPlace CMakeLists.txt \
+      --replace 2.3.0 ${version}
+
     substituteInPlace Box2D/Common/b2Settings.h \
       --replace 'b2_maxPolygonVertices	8' 'b2_maxPolygonVertices	15'
   '';
 
+  cmakeFlags = [
+    "-DBOX2D_BUILD_EXAMPLES=OFF"
+    "-DBOX2D_BUILD_SHARED=ON"
+    "-DBOX2D_BUILD_STATIC=OFF"
+    "-DBOX2D_INSTALL=ON"
+  ];
+
   meta = with stdenv.lib; {
     description = "2D physics engine";
     homepage = http://box2d.org/;
-    maintainers = [ maintainers.raskin ];
-    platforms = platforms.linux;
+    maintainers = with maintainers; [ raskin ];
     license = licenses.zlib;
+    platforms = platforms.linux;
   };
 }
