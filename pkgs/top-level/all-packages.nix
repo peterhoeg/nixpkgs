@@ -11216,6 +11216,8 @@ with pkgs;
   qtEnv = qt5.env;
   qt5Full = qt5.full;
 
+  qml-box2d = libsForQt5.callPackage ../development/libraries/qml-box2d { };
+
   qtkeychain = callPackage ../development/libraries/qtkeychain { };
 
   qtscriptgenerator = callPackage ../development/libraries/qtscriptgenerator { };
