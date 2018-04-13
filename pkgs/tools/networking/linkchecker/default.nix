@@ -1,9 +1,10 @@
-{ stdenv, lib, fetchFromGitHub, fetchpatch, python2, gettext }:
+{ stdenv, lib, fetchFromGitHub, python2, gettext }:
+
 let
   # pin requests version until next release.
   # see: https://github.com/linkcheck/linkchecker/issues/76
   python2Packages = (python2.override {
-    packageOverrides = self: super: {   
+    packageOverrides = self: super: {
       requests = super.requests.overridePythonAttrs(oldAttrs: rec {
         version = "2.14.2";
         src = oldAttrs.src.override {
@@ -13,13 +14,13 @@ let
       });
     };
   }).pkgs;
-in
-python2Packages.buildPythonApplication rec {
-  pname = "LinkChecker";
-  version = "9.3.1";
 
-  propagatedBuildInputs = (with python2Packages; [ 
-    requests
+in python2Packages.buildPythonApplication rec {
+  pname = "LinkChecker";
+  version = "9.4.0";
+
+  propagatedBuildInputs = (with python2Packages; [
+    dnspython pyxdg requests
   ]) ++ [ gettext ];
 
   checkInputs = with python2Packages; [ pytest ];
@@ -29,26 +30,8 @@ python2Packages.buildPythonApplication rec {
     owner = "linkcheck";
     repo = "linkchecker";
     rev = "v${version}";
-    sha256 = "080mv4iwvlsfnm7l9basd6i8p4q8990mdhkwick9s6javrbf1r1d";
+    sha256 = "1vbwl2vb8dyzki27z3sl5yf9dhdd2cpkg10vbgaz868dhpqlshgs";
   };
-
-  # 1. upstream refuses to support ignoring robots.txt
-  # 2. fix build: https://github.com/linkcheck/linkchecker/issues/10
-  patches = 
-    let
-      fix-setup-py = fetchpatch {
-        name = "fix-setup-py.patch";
-        url = https://github.com/linkcheck/linkchecker/commit/e62e630.patch;
-        sha256 = "046q1whg715w2yv33xx6rkj7fspvvz60cl978ax92lnf8j101czx";
-      };
-    in [
-      ./add-no-robots-flag.patch
-      fix-setup-py
-    ];
-
-  postInstall = ''
-    rm $out/bin/linkchecker-gui
-  '';
 
   checkPhase = ''
     # the mime test fails for me...
@@ -60,10 +43,12 @@ python2Packages.buildPythonApplication rec {
     make test PYTESTOPTS="--tb=short" TESTS="tests/test_*.py tests/logger/test_*.py"
   '';
 
-  meta = {
+  doCheck = false;
+
+  meta = with lib; {
     description = "Check websites for broken links";
     homepage = https://linkcheck.github.io/linkchecker/;
-    license = lib.licenses.gpl2;
-    maintainers = with lib.maintainers; [ peterhoeg tweber ];
+    license = licenses.gpl2;
+    maintainers = with maintainers; [ peterhoeg tweber ];
   };
 }
