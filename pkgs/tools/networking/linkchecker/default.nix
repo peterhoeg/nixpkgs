@@ -15,6 +15,15 @@ let
     };
   }).pkgs;
 
+  ignoredFiles = [
+    "test_clamav.py"
+  ];
+
+  ignoredTests = [
+    "checker/test_http_misc.py::TestHttpMisc"
+    "checker/test_file.py::TestFile"
+  ];
+
 in python2Packages.buildPythonApplication rec {
   pname = "LinkChecker";
   version = "9.4.0";
@@ -33,17 +42,19 @@ in python2Packages.buildPythonApplication rec {
     sha256 = "1vbwl2vb8dyzki27z3sl5yf9dhdd2cpkg10vbgaz868dhpqlshgs";
   };
 
-  checkPhase = ''
-    # the mime test fails for me...
-    rm tests/test_mimeutil.py
-    ${lib.optionalString stdenv.isDarwin ''
-    # network tests fails on darwin
-    rm tests/test_network.py
-    ''}
-    make test PYTESTOPTS="--tb=short" TESTS="tests/test_*.py tests/logger/test_*.py"
+  preConfigure = ''
+    mv README.rst README.txt
+
+    python setup.py sdist --manifest-only
   '';
 
-  doCheck = false;
+  prePatch = ''
+    substituteInPlace Makefile \
+      --replace 'TESTOPTS=' 'TESTOPTS=${lib.concatStringsSep " " (map (e: "--deselect=tests/${e}") ignoredTests)} ${lib.concatStringsSep " " (map (e: "--ignore=tests/${e}") ignoredFiles)}'
+    export HOME=$TMP
+  '';
+
+  checkTarget = "test";
 
   meta = with lib; {
     description = "Check websites for broken links";
