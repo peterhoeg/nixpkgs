@@ -8,6 +8,8 @@ let
 
   cfg = config.services.dbus;
 
+  pkg = if cfg.useDbusBroker then dbus-broker else dbus.daemon;
+
   homeDir = "/run/dbus";
 
   configDir = pkgs.makeDBusConf {
@@ -35,11 +37,11 @@ in
         '';
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.dbus;
+      useDbusBroker = mkOption {
+        type = types.bool;
+        default = false;
         description  = ''
-          The binary package containing the dbus daemon. By default it will use the reference implementation.
+          Use the new dbus-broker instead of the legacy reference implementation.
         '';
       };
 
@@ -72,7 +74,7 @@ in
 
   config = mkIf cfg.enable {
 
-    environment.systemPackages = [ pkgs.dbus.daemon pkgs.dbus ];
+    environment.systemPackages = (with pkgs; [ dbus ] ++ ([ pkg ]));
 
     environment.etc = singleton
       { source = configDir;
@@ -88,7 +90,7 @@ in
 
     users.extraGroups.messagebus.gid = config.ids.gids.messagebus;
 
-    systemd.packages = [ pkgs.dbus.daemon ];
+    systemd.packages = [ pkg ];
 
     security.wrappers.dbus-daemon-launch-helper = {
       source = "${pkgs.dbus.daemon}/libexec/dbus-daemon-launch-helper";
