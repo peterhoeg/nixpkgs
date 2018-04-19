@@ -35,6 +35,14 @@ in
         '';
       };
 
+      package = mkOption {
+        type = types.package;
+        default = pkgs.dbus;
+        description  = ''
+          The binary package containing the dbus daemon. By default it will use the reference implementation.
+        '';
+      };
+
       packages = mkOption {
         type = types.listOf types.path;
         default = [ ];
