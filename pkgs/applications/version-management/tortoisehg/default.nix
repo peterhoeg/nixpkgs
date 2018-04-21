@@ -1,26 +1,33 @@
-{lib, fetchurl, mercurial, python2Packages}:
+{ lib, fetchurl, mercurial, python2Packages
+, qtsvg }:
 
 python2Packages.buildPythonApplication rec {
     name = "tortoisehg-${version}";
-    version = "4.5";
+    version = "4.5.3";
 
     src = fetchurl {
       url = "https://bitbucket.org/tortoisehg/targz/downloads/${name}.tar.gz";
-      sha256 = "11m2hir2y1hblg9sqmansv16rcp560j2d3nhqzfhkim46a59fxvk";
+      sha256 = "1lfv3v9a0azdgixspacqamdv0fmf4d7cvh796i6qiv9qnc65xj97";
     };
 
-    pythonPath = with python2Packages; [ pyqt4 mercurial qscintilla iniparse ];
+    pythonPath = with python2Packages; [ pyqt5 mercurial qscintilla-qt5 iniparse ];
+
+    buildInputs = [ qtsvg ];
 
     propagatedBuildInputs = with python2Packages; [ qscintilla iniparse ];
 
     doCheck = false; # tests fail with "thg: cannot connect to X server"
+    dontBuild = true;
     dontStrip = true;
-    buildPhase = "";
+
     installPhase = ''
+      runHook preInstall
+
       ${python2Packages.python.executable} setup.py install --prefix=$out
-      mkdir -p $out/share/doc/tortoisehg
-      cp COPYING.txt $out/share/doc/tortoisehg/Copying.txt.gz
+      install -Dm644 -t $out/share/doc/tortoisehg COPYING.txt
       ln -s $out/bin/thg $out/bin/tortoisehg     #convenient alias
+
+      runHook postInstall
     '';
 
     checkPhase = ''
@@ -28,11 +35,11 @@ python2Packages.buildPythonApplication rec {
       $out/bin/thg version
     '';
 
-    meta = {
+    meta = with lib; {
       description = "Qt based graphical tool for working with Mercurial";
       homepage = http://tortoisehg.bitbucket.org/;
-      license = lib.licenses.gpl2;
-      platforms = lib.platforms.linux;
-      maintainers = with lib.maintainers; [ danbst ];
+      license = licenses.gpl2;
+      maintainers = with maintainers; [ danbst ];
+      platforms = platforms.linux;
     };
 }

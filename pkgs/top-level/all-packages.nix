@@ -18095,7 +18095,7 @@ with pkgs;
     inherit (pythonPackages) wrapPython wxPython;
   };
 
-  tortoisehg = callPackage ../applications/version-management/tortoisehg { };
+  tortoisehg = libsForQt5.callPackage ../applications/version-management/tortoisehg { };
 
   toot = callPackage ../applications/misc/toot { };
 
