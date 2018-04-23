@@ -61,7 +61,12 @@ in with lib; {
         usbPermissions = mkOption {
           type = bool;
           default = false;
-          description = "Set group-write permissions on a USB device";
+          description = ''
+            Set group-write permissions on a USB device.
+            </para>
+            <para>
+            A USB connected LCD panel will most likely require having its permissions modified for lcdd to write to it. Enabling this option sets group-write permissions on the device identified by <option>services.hardware.lcd.usbVid</option> and <option>services.hardware.lcd.usbPid</option>. In order to find the values, you can run the <literal>lsusb</literal> command. Example output:
+          '';
         };
 
         usbVid = mkOption {
