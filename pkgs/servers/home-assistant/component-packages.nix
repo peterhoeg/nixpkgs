@@ -380,7 +380,7 @@
     "sensor.ups" = ps: with ps; [  ];
     "sensor.vasttrafik" = ps: with ps; [  ];
     "sensor.waqi" = ps: with ps; [  ];
-    "sensor.waze_travel_time" = ps: with ps; [  ];
+    "sensor.waze_travel_time" = ps: with ps; [ WazeRouteCalculator ];
     "sensor.whois" = ps: with ps; [  ];
     "sensor.xbox_live" = ps: with ps; [  ];
     "sensor.xiaomi_miio" = ps: with ps; [ construct ];
