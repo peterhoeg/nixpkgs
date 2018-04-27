@@ -249,6 +249,8 @@ in {
 
   distorm3 = callPackage ../development/python-modules/distorm3 { };
 
+  pyfttt = callPackage ../development/python-modules/pyfttt { };
+
   diff-match-patch = callPackage ../development/python-modules/diff-match-patch { };
 
   globus-sdk = callPackage ../development/python-modules/globus-sdk { };
