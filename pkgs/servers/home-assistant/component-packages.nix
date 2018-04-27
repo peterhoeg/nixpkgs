@@ -114,7 +114,7 @@
     "homematicip_cloud" = ps: with ps; [  ];
     "http" = ps: with ps; [ aiohttp-cors ];
     "hue" = ps: with ps; [  ];
-    "ifttt" = ps: with ps; [  ];
+    "ifttt" = ps: with ps; [ pyfttt ];
     "ihc" = ps: with ps; [  ];
     "image_processing.dlib_face_detect" = ps: with ps; [ face_recognition ];
     "image_processing.dlib_face_identify" = ps: with ps; [ face_recognition ];
