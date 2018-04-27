@@ -444,6 +444,8 @@ in {
 
   pyunbound = callPackage ../tools/networking/unbound/python.nix { };
 
+  WazeRouteCalculator = callPackage ../development/python-modules/WazeRouteCalculator { };
+
   # packages defined here
 
   aafigure = callPackage ../development/python-modules/aafigure { };
