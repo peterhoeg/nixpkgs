@@ -69,7 +69,7 @@
     "device_tracker.automatic" = ps: with ps; [  ];
     "device_tracker.bbox" = ps: with ps; [  ];
     "device_tracker.bluetooth_le_tracker" = ps: with ps; [  ];
-    "device_tracker.bluetooth_tracker" = ps: with ps; [  ];
+    "device_tracker.bluetooth_tracker" = ps: with ps; [ bt_proximity ];
     "device_tracker.cisco_ios" = ps: with ps; [ pexpect ];
     "device_tracker.fritz" = ps: with ps; [ fritzconnection ];
     "device_tracker.google_maps" = ps: with ps; [  ];
