@@ -16075,7 +16075,8 @@ with pkgs;
 
   google-chrome-dev = google-chrome.override { chromium = chromiumDev; channel = "dev"; };
 
-  googleearth = callPackage_i686 ../applications/misc/googleearth { };
+  # googleearth = callPackage_i686 ../applications/misc/googleearth { };
+  googleearth = callPackage ../applications/misc/googleearth { };
 
   google-play-music-desktop-player = callPackage ../applications/audio/google-play-music-desktop-player {
     inherit (gnome2) GConf;
