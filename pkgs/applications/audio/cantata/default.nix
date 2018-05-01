@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, fetchpatch, cmake, pkgconfig, vlc
+{ stdenv, fetchFromGitHub, fetchpatch, cmake, pkgconfig, libvlc
 , qtbase, qtmultimedia, qtsvg, qttools
 
 # Cantata doesn't build with cdparanoia enabled so we disable that
@@ -54,19 +54,17 @@ in stdenv.mkDerivation rec {
     })
 
   ];
-  buildInputs = [ vlc qtbase qtmultimedia qtsvg ]
-    ++ stdenv.lib.optionals withTaglib [ taglib taglib_extras ]
-    ++ stdenv.lib.optionals withReplaygain [ ffmpeg speex mpg123 ]
-    ++ stdenv.lib.optional  withCdda cdparanoia
-    ++ stdenv.lib.optional  withCddb libcddb
-    ++ stdenv.lib.optional  withLame lame
-    ++ stdenv.lib.optional  withMtp libmtp
+  buildInputs = [ libvlc qtbase qtmultimedia qtsvg ]
+    ++ stdenv.lib.optionals withTaglib      [ taglib taglib_extras ]
+    ++ stdenv.lib.optionals withReplaygain  [ ffmpeg speex mpg123 ]
+    ++ stdenv.lib.optional  withCdda        cdparanoia
+    ++ stdenv.lib.optional  withCddb        libcddb
+    ++ stdenv.lib.optional  withLame        lame
+    ++ stdenv.lib.optional  withMtp         libmtp
     ++ stdenv.lib.optional  withMusicbrainz libmusicbrainz5
-    ++ stdenv.lib.optional  withUdisks udisks2;
+    ++ stdenv.lib.optional  withUdisks      udisks2;
 
   nativeBuildInputs = [ cmake pkgconfig qttools ];
-
-  enableParallelBuilding = true;
 
   cmakeFlags = stdenv.lib.flatten [
     (fstats withTaglib        [ "TAGLIB" "TAGLIB_EXTRAS" ])
