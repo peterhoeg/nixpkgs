@@ -1,51 +1,35 @@
-{ stdenv, lib, fetchurl, cmake, libGLU_combined, pkgconfig, libpulseaudio
-, qt4 ? null, extra-cmake-modules ? null, qtbase ? null, qttools ? null
-, withQt5 ? false
-, debug ? false }:
+{ stdenv, lib, fetchurl, cmake, pkgconfig, extra-cmake-modules
+, qtbase, qttools
+, libGLU_combined, libpulseaudio }:
 
 with lib;
 
 let
   v = "4.9.1";
 
-  soname = if withQt5 then "phonon4qt5" else "phonon";
+  soname = "phonon4qt5";
   buildsystemdir = "share/cmake/${soname}";
-in
 
-assert withQt5 -> qtbase != null;
-assert withQt5 -> qttools != null;
-
-stdenv.mkDerivation rec {
-  name = "phonon-${if withQt5 then "qt5" else "qt4"}-${v}";
-
-  meta = {
-    homepage = https://phonon.kde.org/;
-    description = "Multimedia API for Qt";
-    license = stdenv.lib.licenses.lgpl2;
-    platforms = stdenv.lib.platforms.linux;
-    maintainers = with stdenv.lib.maintainers; [ ttuegel ];
-  };
+in stdenv.mkDerivation rec {
+  name = "phonon-${v}";
 
   src = fetchurl {
     url = "mirror://kde/stable/phonon/${v}/phonon-${v}.tar.xz";
     sha256 = "177647r2jqfm32hqcz2nqfqv6v48hn5ab2vc31svba2wz23fkgk7";
   };
 
-  buildInputs =
-    [ libGLU_combined libpulseaudio ]
-    ++ (if withQt5 then [ qtbase qttools ] else [ qt4 ]);
+  buildInputs = [
+    libGLU_combined libpulseaudio
+    qtbase qttools
+  ];
 
-  nativeBuildInputs =
-    [ cmake pkgconfig ]
-    ++ optional withQt5 extra-cmake-modules;
+  nativeBuildInputs = [ cmake pkgconfig extra-cmake-modules ];
 
   outputs = [ "out" "dev" ];
 
   NIX_CFLAGS_COMPILE = "-fPIC";
 
-  cmakeFlags =
-    [ "-DCMAKE_BUILD_TYPE=${if debug then "Debug" else "Release"}" ]
-    ++ optional withQt5 "-DPHONON_BUILD_PHONON4QT5=ON";
+  cmakeFlags = [ "-DPHONON_BUILD_PHONON4QT5=ON" ];
 
   preConfigure = ''
     cmakeFlags+=" -DPHONON_QT_MKSPECS_INSTALL_DIR=''${!outputDev}/mkspecs"
@@ -63,10 +47,8 @@ stdenv.mkDerivation rec {
     sed -i cmake/FindPhononInternal.cmake \
         -e "/set(INCLUDE_INSTALL_DIR/ c set(INCLUDE_INSTALL_DIR \"''${!outputDev}/include\")"
 
-    ${optionalString withQt5 ''
     sed -i cmake/FindPhononInternal.cmake \
         -e "/set(PLUGIN_INSTALL_DIR/ c set(PLUGIN_INSTALL_DIR \"$qtPluginPrefix/..\")"
-    ''}
 
     sed -i CMakeLists.txt \
         -e "/set(BUILDSYSTEM_INSTALL_DIR/ c set(BUILDSYSTEM_INSTALL_DIR \"''${!outputDev}/${buildsystemdir}\")"
@@ -76,4 +58,13 @@ stdenv.mkDerivation rec {
     sed -i "''${!outputDev}/lib/pkgconfig/${soname}.pc" \
         -e "/^exec_prefix=/ c exec_prefix=''${!outputBin}/bin"
   '';
+
+  meta = with stdenv.lib; {
+    description = "Multimedia API for Qt";
+    homepage = https://phonon.kde.org/;
+    license = licenses.lgpl2;
+    maintainers = with maintainers; [ ttuegel ];
+    platforms = platforms.linux;
+  };
+
 }

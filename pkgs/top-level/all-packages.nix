@@ -10951,11 +10951,7 @@ with pkgs;
     v8 = v8_6_x;
   };
 
-  phonon = callPackage ../development/libraries/phonon {};
-
-  phonon-backend-gstreamer = callPackage ../development/libraries/phonon/backends/gstreamer.nix {};
-
-  phonon-backend-vlc = callPackage ../development/libraries/phonon/backends/vlc.nix {};
+  inherit (libsForQt5) phonon phonon-backend-gstreamer phonon-backend-vlc;
 
   inherit (callPackage ../development/libraries/physfs { })
     physfs_2
@@ -11206,13 +11202,9 @@ with pkgs;
 
     openbr = callPackage ../development/libraries/openbr { };
 
-    phonon = callPackage ../development/libraries/phonon {
-      withQt5 = true;
-    };
+    phonon = callPackage ../development/libraries/phonon { };
 
-    phonon-backend-gstreamer = callPackage ../development/libraries/phonon/backends/gstreamer.nix {
-      withQt5 = true;
-    };
+    phonon-backend-gstreamer = callPackage ../development/libraries/phonon/backends/gstreamer.nix { };
 
     phonon-backend-vlc = callPackage ../development/libraries/phonon/backends/vlc.nix { };
 
