@@ -11254,6 +11254,8 @@ with pkgs;
 
     vlc = callPackage ../applications/video/vlc {};
 
+    libvlc = callPackage ../applications/video/vlc { onlyLibVLC = true; };
+
     qtwebkit-plugins = callPackage ../development/libraries/qtwebkit-plugins { };
 
   };
@@ -18322,7 +18324,7 @@ with pkgs;
 
   vkeybd = callPackage ../applications/audio/vkeybd {};
 
-  vlc = libsForQt5.vlc;
+  inherit (libsForQt5) vlc libvlc;
 
   vlc_qt5 = vlc;
 

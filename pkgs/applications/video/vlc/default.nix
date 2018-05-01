@@ -7,24 +7,21 @@
 , mpeg2dec, systemd, gnutls, avahi, libcddb, libjack2, SDL, SDL_image
 , libmtp, unzip, taglib, libkate, libtiger, libv4l, samba, liboggz
 , libass, libva-full, libdvbpsi, libdc1394, libraw1394, libopus
-, libvdpau, libsamplerate, live555, fluidsynth, wayland, wayland-protocols
+, libvdpau, libsamplerate, live555, fluidsynth
 , onlyLibVLC ? false
-, withQt5 ? true, qtbase ? null, qtsvg ? null, qtx11extras ? null
+, qtbase, qtsvg, qtx11extras
 , jackSupport ? false
-, fetchpatch
 }:
 
 with stdenv.lib;
 
-assert (withQt5 -> qtbase != null && qtsvg != null && qtx11extras != null);
-
 stdenv.mkDerivation rec {
-  name = "vlc-${version}";
-  version = "3.0.1";
+  name = "${optionalString onlyLibVLC "lib"}vlc-${version}";
+  version = "3.0.2";
 
   src = fetchurl {
-    url = "http://get.videolan.org/vlc/${version}/${name}.tar.xz";
-    sha256 = "008krfhykm9447wc1kkw82bsw3f6ikljgrqyb1sinwlxnkghqw6f";
+    url = "http://get.videolan.org/vlc/${version}/vlc-${version}.tar.xz";
+    sha256 = "16519qskqmg4rh7k03mvbpf6xlyr6ksdq2qlcabbmzwvns4wis7g";
   };
 
   # VLC uses a *ton* of libraries for various pieces of functionality, many of
@@ -38,8 +35,8 @@ stdenv.mkDerivation rec {
     libkate libtiger libv4l samba liboggz libass libdvbpsi libva-full
     xorg.xlibsWrapper xorg.libXv xorg.libXvMC xorg.libXpm xorg.xcbutilkeysyms
     libdc1394 libraw1394 libopus libebml libmatroska libvdpau libsamplerate live555
-    fluidsynth wayland wayland-protocols
-  ] ++ optionals withQt5    [ qtbase qtsvg qtx11extras ]
+    fluidsynth
+  ] ++ optionals (!onlyLibVLC) [ qtbase qtsvg qtx11extras ]
     ++ optional jackSupport libjack2;
 
   nativeBuildInputs = [ autoreconfHook perl pkgconfig ];
@@ -58,6 +55,11 @@ stdenv.mkDerivation rec {
 
     substituteInPlace modules/text_renderer/freetype/platform_fonts.h --replace \
       /usr/share/fonts/truetype/freefont ${freefont_ttf}/share/fonts/truetype
+  '';
+
+  postInstall = optionalString onlyLibVLC ''
+    rm -rf $out/bin
+    rm -rf $out/share/{applications,icons}
   '';
 
   # https://github.com/NixOS/nixpkgs/pull/35124#issuecomment-370552830
