@@ -5,8 +5,8 @@
     fetch = {
       type = "git";
       url = "https://github.com/aws/aws-sdk-go";
-      rev = "25253087ea42da08900c4c1fc34c04bdb4a97d5a";
-      sha256 = "0p6mf53f4l9b26yc4qlm1s7yls73hsw8klyfhmnxhk2mq8k6ix4m";
+      rev = "b66133bf477542f3e131668aa439e50f4cb47b2e";
+      sha256 = "1ljvdhgsk1zwardcyiwcy9qzb5ihsp7hrsgwjphv9j01cjr8zgmk";
     };
   }
   {
@@ -41,8 +41,17 @@
     fetch = {
       type = "git";
       url = "https://github.com/hashicorp/go-getter";
-      rev = "64040d90d4ab861e7e833d689dc76a0f176d8dec";
-      sha256 = "0g25nx42z6ykd7jqzlrxf161h8lqrpxpddmbspl4w3a84wphhgms";
+      rev = "3f60ec5cfbb2a39731571b9ddae54b303bb0a969";
+      sha256 = "13g15zmfgg4x94nqgc90yimk2ws8qbfzbmys6rl44awndhpwyh60";
+    };
+  }
+  {
+    goPackagePath = "github.com/hashicorp/go-safetemp";
+    fetch = {
+      type = "git";
+      url = "https://github.com/hashicorp/go-safetemp";
+      rev = "b1a1dbde6fdc11e3ae79efd9039009e22d4ae240";
+      sha256 = "0r8p9g2zmayb297bcs5hrxnnqj4p5qda29w1a1rmq6hi26shz1gy";
     };
   }
   {
@@ -59,8 +68,8 @@
     fetch = {
       type = "git";
       url = "https://github.com/hashicorp/hcl";
-      rev = "f40e974e75af4e271d97ce0fc917af5898ae7bda";
-      sha256 = "1w5w3m40xv85gngw8g1kjbcgah1vl4ardbpg2cxgj1svf80zazxx";
+      rev = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168";
+      sha256 = "1qalfsc31fra7hcw2lc3s20aj7al62fq3j5fn5kga3mg99b82nyr";
     };
   }
   {
@@ -68,8 +77,8 @@
     fetch = {
       type = "git";
       url = "https://github.com/mattn/go-zglob";
-      rev = "4959821b481786922ac53e7ef25c61ae19fb7c36";
-      sha256 = "0rwkdw143kphpmingsrw1zp030zf3p08f64h347jpdm4lz8z5449";
+      rev = "9960a25705902198f55789b9b689a686682798b5";
+      sha256 = "1awm9sgxbazniivwwfscpls90kv8nydd1lxfnx5881945bijdsjg";
     };
   }
   {
