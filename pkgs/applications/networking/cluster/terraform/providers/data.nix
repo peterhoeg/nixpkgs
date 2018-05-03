@@ -32,8 +32,8 @@
     {
       owner   = "terraform-providers";
       repo    = "terraform-provider-aws";
-      version = "1.16.0";
-      sha256  = "0knivwxdjkxyaqka0vvn0lh2ndbg660dw2g03iw00fx6ska1zn0c";
+      version = "1.17.0";
+      sha256  = "0zvpd5vrqhxm987zpcggfcgfm3h83g673f9llca6fsw5rnmfzq0r";
     };
   azure-classic =
     {
@@ -193,8 +193,8 @@
     {
       owner   = "terraform-providers";
       repo    = "terraform-provider-google";
-      version = "1.10.0";
-      sha256  = "08ayi30aqw9lz8qn982vl9m3z4prah60fqq2q9hvscf6qb9g8lr0";
+      version = "1.11.0";
+      sha256  = "0cbsb2zb0sy7x45imki10cdpcd20qq902fryk372v6c31kyasr5f";
     };
   grafana =
     {
@@ -270,8 +270,8 @@
     {
       owner   = "terraform-providers";
       repo    = "terraform-provider-logicmonitor";
-      version = "1.1.0";
-      sha256  = "16blwfbvx80j5s6809wrlfnkq0qvjasz0zi4ykwzvkqxh00igj7r";
+      version = "1.2.0";
+      sha256  = "1zir35i8j5w7ra4i7f9k0ghac9b3bar0dy16sqy1kqwbh4ikmhb8";
     };
   mailgun =
     {
@@ -340,8 +340,8 @@
     {
       owner   = "terraform-providers";
       repo    = "terraform-provider-openstack";
-      version = "1.3.0";
-      sha256  = "0pyp95i6z6il2kl28cvilqi81wqs076d6f0zacjyvmn1d0blqrnx";
+      version = "1.4.0";
+      sha256  = "0izxlql5kl4acjj8z9w45ybjz3mw9lxh2ninf87798xa620qjxk1";
     };
   opentelekomcloud =
     {
@@ -417,8 +417,8 @@
     {
       owner   = "terraform-providers";
       repo    = "terraform-provider-rabbitmq";
-      version = "0.2.0";
-      sha256  = "1pbib43d1iqy8xl03zqwnz77362cb9cq8awcpid714n1sz7nd4im";
+      version = "1.0.0";
+      sha256  = "1md928243r4c46ihjnavz2375nxnfyhknyc86r9853hwhhyhsx5d";
     };
   rancher =
     {
@@ -494,8 +494,8 @@
     {
       owner   = "terraform-providers";
       repo    = "terraform-provider-triton";
-      version = "0.5.0";
-      sha256  = "1cbv4bliswiwbhr9bh2m4faazhj0v89jnwn0fndfjw3rka1b97h7";
+      version = "0.5.1";
+      sha256  = "1bn5x6nmhfkrzpxhyfclls85l9qqffvzx1xsgcb3368lhwzarn2f";
     };
   ultradns =
     {
