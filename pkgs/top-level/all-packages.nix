@@ -662,6 +662,8 @@ with pkgs;
 
   browserpass = callPackage ../tools/security/browserpass { };
 
+  pass-plasma-applet = libsForQt5.callPackage ../applications/misc/pass-plasma-applet { };
+
   oracle-instantclient = callPackage ../development/libraries/oracle-instantclient { };
 
   kwakd = callPackage ../servers/kwakd { };
