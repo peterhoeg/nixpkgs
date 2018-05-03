@@ -1,33 +1,41 @@
 { mkDerivation, lib, fetchFromGitHub, cmake, extra-cmake-modules, makeWrapper
-, boost, doxygen, openssl, mysql, postgresql, graphviz, loki, qscintilla, qtbase }:
+, boost, doxygen, openssl, mysql, postgresql, graphviz, loki, qscintilla, qtbase, qttools }:
 
 let
   qscintillaLib = (qscintilla.override { withQt5 = true; });
+  sofile = "${qscintillaLib}/lib/libqscintilla2_qt5.so";
 
 in mkDerivation rec {
   name = "tora-${version}";
-  version = "3.1";
+  version = "3.2";
 
   src = fetchFromGitHub {
     owner  = "tora-tool";
     repo   = "tora";
     rev    = "v${version}";
-    sha256 = "0wninl10bcgiljf6wnhn2rv8kmzryw78x5qvbw8s2zfjlnxjsbn7";
+    sha256 = "1qy4p770rfzjx9ypncnc5ziggs61v6478n8l8dk2hz199j2w3n9h";
   };
 
-  nativeBuildInputs = [ cmake extra-cmake-modules makeWrapper ];
+  nativeBuildInputs = [ cmake doxygen makeWrapper qttools ]; # extra-cmake-modules
+
   buildInputs = [
-    boost doxygen graphviz loki mysql.connector-c openssl postgresql qscintillaLib qtbase
+    boost graphviz loki mysql.connector-c openssl postgresql qscintillaLib qtbase
   ];
 
-  preConfigure = ''
-    sed -i \
-      's|defaultGvHome = "/usr/bin"|defaultGvHome = "${lib.getBin graphviz}/bin"|' \
-      src/widgets/toglobalsetting.cpp
+  postPatch = ''
+    substituteInPlace src/widgets/toglobalsetting.cpp --replace \
+      'defaultGvHome = "/usr/bin"' 'defaultGvHome = "${lib.getBin graphviz}/bin"'
 
-    sed -i \
-      's|/usr/bin/dot|${lib.getBin graphviz}/bin/dot|' \
-      extlibs/libermodel/dotgraph.cpp
+    substituteInPlace extlibs/libermodel/dotgraph.cpp --replace \
+      /usr/bin/dot ${lib.getBin graphviz}/bin/dot
+  '';
+
+  # the qscintilla library has changed name a few times, so bail early if it doesn't exist
+  preBuild = ''
+    if [[ ! -e ${sofile} ]] ; then
+      echo "${sofile} not found. Aborting!"
+      exit 1
+    fi
   '';
 
   cmakeFlags = [
@@ -35,7 +43,7 @@ in mkDerivation rec {
     "-DWANT_INTERNAL_QSCINTILLA=0"
     # cmake/modules/FindQScintilla.cmake looks in qtbase and for the wrong library name
     "-DQSCINTILLA_INCLUDE_DIR=${qscintillaLib}/include"
-    "-DQSCINTILLA_LIBRARY=${qscintillaLib}/lib/libqscintilla2.so"
+    "-DQSCINTILLA_LIBRARY=${sofile}"
     "-DENABLE_DB2=0"
     "-DENABLE_ORACLE=0"
     "-DENABLE_TERADATA=0"
@@ -51,17 +59,20 @@ in mkDerivation rec {
     "-lssl"
   ];
 
-  NIX_CFLAGS_COMPILE = [ "-L${mysql.connector-c}/lib/mysql" "-I${mysql.connector-c}/include/mysql" ];
+  NIX_CFLAGS_COMPILE = [
+    "-L${mysql.connector-c}/lib/mysql"
+    "-I${mysql.connector-c}/include/mysql"
+  ];
 
   postFixup = ''
     wrapProgram $out/bin/tora \
-      --prefix PATH : ${lib.getBin graphviz}/bin
+      --prefix PATH : ${lib.makeBinPath [ graphviz ]}
   '';
 
   meta = with lib; {
     description = "Tora SQL tool";
+    license = licenses.asl20;
     maintainers = with maintainers; [ peterhoeg ];
     platforms = platforms.linux;
-    license = licenses.asl20;
   };
 }
