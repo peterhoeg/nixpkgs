@@ -10,22 +10,23 @@ let xcodePatch =
 in
 stdenv.mkDerivation rec {
   pname = "qscintilla";
-  version = "2.10.3";
+  version = "2.10.4";
 
   name = "${pname}-${if withQt5 then "qt5" else "qt4"}-${version}";
 
   src = fetchurl {
     url = "mirror://sourceforge/pyqt/QScintilla2/QScintilla-${version}/QScintilla_gpl-${version}.zip";
-    sha256 = "0rsx0b0iz5yf3x594kzhi0c2wpbmknv9b0a3rmx5w37bvmpd6qav";
+    sha256 = "0qza81331189yqxdmkri7rqbda0z96hz8vh5m61f69pw8bn50gy7";
   };
 
   buildInputs = [ (if withQt5 then qtbase else qt4) ]
     ++ lib.optional (withQt5 && stdenv.isDarwin) qtmacextras;
+
   nativeBuildInputs = [ unzip ]
     ++ (if withQt5 then [ qmake ] else [ qmake4Hook ]);
 
 
-  patches = [] ++ lib.optional withQt5 [ xcodePatch ];
+  # patches = [] ++ lib.optional withQt5 [ xcodePatch ];
 
   enableParallelBuilding = true;
 
