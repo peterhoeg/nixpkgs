@@ -12905,6 +12905,11 @@ with pkgs;
 
   sensu = callPackage ../servers/monitoring/sensu { };
 
+  inherit (callPackages ../servers/monitoring/sensu/2.0.nix {})
+    sensu-agent
+    sensu-backend
+    sensu-cli;
+
   uchiwa = callPackage ../servers/monitoring/uchiwa { };
 
   shishi = callPackage ../servers/shishi {
