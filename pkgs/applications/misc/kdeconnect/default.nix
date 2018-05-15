@@ -16,6 +16,7 @@
 , sshfs
 , makeWrapper
 , kwayland
+, makeUserService, userServiceHook
 }:
 
 stdenv.mkDerivation rec {
@@ -34,10 +35,19 @@ stdenv.mkDerivation rec {
     qca-qt5 qtx11extras makeWrapper kwayland
   ];
 
-  nativeBuildInputs = [ extra-cmake-modules kdoctools ];
+  nativeBuildInputs = [ extra-cmake-modules kdoctools userServiceHook ];
+
+  userService = makeUserService {
+    name = "kdeconnect";
+    description = "KDE Connect";
+    dbus = "org.kde.kdeconnectd";
+    exec = "@out@/lib/libexec/kdeconnectd";
+  };
 
   postInstall = ''
     wrapProgram $out/lib/libexec/kdeconnectd --prefix PATH : ${lib.makeBinPath [ sshfs ]}
+    for f in ${userService}/* ; do
+      install -Dm644 $f $out/lib/systemd/user/$(basename $f .service).service
   '';
 
   enableParallelBuilding = true;

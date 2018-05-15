@@ -83,6 +83,10 @@ with pkgs;
     { name = "auto-patchelf-hook"; deps = [ file ]; }
     ../build-support/setup-hooks/auto-patchelf.sh;
 
+  userServiceHook = makeSetupHook
+    { name = "user-service-hook"; deps = [ ]; }
+    ../build-support/setup-hooks/user-service.sh;
+
   ensureNewerSourcesHook = { year }: makeSetupHook {}
     (writeScript "ensure-newer-sources-hook.sh" ''
       postUnpackHooks+=(_ensureNewerSources)
@@ -320,6 +324,8 @@ with pkgs;
   madonctl = callPackage ../applications/misc/madonctl { };
 
   makeDesktopItem = callPackage ../build-support/make-desktopitem { };
+
+  makeUserService = callPackage ../build-support/make-userservice { };
 
   makeAutostartItem = callPackage ../build-support/make-startupitem { };
 

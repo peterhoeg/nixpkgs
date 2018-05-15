@@ -4,11 +4,12 @@
   akonadi-contacts, gnupg1, karchive, kcodecs, kcontacts, kcoreaddons,
   kcrash, kdbusaddons, kiconthemes, kjobwidgets, kio, knotifications, kservice,
   ktextwidgets, kxmlgui, kwidgetsaddons, kwindowsystem, qgpgme,
+  makeUserService, userServiceHook
 }:
 
 mkDerivation {
   name = "kgpg";
-  nativeBuildInputs = [ extra-cmake-modules kdoctools makeWrapper ];
+  nativeBuildInputs = [ extra-cmake-modules kdoctools makeWrapper userServiceHook ];
   buildInputs = [
     akonadi-contacts gnupg1 karchive kcodecs kcontacts kcoreaddons kcrash
     kdbusaddons ki18n kiconthemes kjobwidgets kio knotifications kservice
