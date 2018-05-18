@@ -76,9 +76,7 @@ in stdenv.mkDerivation rec {
       </policy>
     </busconfig>
     END
-    install -Dm755 contrib/lease-tools/dhcp_lease_time $out/bin/dhcp_lease_time
-    install -Dm755 contrib/lease-tools/dhcp_release    $out/bin/dhcp_release
-    install -Dm755 contrib/lease-tools/dhcp_release6   $out/bin/dhcp_release6
+    install -Dm755 -t $out/bin contrib/lease-tools/dhcp_{lease_time,release,release6}
 
     mkdir -p $out/share/dbus-1/system-services
     cat <<END > $out/share/dbus-1/system-services/uk.org.thekelleys.dnsmasq.service
