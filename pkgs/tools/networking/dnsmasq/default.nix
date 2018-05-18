@@ -1,6 +1,7 @@
 { stdenv, fetchurl, pkgconfig, dbus_libs, nettle, libidn, libnetfilter_conntrack, fetchpatch }:
 
 with stdenv.lib;
+
 let
   copts = concatStringsSep " " ([
     "-DHAVE_IDN"
@@ -9,23 +10,23 @@ let
     "-DHAVE_DBUS"
     "-DHAVE_CONNTRACK"
   ]);
-in
-stdenv.mkDerivation rec {
-  name = "dnsmasq-2.78";
+
+in stdenv.mkDerivation rec {
+  name = "dnsmasq-2.79";
 
   src = fetchurl {
     url = "http://www.thekelleys.org.uk/dnsmasq/${name}.tar.xz";
-    sha256 = "0ar5h5v3kas2qx2wgy5iqin15gc4jhqrqs067xacgc3lii1rz549";
+    sha256 = "07w6cw706yyahwvbvslhkrbjf2ynv567cgy9pal8bz8lrbsp9bbq";
   };
 
   patches = [
-    (fetchpatch {
-      name = "CVE-2017-15107.patch";
-      url = "http://thekelleys.org.uk/gitweb/?p=dnsmasq.git;a=patch;h=4fe6744a220eddd3f1749b40cac3dfc510787de6";
-      sha256 = "0r8grhh1q46z8v6manx1vvfpf2vmchfzsg7l1djh63b1fy1mbjkk";
+    # (fetchpatch {
+      # name = "CVE-2017-15107.patch";
+      # url = "http://thekelleys.org.uk/gitweb/?p=dnsmasq.git;a=patch;h=4fe6744a220eddd3f1749b40cac3dfc510787de6";
+      # sha256 = "0r8grhh1q46z8v6manx1vvfpf2vmchfzsg7l1djh63b1fy1mbjkk";
       # changelog does not apply cleanly but its safe to skip
-      excludes = [ "CHANGELOG" ];
-    })
+      # excludes = [ "CHANGELOG" ];
+    # })
   ];
 
   preBuild = ''
@@ -41,6 +42,8 @@ stdenv.mkDerivation rec {
 
   hardeningEnable = [ "pie" ];
 
+  enableParallelBuilding = true;
+
   postBuild = optionalString stdenv.isLinux ''
     make -C contrib/lease-tools
   '';
@@ -55,10 +58,27 @@ stdenv.mkDerivation rec {
     substituteInPlace $out/Library/LaunchDaemons/uk.org.thekelleys.dnsmasq.plist \
       --replace "/usr/local/sbin" "$out/bin"
   '' + optionalString stdenv.isLinux ''
-    install -Dm644 dbus/dnsmasq.conf $out/etc/dbus-1/system.d/dnsmasq.conf
+    mkdir -p $out/etc/dbus-1/system.d
+    cat <<END > $out/etc/dbus-1/system.d/dnsmasq.conf
+    <!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+    <busconfig>
+      <policy user="root">
+        <allow own="uk.org.thekelleys.dnsmasq"/>
+        <allow send_destination="uk.org.thekelleys.dnsmasq"/>
+      </policy>
+      <policy user="dnsmasq">
+        <allow own="uk.org.thekelleys.dnsmasq"/>
+        <allow send_destination="uk.org.thekelleys.dnsmasq"/>
+      </policy>
+      <policy context="default">
+        <deny own="uk.org.thekelleys.dnsmasq"/>
+        <deny send_destination="uk.org.thekelleys.dnsmasq"/>
+      </policy>
+    </busconfig>
+    END
     install -Dm755 contrib/lease-tools/dhcp_lease_time $out/bin/dhcp_lease_time
-    install -Dm755 contrib/lease-tools/dhcp_release $out/bin/dhcp_release
-    install -Dm755 contrib/lease-tools/dhcp_release6 $out/bin/dhcp_release6
+    install -Dm755 contrib/lease-tools/dhcp_release    $out/bin/dhcp_release
+    install -Dm755 contrib/lease-tools/dhcp_release6   $out/bin/dhcp_release6
 
     mkdir -p $out/share/dbus-1/system-services
     cat <<END > $out/share/dbus-1/system-services/uk.org.thekelleys.dnsmasq.service
