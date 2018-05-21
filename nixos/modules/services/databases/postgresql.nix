@@ -6,6 +6,8 @@ let
 
   cfg = config.services.postgresql;
 
+  hasNotifySupport = lib.versionAtLeast cfg.package.meta.version "9.6";
+
   # see description of extraPlugins
   postgresqlAndPlugins = pg:
     if cfg.extraPlugins == [] then pg
@@ -234,6 +236,7 @@ in
 
         serviceConfig =
           { ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+            Type = if hasNotifySupport then "notify" else "simple";
             User = "postgres";
             Group = "postgres";
             PermissionsStartOnly = true;
@@ -251,10 +254,12 @@ in
         # Wait for PostgreSQL to be ready to accept connections.
         postStart =
           ''
+            ${lib.optionalString (!hasNotifySupport) ''
             while ! ${pkgs.sudo}/bin/sudo -u ${cfg.superUser} psql --port=${toString cfg.port} -d postgres -c "" 2> /dev/null; do
                 if ! kill -0 "$MAINPID"; then exit 1; fi
                 sleep 0.1
             done
+            ''}
 
             if test -e "${cfg.dataDir}/.first_startup"; then
               ${optionalString (cfg.initialScript != null) ''
