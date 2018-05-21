@@ -13,11 +13,7 @@ let
       pName = _p: (builtins.parseDrvName (_p.name)).name;
     in pName mysql == pName pkgs.mariadb;
 
-  pidFile = "${cfg.pidDir}/mysqld.pid";
-
-  mysqldOptions =
-    "--user=${cfg.user} --datadir=${cfg.dataDir} --basedir=${mysql} " +
-    "--pid-file=${pidFile}";
+  mysqldOptions = "--datadir=${cfg.dataDir} --basedir=${mysql}";
 
   myCnf = pkgs.writeText "my.cnf"
   ''
@@ -82,11 +78,6 @@ in
         type = types.path;
         example = "/var/lib/mysql";
         description = "Location where MySQL stores its table files";
-      };
-
-      pidDir = mkOption {
-        default = "/run/mysqld";
-        description = "Location of the file which stores the PID of the MySQL server";
       };
 
       extraOptions = mkOption {
@@ -253,35 +244,17 @@ in
                 ${mysql}/bin/mysql_install_db ${mysqldOptions}
                 touch /tmp/mysql_init
             fi
-
-            mkdir -m 0755 -p ${cfg.pidDir}
-            chown -R ${cfg.user} ${cfg.pidDir}
-
-            # Make the socket directory
-            mkdir -p /run/mysqld
-            chmod 0755 /run/mysqld
-            chown -R ${cfg.user} /run/mysqld
           '';
 
-        serviceConfig.ExecStart = "${mysql}/bin/mysqld --defaults-extra-file=${myCnf} ${mysqldOptions}";
+        serviceConfig = {
+          Type = "notify";
+          RuntimeDirectory = "mysqld";
+          ExecStart = "${mysql}/bin/mysqld --defaults-extra-file=${myCnf} ${mysqldOptions}";
+          User = cfg.user;
+        };
 
         postStart =
           ''
-            # Wait until the MySQL server is available for use
-            count=0
-            while [ ! -e /run/mysqld/mysqld.sock ]
-            do
-                if [ $count -eq 30 ]
-                then
-                    echo "Tried 30 times, giving up..."
-                    exit 1
-                fi
-
-                echo "MySQL daemon not yet started. Waiting for 1 second..."
-                count=$((count++))
-                sleep 1
-            done
-
             if [ -f /tmp/mysql_init ]
             then
                 ${concatMapStrings (database:
