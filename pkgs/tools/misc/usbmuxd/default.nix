@@ -1,30 +1,36 @@
-{ stdenv, fetchurl, libplist, libusb1, pkgconfig, libimobiledevice }:
+{ stdenv, fetchFromGitHub, autoreconfHook, pkgconfig
+, libplist, libusb1, libimobiledevice }:
 
 stdenv.mkDerivation rec {
   name = "usbmuxd-${version}";
-  version = "1.1.0";
+  version = "1.1.0.20180515";
 
-  src = fetchurl {
-    url = "http://www.libimobiledevice.org/downloads/${name}.tar.bz2";
-    sha256 = "0bdlc7a8plvglqqx39qqampqm6y0hcdws76l9dffwl22zss4i29y";
+  src = fetchFromGitHub {
+    owner  = "libimobiledevice";
+    repo   = "usbmuxd";
+    rev    = "08d9ec01cf59c7bb3febe3c4600e9efeb81901e3";
+    sha256 = "0432blqi2fapdj91hk4ppzmqy9dxymc1msi159h82gf7qqbngcm2";
   };
 
-  nativeBuildInputs = [ pkgconfig ];
-  propagatedBuildInputs = [ libusb1 libplist libimobiledevice ];
+  nativeBuildInputs = [ autoreconfHook pkgconfig ];
 
-  preConfigure = ''
-    configureFlags="$configureFlags --with-udevrulesdir=$out/lib/udev/rules.d"
-    configureFlags="$configureFlags --with-systemdsystemunitdir=$out/lib/systemd/system"
-  '';
+  buildInputs = [ libusb1 libplist libimobiledevice ];
 
-  meta = {
-    homepage = http://marcansoft.com/blog/iphonelinux/usbmuxd/;
+  enableParallelBuilding = true;
+
+  configureFlags = [
+    "--with-udevrulesdir=$(out)/lib/udev/rules.d"
+    "--with-systemdsystemunitdir=$(out)/lib/systemd/system"
+  ];
+
+  meta = with stdenv.lib; {
     description = "USB Multiplex Daemon (for talking to iPhone or iPod)";
+    homepage = http://marcansoft.com/blog/iphonelinux/usbmuxd/;
     longDescription = ''
       usbmuxd: USB Multiplex Daemon. This bit of software is in charge of
       talking to your iPhone or iPod Touch over USB and coordinating access to
       its services by other applications.'';
-    platforms = stdenv.lib.platforms.linux;
+    platforms = platforms.linux;
     maintainers = [ ];
   };
 }
