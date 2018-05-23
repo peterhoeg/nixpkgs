@@ -1,10 +1,10 @@
-{ stdenv, fetchurl, cmake, blas, liblapack, gfortran, gmm, fltk, libjpeg
-, zlib, libGLU_combined, libGLU, xorg }:
+{ stdenv, fetchurl, cmake
+, blas, liblapack, gfortran, gmm, fltk, libjpeg
+, zlib, libGLU_combined, libGLU, hdf5, xorg }:
 
-let version = "3.0.6"; in
-
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   name = "gmsh-${version}";
+  version = "3.0.6";
 
   src = fetchurl {
     url = "http://gmsh.info/src/gmsh-${version}-source.tgz";
@@ -13,19 +13,29 @@ stdenv.mkDerivation {
 
   # The original CMakeLists tries to use some version of the Lapack lib
   # that is supposed to work without Fortran but didn't for me.
-  patches = [ ./CMakeLists.txt.patch ];
+  # patches = [ ./CMakeLists.txt.patch ];
 
-  buildInputs = [ cmake blas liblapack gfortran gmm fltk libjpeg zlib libGLU_combined
-    libGLU xorg.libXrender xorg.libXcursor xorg.libXfixes xorg.libXext
-    xorg.libXft xorg.libXinerama xorg.libX11 xorg.libSM xorg.libICE
-  ];
+  buildInputs = [
+    blas gfortran liblapack gmm fltk hdf5 libjpeg zlib libGLU_combined libGLU
+  ] ++ (with xorg; [
+    libXrender libXcursor libXfixes libXext
+    libXft libXinerama libX11 libSM libICE
+  ]);
+
+  nativeBuildInputs = [ cmake ];
 
   enableParallelBuilding = true;
 
-  meta = {
+  NIX_LDFLAGS = [
+    "-L${gfortran}/lib"
+  ];
+
+  doCheck = true;
+
+  meta = with stdenv.lib; {
     description = "A three-dimensional finite element mesh generator";
     homepage = http://gmsh.info/;
-    platforms = stdenv.lib.platforms.all;
-    license = stdenv.lib.licenses.gpl2Plus;
+    license = licenses.gpl2Plus;
+    platforms = platforms.all;
   };
 }
