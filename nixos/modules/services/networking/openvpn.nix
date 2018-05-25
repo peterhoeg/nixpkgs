@@ -78,125 +78,136 @@ in
 
   options = {
 
-    services.openvpn.servers = mkOption {
-      default = {};
+    services.openvpn = {
 
-      example = literalExample ''
-        {
-          server = {
-            config = '''
-              # Simplest server configuration: http://openvpn.net/index.php/documentation/miscellaneous/static-key-mini-howto.html.
-              # server :
-              dev tun
-              ifconfig 10.8.0.1 10.8.0.2
-              secret /root/static.key
-            ''';
-            up = "ip route add ...";
-            down = "ip route del ...";
-          };
+      enableForwarding = mkOption {
+        default = false;
+        type = types.bool;
+        description = ''
+          Set up IP forwarding on the host.
+        '';
+      };
 
-          client = {
-            config = '''
-              client
-              remote vpn.example.org
-              dev tun
-              proto tcp-client
-              port 8080
-              ca /root/.vpn/ca.crt
-              cert /root/.vpn/alice.crt
-              key /root/.vpn/alice.key
-            ''';
-            up = "echo nameserver $nameserver | ''${pkgs.openresolv}/sbin/resolvconf -m 0 -a $dev";
-            down = "''${pkgs.openresolv}/sbin/resolvconf -d $dev";
-          };
-        }
-      '';
+      servers = mkOption {
+        default = {};
 
-      description = ''
-        Each attribute of this option defines a systemd service that
-        runs an OpenVPN instance.  These can be OpenVPN servers or
-        clients.  The name of each systemd service is
-        <literal>openvpn-<replaceable>name</replaceable>.service</literal>,
-        where <replaceable>name</replaceable> is the corresponding
-        attribute name.
-      '';
+        example = literalExample ''
+          {
+            server = {
+              config = '''
+                # Simplest server configuration: http://openvpn.net/index.php/documentation/miscellaneous/static-key-mini-howto.html.
+                # server :
+                dev tun
+                ifconfig 10.8.0.1 10.8.0.2
+                secret /root/static.key
+              ''';
+              up = "ip route add ...";
+              down = "ip route del ...";
+            };
 
-      type = with types; attrsOf (submodule {
+            client = {
+              config = '''
+                client
+                remote vpn.example.org
+                dev tun
+                proto tcp-client
+                port 8080
+                ca /root/.vpn/ca.crt
+                cert /root/.vpn/alice.crt
+                key /root/.vpn/alice.key
+              ''';
+              up = "echo nameserver $nameserver | ''${pkgs.openresolv}/sbin/resolvconf -m 0 -a $dev";
+              down = "''${pkgs.openresolv}/sbin/resolvconf -d $dev";
+            };
+          }
+        '';
 
-        options = {
+        description = ''
+          Each attribute of this option defines a systemd service that
+          runs an OpenVPN instance.  These can be OpenVPN servers or
+          clients.  The name of each systemd service is
+          <literal>openvpn-<replaceable>name</replaceable>.service</literal>,
+          where <replaceable>name</replaceable> is the corresponding
+          attribute name.
+        '';
 
-          config = mkOption {
-            type = types.lines;
-            description = ''
-              Configuration of this OpenVPN instance.  See
-              <citerefentry><refentrytitle>openvpn</refentrytitle><manvolnum>8</manvolnum></citerefentry>
-              for details.
-            '';
-          };
+        type = with types; attrsOf (submodule {
 
-          up = mkOption {
-            default = "";
-            type = types.lines;
-            description = ''
-              Shell commands executed when the instance is starting.
-            '';
-          };
+          options = {
 
-          down = mkOption {
-            default = "";
-            type = types.lines;
-            description = ''
-              Shell commands executed when the instance is shutting down.
-            '';
-          };
+            config = mkOption {
+              type = types.lines;
+              description = ''
+                Configuration of this OpenVPN instance.  See
+                <citerefentry><refentrytitle>openvpn</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+                for details.
+              '';
+            };
 
-          autoStart = mkOption {
-            default = true;
-            type = types.bool;
-            description = "Whether this OpenVPN instance should be started automatically.";
-          };
+            up = mkOption {
+              default = "";
+              type = types.lines;
+              description = ''
+                Shell commands executed when the instance is starting.
+              '';
+            };
 
-          updateResolvConf = mkOption {
-            default = false;
-            type = types.bool;
-            description = ''
-              Use the script from the update-resolv-conf package to automatically
-              update resolv.conf with the DNS information provided by openvpn. The
-              script will be run after the "up" commands and before the "down" commands.
-            '';
-          };
+            down = mkOption {
+              default = "";
+              type = types.lines;
+              description = ''
+                Shell commands executed when the instance is shutting down.
+              '';
+            };
 
-          authUserPass = mkOption {
-            default = null;
-            description = ''
-              This option can be used to store the username / password credentials
-              with the "auth-user-pass" authentication method.
+            autoStart = mkOption {
+              default = true;
+              type = types.bool;
+              description = "Whether this OpenVPN instance should be started automatically.";
+            };
 
-              WARNING: Using this option will put the credentials WORLD-READABLE in the Nix store!
-            '';
-            type = types.nullOr (types.submodule {
+            updateResolvConf = mkOption {
+              default = false;
+              type = types.bool;
+              description = ''
+                Use the script from the update-resolv-conf package to automatically
+                update resolv.conf with the DNS information provided by openvpn. The
+                script will be run after the "up" commands and before the "down" commands.
+              '';
+            };
 
-              options = {
-                username = mkOption {
-                  description = "The username to store inside the credentials file.";
-                  type = types.string;
+            authUserPass = mkOption {
+              default = null;
+              description = ''
+                This option can be used to store the username / password credentials
+                with the "auth-user-pass" authentication method.
+
+                WARNING: Using this option will put the credentials WORLD-READABLE in the Nix store!
+              '';
+              type = types.nullOr (types.submodule {
+
+                options = {
+                  username = mkOption {
+                    description = "The username to store inside the credentials file.";
+                    type = types.string;
+                  };
+
+                  password = mkOption {
+                    description = "The password to store inside the credentials file.";
+                    type = types.string;
+                  };
                 };
-
-                password = mkOption {
-                  description = "The password to store inside the credentials file.";
-                  type = types.string;
-                };
-              };
-            });
+              });
+            };
           };
-        };
 
-      });
+        });
+
+      };
 
     };
 
   };
-
 
   ###### implementation
 
@@ -207,6 +218,8 @@ in
     environment.systemPackages = [ openvpn ];
 
     boot.kernelModules = [ "tun" ];
+
+    boot.kernel.sysctl = lib.mkIf cfg.enableForwarding { "net.ipv4.ip_forward" = true; };
 
   };
 
