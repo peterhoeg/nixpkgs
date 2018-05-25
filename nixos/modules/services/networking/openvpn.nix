@@ -10,6 +10,7 @@ let
 
   makeOpenVPNJob = cfg: name:
     let
+      dir = "openvpn/${name}";
 
       path = (getAttr "openvpn-${name}" config.systemd.services).path;
 
@@ -55,19 +56,34 @@ let
                 ${cfg.authUserPass.username}
                 ${cfg.authUserPass.password}
               ''}"}
+          # General hardening
+          # These are needed to allow reloads while running as non-root
+          persist-key
+          persist-tun
+          ifconfig-pool-persist /var/lib/${dir}/pool.txt
+          # Do not run using the default nobody/nogroup as those are for NFS
+          user openvpn
+          group openvpn
+          replay-persist /var/lib/${dir}/replay
+
+          status /run/${dir}/status.txt
         '';
 
     in {
       description = "OpenVPN instance ‘${name}’";
 
-      wantedBy = optional cfg.autoStart "multi-user.target";
+      wantedBy = [ "openvpn.target" ];
       after = [ "network.target" ];
 
-      path = [ pkgs.iptables pkgs.iproute pkgs.nettools ];
+      path = with pkgs; [ iptables iproute nettools ];
 
-      serviceConfig.ExecStart = "@${openvpn}/sbin/openvpn openvpn --suppress-timestamps --config ${configFile}";
-      serviceConfig.Restart = "always";
-      serviceConfig.Type = "notify";
+      serviceConfig = {
+        RuntimeDirectory = dir;
+        StateDirectory = dir;
+        ExecStart = "@${openvpn}/sbin/openvpn openvpn --config ${configFile}";
+        Restart = "always";
+        Type = "notify";
+      };
     };
 
 in
@@ -204,10 +220,21 @@ in
 
     systemd.services = listToAttrs (mapAttrsFlatten (name: value: nameValuePair "openvpn-${name}" (makeOpenVPNJob value name)) cfg.servers);
 
+    systemd.targets.openvpn = {
+      description = "Start all OpenVPN tunnels";
+      wantedBy = optional cfg.autoStart [ "multi-user.target" ];
+    };
+
     environment.systemPackages = [ openvpn ];
 
     boot.kernelModules = [ "tun" ];
 
-  };
+    users.extraUsers.openvpn = {
+      description = "OpenVPN user";
+      group = "openvpn";
+      uid = config.ids.uids.openvpn;
+    };
 
+    users.extraGroups.openvpn.gid = config.ids.gids.openvpn;
+  };
 }
