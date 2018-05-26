@@ -10,6 +10,7 @@ let
 
   makeOpenVPNJob = cfg: name:
     let
+      dir = "openvpn/${name}";
 
       path = (getAttr "openvpn-${name}" config.systemd.services).path;
 
@@ -55,19 +56,34 @@ let
                 ${cfg.authUserPass.username}
                 ${cfg.authUserPass.password}
               ''}"}
+          # General hardening
+          # These are needed to allow reloads while running as non-root
+          persist-key
+          persist-tun
+          ifconfig-pool-persist /var/lib/${dir}/pool.txt
+          # Do not run using the default nobody/nogroup as those are for NFS
+          user openvpn
+          group openvpn
+          replay-persist /var/lib/${dir}/replay
+
+          status /run/${dir}/status.txt
         '';
 
     in {
       description = "OpenVPN instance ‘${name}’";
 
-      wantedBy = optional cfg.autoStart "multi-user.target";
+      wantedBy = [ "openvpn.target" ];
       after = [ "network.target" ];
 
-      path = [ pkgs.iptables pkgs.iproute pkgs.nettools ];
+      path = with pkgs; [ iptables iproute nettools ];
 
-      serviceConfig.ExecStart = "@${openvpn}/sbin/openvpn openvpn --suppress-timestamps --config ${configFile}";
-      serviceConfig.Restart = "always";
-      serviceConfig.Type = "notify";
+      serviceConfig = {
+        RuntimeDirectory = dir;
+        StateDirectory = dir;
+        ExecStart = "@${openvpn}/sbin/openvpn openvpn --config ${configFile}";
+        Restart = "always";
+        Type = "notify";
+      };
     };
 
 in
@@ -78,136 +94,125 @@ in
 
   options = {
 
-    services.openvpn = {
+    services.openvpn.servers = mkOption {
+      default = {};
 
-      enableForwarding = mkOption {
-        default = false;
-        type = types.bool;
-        description = ''
-          Set up IP forwarding on the host.
-        '';
-      };
-
-      servers = mkOption {
-        default = {};
-
-        example = literalExample ''
-          {
-            server = {
-              config = '''
-                # Simplest server configuration: http://openvpn.net/index.php/documentation/miscellaneous/static-key-mini-howto.html.
-                # server :
-                dev tun
-                ifconfig 10.8.0.1 10.8.0.2
-                secret /root/static.key
-              ''';
-              up = "ip route add ...";
-              down = "ip route del ...";
-            };
-
-            client = {
-              config = '''
-                client
-                remote vpn.example.org
-                dev tun
-                proto tcp-client
-                port 8080
-                ca /root/.vpn/ca.crt
-                cert /root/.vpn/alice.crt
-                key /root/.vpn/alice.key
-              ''';
-              up = "echo nameserver $nameserver | ''${pkgs.openresolv}/sbin/resolvconf -m 0 -a $dev";
-              down = "''${pkgs.openresolv}/sbin/resolvconf -d $dev";
-            };
-          }
-        '';
-
-        description = ''
-          Each attribute of this option defines a systemd service that
-          runs an OpenVPN instance.  These can be OpenVPN servers or
-          clients.  The name of each systemd service is
-          <literal>openvpn-<replaceable>name</replaceable>.service</literal>,
-          where <replaceable>name</replaceable> is the corresponding
-          attribute name.
-        '';
-
-        type = with types; attrsOf (submodule {
-
-          options = {
-
-            config = mkOption {
-              type = types.lines;
-              description = ''
-                Configuration of this OpenVPN instance.  See
-                <citerefentry><refentrytitle>openvpn</refentrytitle><manvolnum>8</manvolnum></citerefentry>
-                for details.
-              '';
-            };
-
-            up = mkOption {
-              default = "";
-              type = types.lines;
-              description = ''
-                Shell commands executed when the instance is starting.
-              '';
-            };
-
-            down = mkOption {
-              default = "";
-              type = types.lines;
-              description = ''
-                Shell commands executed when the instance is shutting down.
-              '';
-            };
-
-            autoStart = mkOption {
-              default = true;
-              type = types.bool;
-              description = "Whether this OpenVPN instance should be started automatically.";
-            };
-
-            updateResolvConf = mkOption {
-              default = false;
-              type = types.bool;
-              description = ''
-                Use the script from the update-resolv-conf package to automatically
-                update resolv.conf with the DNS information provided by openvpn. The
-                script will be run after the "up" commands and before the "down" commands.
-              '';
-            };
-
-            authUserPass = mkOption {
-              default = null;
-              description = ''
-                This option can be used to store the username / password credentials
-                with the "auth-user-pass" authentication method.
-
-                WARNING: Using this option will put the credentials WORLD-READABLE in the Nix store!
-              '';
-              type = types.nullOr (types.submodule {
-
-                options = {
-                  username = mkOption {
-                    description = "The username to store inside the credentials file.";
-                    type = types.string;
-                  };
-
-                  password = mkOption {
-                    description = "The password to store inside the credentials file.";
-                    type = types.string;
-                  };
-                };
-              });
-            };
+      example = literalExample ''
+        {
+          server = {
+            config = '''
+              # Simplest server configuration: http://openvpn.net/index.php/documentation/miscellaneous/static-key-mini-howto.html.
+              # server :
+              dev tun
+              ifconfig 10.8.0.1 10.8.0.2
+              secret /root/static.key
+            ''';
+            up = "ip route add ...";
+            down = "ip route del ...";
           };
 
-        });
+          client = {
+            config = '''
+              client
+              remote vpn.example.org
+              dev tun
+              proto tcp-client
+              port 8080
+              ca /root/.vpn/ca.crt
+              cert /root/.vpn/alice.crt
+              key /root/.vpn/alice.key
+            ''';
+            up = "echo nameserver $nameserver | ''${pkgs.openresolv}/sbin/resolvconf -m 0 -a $dev";
+            down = "''${pkgs.openresolv}/sbin/resolvconf -d $dev";
+          };
+        }
+      '';
 
-      };
+      description = ''
+        Each attribute of this option defines a systemd service that
+        runs an OpenVPN instance.  These can be OpenVPN servers or
+        clients.  The name of each systemd service is
+        <literal>openvpn-<replaceable>name</replaceable>.service</literal>,
+        where <replaceable>name</replaceable> is the corresponding
+        attribute name.
+      '';
+
+      type = with types; attrsOf (submodule {
+
+        options = {
+
+          config = mkOption {
+            type = types.lines;
+            description = ''
+              Configuration of this OpenVPN instance.  See
+              <citerefentry><refentrytitle>openvpn</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+              for details.
+            '';
+          };
+
+          up = mkOption {
+            default = "";
+            type = types.lines;
+            description = ''
+              Shell commands executed when the instance is starting.
+            '';
+          };
+
+          down = mkOption {
+            default = "";
+            type = types.lines;
+            description = ''
+              Shell commands executed when the instance is shutting down.
+            '';
+          };
+
+          autoStart = mkOption {
+            default = true;
+            type = types.bool;
+            description = "Whether this OpenVPN instance should be started automatically.";
+          };
+
+          updateResolvConf = mkOption {
+            default = false;
+            type = types.bool;
+            description = ''
+              Use the script from the update-resolv-conf package to automatically
+              update resolv.conf with the DNS information provided by openvpn. The
+              script will be run after the "up" commands and before the "down" commands.
+            '';
+          };
+
+          authUserPass = mkOption {
+            default = null;
+            description = ''
+              This option can be used to store the username / password credentials
+              with the "auth-user-pass" authentication method.
+
+              WARNING: Using this option will put the credentials WORLD-READABLE in the Nix store!
+            '';
+            type = types.nullOr (types.submodule {
+
+              options = {
+                username = mkOption {
+                  description = "The username to store inside the credentials file.";
+                  type = types.string;
+                };
+
+                password = mkOption {
+                  description = "The password to store inside the credentials file.";
+                  type = types.string;
+                };
+              };
+            });
+          };
+        };
+
+      });
 
     };
 
   };
+
 
   ###### implementation
 
@@ -215,12 +220,21 @@ in
 
     systemd.services = listToAttrs (mapAttrsFlatten (name: value: nameValuePair "openvpn-${name}" (makeOpenVPNJob value name)) cfg.servers);
 
+    systemd.targets.openvpn = {
+      description = "Start all OpenVPN tunnels";
+      wantedBy = optional cfg.autoStart [ "multi-user.target" ];
+    };
+
     environment.systemPackages = [ openvpn ];
 
     boot.kernelModules = [ "tun" ];
 
-    boot.kernel.sysctl = lib.mkIf cfg.enableForwarding { "net.ipv4.ip_forward" = true; };
+    users.extraUsers.openvpn = {
+      description = "OpenVPN user";
+      group = "openvpn";
+      uid = config.ids.uids.openvpn;
+    };
 
+    users.extraGroups.openvpn.gid = config.ids.gids.openvpn;
   };
-
 }
