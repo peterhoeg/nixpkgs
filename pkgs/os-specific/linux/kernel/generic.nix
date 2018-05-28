@@ -95,6 +95,11 @@ let
       sed -e '/fflush(stdout);/i\printf("###");' -i scripts/kconfig/conf.c
     '';
 
+    postPatch = ''
+      substituteInPlace kernel/reboot.c \
+        --replace /sbin /run/current-system/sw/bin
+    '';
+
     inherit (kernel) src patches preUnpack;
 
     buildPhase = ''
