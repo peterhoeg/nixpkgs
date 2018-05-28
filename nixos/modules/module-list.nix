@@ -39,6 +39,7 @@
   ./hardware/cpu/intel-microcode.nix
   ./hardware/digitalbitbox.nix
   ./hardware/sensor/iio.nix
+  ./hardware/hotadd.nix
   ./hardware/ksm.nix
   ./hardware/mcelog.nix
   ./hardware/network/b43.nix
