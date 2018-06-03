@@ -19402,6 +19402,8 @@ with pkgs;
 
   openarena = callPackage ../games/openarena { };
 
+  opendune = callPackage ../games/opendune { };
+
   opendungeons = callPackage ../games/opendungeons {
     ogre = ogre1_9;
   };
