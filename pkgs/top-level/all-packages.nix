@@ -10211,6 +10211,8 @@ with pkgs;
 
   libmsgpack = callPackage ../development/libraries/libmsgpack { };
 
+  libmygpo-qt = callPackage ../development/libraries/libmygpo-qt { };
+
   libmypaint = callPackage ../development/libraries/libmypaint { };
 
   libmysqlconnectorcpp = callPackage ../development/libraries/libmysqlconnectorcpp {
