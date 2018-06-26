@@ -1,24 +1,53 @@
 { stdenv, fetchurl }:
 
-stdenv.mkDerivation {
-  name = "fpc-2.6.0-binary";
+let
+  version = "3.0.4";
 
-  src =
-    if stdenv.system == "i686-linux" then
-      fetchurl {
-        url = "mirror://sourceforge/project/freepascal/Linux/2.6.0/fpc-2.6.0.i386-linux.tar";
-        sha256 = "08yklvrfxvk59bxsd4rh1i6s3cjn0q06dzjs94h9fbq3n1qd5zdf";
-      }
-    else if stdenv.system == "x86_64-linux" then
-      fetchurl {
-        url = "mirror://sourceforge/project/freepascal/Linux/2.6.0/fpc-2.6.0.x86_64-linux.tar";
-        sha256 = "0k9vi75k39y735fng4jc2vppdywp82j4qhzn7x4r6qjkad64d8lx";
-      }
-    else throw "Not supported on ${stdenv.system}.";
+  arch = {
+    "x86_64-linux" = "x86_64-linux";
+    "i686-linux"   = "i386-linux";
+  }.${stdenv.system};
 
-  builder = ./binary-builder.sh;
+  sha256 = {
+    # 2.6.4
+    # "x86_64-linux" = "0f9vvafjyg3pmb9hw7r62hfqjcwin9hlzj5lgx22qxvxj9pkhv0r";
+    "x86_64-linux" = "0xzxh689iyjfmkqkhcqg9plrjmdx82hbyywyyc7jm0n92fpmp5ky";
+    "i686-linux"   = "111klvrfxvk59bxsd4rh1i6s3cjn0q06dzjs94h9fbq3n1qd5zdf";
+  }.${stdenv.system};
 
-  meta = {
-    description = "Free Pascal Compiler from a binary distribution";
+in stdenv.mkDerivation {
+  name = "fpc-binary-${version}";
+
+  src = fetchurl {
+    url = "mirror://sourceforge/project/freepascal/Linux/${version}/fpc-${version}.${arch}.tar";
+    inherit sha256;
   };
-} 
+
+  dontConfigure = true;
+  dontBuild = true;
+  dontFixup = true;
+  dontStrip = true;
+
+  installPhase = ''
+    runHook preInstall
+
+    mkdir -p $out
+    tarballdir=$(pwd)
+    for i in *.tar; do tar xvf $i; done
+    echo "Deploying binaries..."
+    for i in $tarballdir/*.gz; do tar --directory=$out -xvf $i; done
+    echo 'Creating ppc* symlink...'
+    for i in $out/lib/fpc/*/ppc*; do
+      ln -fs $i $out/bin/$(basename $i)
+    done
+
+    runHook postInstall
+  '';
+
+  meta = with stdenv.lib; {
+    description = "Free Pascal Compiler from a binary distribution";
+    maintainers = with maintainers; [ raskin peterhoeg ];
+    platforms = [ "x86_64-linux" "i686-linux" ];
+    inherit version;
+  };
+}
