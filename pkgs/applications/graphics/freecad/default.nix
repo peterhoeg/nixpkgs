@@ -1,46 +1,67 @@
-{ stdenv, fetchurl, cmake, coin3d, xercesc, ode, eigen, qt4, opencascade, gts
-, hdf5, vtk, medfile, boost, zlib, python27Packages, swig, gfortran, fetchpatch
-, soqt, libf2c, makeWrapper, makeDesktopItem
+{ stdenv, fetchgit, cmake, makeWrapper, makeDesktopItem
+, qtbase, qtsvg, qttools, qtwebkit
+, coin3d, xercesc, ode, eigen, opencascade, gts, libGLU_combined
+, hdf5, vtk, medfile, boost, zlib, python3Packages, swig, gfortran, fetchpatch
+, soqt, libf2c
 , mpi ? null }:
 
 assert mpi != null;
 
 let
-  pythonPackages = python27Packages;
+  pythonPackages = python3Packages;
+
 in stdenv.mkDerivation rec {
   name = "freecad-${version}";
-  version = "0.17";
+  version = "0.17.20180508";
 
-  src = fetchurl {
-    url = "https://github.com/FreeCAD/FreeCAD/archive/${version}.tar.gz";
-    sha256 = "1yv6abdzlpn4wxy315943xwrnbywxqfgkjib37qwfvbb8y9p60df";
+  # Upstream makes changes to release branches without cutting new releases
+  src = fetchgit {
+    url = "https://github.com/FreeCAD/FreeCAD.git";
+    branchName = "releases/FreeCAD-${stdenv.lib.replaceStrings [ "." ] [ "-" ] version}";
+    sha256 = "1qyamxqc26w6zicdgd7cis1c2jh0mvw28d8m5glgqpyagig0nkbj";
   };
 
-  buildInputs = with pythonPackages; [ cmake coin3d xercesc ode eigen qt4 opencascade gts
-    zlib  swig gfortran soqt libf2c makeWrapper  mpi vtk hdf5 medfile
+  patches = [
+  (fetchpatch {
+  url = "https://github.com/FreeCAD/FreeCAD/pull/1523.patch";
+    sha256 = "0yglbws2xvmb3c18xajcw47dysz4fcdrpphvz4h4q2x6wx8q43gj";
+})
+];
+
+  postPatch = ''
+    cat <<_EOF >src/Tools/SubWCRev.py
+    #!${pythonPackages.python.interpreter}
+    print('${version}')
+    _EOF
+  '';
+
+  nativeBuildInputs = [ cmake makeWrapper qttools ];
+
+  buildInputs = [
+    qtbase qtsvg qtwebkit
+    coin3d xercesc ode eigen opencascade gts libGLU_combined
+    zlib swig gfortran soqt libf2c mpi vtk hdf5 medfile
   ] ++ (with pythonPackages; [
-    matplotlib pycollada pyside pysideShiboken pysideTools pivy python boost
+    matplotlib pycollada pyside pysideShiboken pysideTools python boost # pivy
   ]);
 
-  patches = [
-    # Fix for finding boost_python. Boost >= 1.67.0 appends the Python version.
-    (fetchpatch {
-      url = https://github.com/FreeCAD/FreeCAD/commit/3c9e6b038ed544e446c61695dab62f83e781a28a.patch;
-      sha256 = "0f09qywzn0y41hylizb5g8jy74fi53iqmvqr5zznaz16wpw4hqbp";
-    })
-  ];
-
-  enableParallelBuilding = true;
-
   # This should work on both x86_64, and i686 linux
-  preBuild = ''
-    export NIX_LDFLAGS="-L${gfortran.cc}/lib64 -L${gfortran.cc}/lib $NIX_LDFLAGS";
-  '';
+  NIX_LDFLAGS = [
+    "-L${gfortran.cc}/lib64"
+    "-L${gfortran.cc}/lib"
+  ];
 
   # Their main() removes PYTHONPATH=, and we rely on it.
   preConfigure = ''
     sed '/putenv("PYTHONPATH/d' -i src/Main/MainGui.cpp
   '';
+
+  cmakeFlags = [
+    "-DBUILD_QT5=ON"
+    "-DBOOST_INCLUDEDIR=${pythonPackages.boost.dev}/include"
+    "-DBOOST_LIBRARYDIR=${pythonPackages.boost}/lib"
+    "-DOpenGL_GL_PREFERENCE=GLVND"
+  ];
 
   postInstall = ''
     wrapProgram $out/bin/FreeCAD --prefix PYTHONPATH : $PYTHONPATH \
@@ -83,7 +104,7 @@ in stdenv.mkDerivation rec {
     description = "General purpose Open Source 3D CAD/MCAD/CAx/CAE/PLM modeler";
     homepage = https://www.freecadweb.org/;
     license = licenses.lgpl2Plus;
-    maintainers = [ maintainers.viric ];
+    maintainers = with maintainers; [ viric ];
     platforms = platforms.linux;
   };
 }
