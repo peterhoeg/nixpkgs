@@ -1237,6 +1237,8 @@ with pkgs;
 
   fileshelter = callPackage ../servers/web-apps/fileshelter { };
 
+  suitecrm = callPackage ../servers/web-apps/suitecrm { };
+
   fsmon = callPackage ../tools/misc/fsmon { };
 
   fsql = callPackage ../tools/misc/fsql { };
