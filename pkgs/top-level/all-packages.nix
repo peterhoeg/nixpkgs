@@ -1705,6 +1705,8 @@ in
     hiredis = null;
   };
 
+  suitecrm = callPackage ../servers/web-apps/suitecrm { };
+
   mar1d = callPackage ../games/mar1d { } ;
 
   mcrypt = callPackage ../tools/misc/mcrypt { };
