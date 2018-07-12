@@ -1,5 +1,7 @@
 { config, lib, pkgs, utils, ... }:
+
 with lib;
+
 let
   cfg = config.services.unifi;
   stateDir = "/var/lib/unifi";
@@ -60,11 +62,11 @@ in
     };
 
     services.unifi.mongodbPackage = mkOption {
-      type = types.package;
-      default = pkgs.mongodb;
-      defaultText = "pkgs.mongodb";
+      type = types.orNull types.package;
+      default = null;
+      defaultText = "null";
       description = ''
-        The mongodb package to use.
+        The external mongodb package to use. If null, use the internal server.
       '';
     };
 
@@ -145,10 +147,13 @@ in
         where = where;
       }) mountPoints;
 
-    systemd.services.unifi = {
+    systemd.services.unifi = let
+      externalMongo = cfg.mongoDbPackage != null;
+    in {
       description = "UniFi controller daemon";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ] ++ systemdMountPoints;
+      after = [ "network.target" ] ++ systemdMountPoints ++ lib.optional externalMongo "mongodb.service";
+      wants = lib.optional externalMongo "mongodb.service";
       partOf = systemdMountPoints;
       bindsTo = systemdMountPoints;
       unitConfig.RequiresMountsFor = stateDir;
