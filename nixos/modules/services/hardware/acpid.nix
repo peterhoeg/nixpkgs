@@ -4,6 +4,8 @@ with lib;
 
 let
 
+  cfg = config.services.acpid;
+
   canonicalHandlers = {
     powerEvent = {
       event = "button/power.*";
@@ -51,6 +53,12 @@ in
         type = types.bool;
         default = false;
         description = "Whether to enable the ACPI daemon.";
+      };
+
+      socketActivation = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Only run acpid when connections are made to its socket.";
       };
 
       logEvents = mkOption {
@@ -129,28 +137,35 @@ in
 
   ###### implementation
 
-  config = mkIf config.services.acpid.enable {
+  config = mkIf cfg.enable {
 
-    systemd.services.acpid = {
+    systemd.services.acpid = rec {
       description = "ACPI Daemon";
 
-      wantedBy = [ "multi-user.target" ];
-      after = [ "systemd-udev-settle.service" ];
-
-      path = [ pkgs.acpid ];
+      wantedBy = lib.mkIf (! cfg.socketActivation) [ "multi-user.target" ];
+      requires = [ "acpid.socket" ];
+      after = requires;
 
       serviceConfig = {
-        Type = "forking";
+        ExecStart = "${pkgs.acpid}/bin/acpid --foreground --netlink ${optionalString cfg.logEvents "--logevents"} --confdir ${acpiConfDir} --nosocket";
       };
 
       unitConfig = {
         ConditionVirtualization = "!systemd-nspawn";
         ConditionPathExists = [ "/proc/acpi" ];
       };
-
-      script = "acpid ${optionalString config.services.acpid.logEvents "--logevents"} --confdir ${acpiConfDir}";
     };
 
-  };
+    systemd.sockets.acpid = {
+      description = "ACPI Daemon";
 
+      wantedBy = lib.mkIf cfg.socketActivation [ "sockets.target" ];
+
+      socketConfig = {
+        Accept = true;
+        StandardInput = "socket";
+        ListenStream = "/run/acpid.socket";
+      };
+    };
+  };
 }
