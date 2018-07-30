@@ -21064,6 +21064,8 @@ with pkgs;
     plasma-workspace-wallpapers polkit-kde-agent powerdevil sddm-kcm
     systemsettings user-manager xdg-desktop-portal-kde;
 
+  kwin-tiling = libsForQt5.callPackage ../desktops/plasma-5/kwin/scripts/tiling.nix { };
+
   ### SCIENCE
 
   ### SCIENCE/CHEMISTY
