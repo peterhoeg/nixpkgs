@@ -6413,6 +6413,8 @@ with pkgs;
 
   crystal = callPackage ../development/compilers/crystal { };
 
+  icr = callPackage ../development/tools/icr {};
+
   devpi-client = callPackage ../development/tools/devpi-client {};
 
   devpi-server = callPackage ../development/tools/devpi-server {};
