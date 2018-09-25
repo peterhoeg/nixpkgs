@@ -22433,6 +22433,11 @@ with pkgs;
   attemptoClex = callPackage ../applications/misc/ape/clex.nix { };
   apeClex = callPackage ../applications/misc/ape/apeclex.nix { };
 
+  # balong firmware tools for Huawei
+  inherit (callPackages ../os-specific/linux/balong-firmware {})
+    balong-usbdload
+    balongflash;
+
   # Unix tools
   unixtools = recurseIntoAttrs (callPackages ./unix-tools.nix { });
   inherit (unixtools) hexdump ps logger eject umount
