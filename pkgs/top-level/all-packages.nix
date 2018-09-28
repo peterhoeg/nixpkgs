@@ -5456,6 +5456,8 @@ with pkgs;
   varnish-geoip = callPackage ../servers/varnish/geoip.nix { };
   varnish-rtstatus = callPackage ../servers/varnish/rtstatus.nix { };
 
+  pound = callPackage ../servers/pound { };
+
   venus = callPackage ../tools/misc/venus {
     python = python27;
   };
