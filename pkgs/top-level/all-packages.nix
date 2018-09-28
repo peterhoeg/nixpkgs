@@ -6027,6 +6027,8 @@ with pkgs;
     inherit (gnome3) libgee;
   };
 
+  pound = callPackage ../servers/pound { };
+
   inherit (callPackages ../servers/varnish { })
     varnish4 varnish5 varnish6;
   inherit (callPackages ../servers/varnish/packages.nix { })
