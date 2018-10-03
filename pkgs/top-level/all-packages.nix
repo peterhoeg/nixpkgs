@@ -18708,6 +18708,8 @@ with pkgs;
 
   sddm = libsForQt5.callPackage ../applications/display-managers/sddm { };
 
+  sddm-ocr-theme = libsForQt5.callPackage ../applications/display-managers/sddm/ocr-theme.nix { };
+
   skrooge = libsForQt5.callPackage ../applications/office/skrooge {};
 
   slim = callPackage ../applications/display-managers/slim {
