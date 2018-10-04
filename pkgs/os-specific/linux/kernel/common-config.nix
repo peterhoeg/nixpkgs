@@ -682,6 +682,9 @@ let
       HOTPLUG_PCI_ACPI = yes; # PCI hotplug using ACPI
       HOTPLUG_PCI_PCIE = yes; # PCI-Expresscard hotplug support
 
+      HOTPLUG_CPU    = yes; # CPU hotplug is on by default
+      HOTPLUG_MEMORY = yes;
+
     } // optionalAttrs (stdenv.hostPlatform.system == "x86_64-linux" || stdenv.hostPlatform.system == "aarch64-linux") {
       # Bump the maximum number of CPUs to support systems like EC2 x1.*
       # instances and Xeon Phi.
