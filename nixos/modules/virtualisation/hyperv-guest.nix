@@ -38,8 +38,14 @@ in {
 
     environment.systemPackages = [ config.boot.kernelPackages.hyperv-daemons.bin ];
 
-    security.rngd.enable = false;
+    boot.initrd.kernelModules = [
+      "hv_vmbus" "hv_storvsc"
+    ];
 
+    hardware.hotadd.cpu = true;
+    hardware.hotadd.memory = true;
+
+<<<<<<< HEAD
     # enable hotadding cpu/memory
     services.udev.packages = lib.singleton (pkgs.writeTextFile {
       name = "hyperv-cpu-and-memory-hotadd-udev-rules";
@@ -52,6 +58,9 @@ in {
         SUBSYSTEM=="cpu", ACTION=="add", DEVPATH=="/devices/system/cpu/cpu[0-9]*", TEST=="online", ATTR{online}="1"
       '';
     });
+=======
+    security.rngd.enable = false;
+>>>>>>> hyperv-guest: enable hotadd
 
     systemd = {
       packages = [ config.boot.kernelPackages.hyperv-daemons.lib ];
