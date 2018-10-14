@@ -6,12 +6,16 @@ gem 'sensu'
 gem 'history' # needed by extensions-influxdb
 
 # forked versions
-gem 'whois-parser',                 github: 'speartail/whois-parser', branch: 'fixes'
-gem 'sensu-plugins-ipmi',           github: 'speartail/sensu-plugins-ipmi', ref: '53eb752b6835d82ea7b8ece3e56b974dc22ef54c'
+#
+gem 'sensu-plugins-ipmi',           github: 'speartail/sensu-plugins-ipmi',           branch: 'a/driver'
 gem 'sensu-plugins-network-checks', github: 'speartail/sensu-plugins-network-checks', branch: 'fixes'
 
+# unreleased fixes
+gem 'whois-parser', github: 'weppos/whois-parser', branch: 'master' # OK in 4.0.8+
+
 # integration
-gem 'sensu-plugins-mailer'
+gem 'sensu-plugins-aws'        # for the SES handler
+gem 'sensu-plugins-mailer'     # now done by sensu-plugins-aws
 gem 'sensu-plugins-pushover'
 
 # extensions
@@ -34,6 +38,7 @@ gem 'sensu-plugins-raid-checks'
 gem 'sensu-plugins-rabbitmq'
 gem 'sensu-plugins-redis'
 gem 'sensu-plugins-sensu'
+gem 'sensu-plugins-sftp'
 gem 'sensu-plugins-snmp'
 gem 'sensu-plugins-systemd'
 gem 'sensu-plugins-uptime-checks'

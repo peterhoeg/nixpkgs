@@ -1,7 +1,7 @@
 GIT
   remote: git://github.com/speartail/sensu-plugins-ipmi.git
-  revision: 53eb752b6835d82ea7b8ece3e56b974dc22ef54c
-  ref: 53eb752b6835d82ea7b8ece3e56b974dc22ef54c
+  revision: 86b469196f519ba4380f7ba00dc2bbd973784970
+  branch: a/driver
   specs:
     sensu-plugins-ipmi (1.0.1)
       rubyipmi (= 0.10.0)
@@ -9,10 +9,10 @@ GIT
 
 GIT
   remote: git://github.com/speartail/sensu-plugins-network-checks.git
-  revision: 88b4fd6f55a5b219f4ca2612793f9870f7ac5653
+  revision: 6ef23ef2c0af032421bf9519d5d4a53153eab6b3
   branch: fixes
   specs:
-    sensu-plugins-network-checks (3.1.2)
+    sensu-plugins-network-checks (3.2.1)
       activesupport (~> 4.2)
       dnsbl-client (= 1.0.2)
       net-ping (= 1.7.8)
@@ -21,35 +21,39 @@ GIT
       whois-parser (~> 1.1.0)
 
 GIT
-  remote: git://github.com/speartail/whois-parser.git
-  revision: d58794309aa1edf7a2ad0b97c239cee3522e9ebe
-  branch: fixes
+  remote: git://github.com/weppos/whois-parser.git
+  revision: 9db810d187a97175c3b28edd100c4edd07d683f2
+  branch: master
   specs:
-    whois-parser (1.1.0.1)
+    whois-parser (1.1.0)
       activesupport (>= 4)
       whois (>= 4.0.6)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (4.2.10)
+    CFPropertyList (2.3.6)
+    activesupport (4.2.11)
       i18n (~> 0.7)
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    addressable (2.5.2)
+    addressable (2.6.0)
       public_suffix (>= 2.0.2, < 4.0)
     amq-protocol (2.0.1)
     amqp (1.6.0)
       amq-protocol (>= 2.0.1)
       eventmachine
-    aws-sdk (2.11.123)
-      aws-sdk-resources (= 2.11.123)
-    aws-sdk-core (2.11.123)
+    aws-sdk (2.11.212)
+      aws-sdk-resources (= 2.11.212)
+    aws-sdk-core (2.11.212)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.11.123)
-      aws-sdk-core (= 2.11.123)
+    aws-sdk-resources (2.11.212)
+      aws-sdk-core (= 2.11.212)
+    aws-sdk-v1 (1.66.0)
+      json (~> 1.4)
+      nokogiri (>= 1.4.4)
     aws-ses (0.6.0)
       builder
       mail (> 2.2.5)
@@ -66,7 +70,7 @@ GEM
       ffi (~> 1.0, >= 1.0.11)
     chronic_duration (0.10.6)
       numerizer (~> 0.1.1)
-    concurrent-ruby (1.0.5)
+    concurrent-ruby (1.1.4)
     cookiejar (0.3.3)
     dentaku (2.0.9)
     dnsbl-client (1.0.2)
@@ -74,6 +78,7 @@ GEM
       addressable (~> 2.5)
     domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
+    dry-inflector (0.1.2)
     em-http-request (1.1.5)
       addressable (>= 2.3.4)
       cookiejar (!= 0.3.1)
@@ -89,8 +94,103 @@ GEM
     english (0.6.3)
       language
     erubis (2.7.0)
-    eventmachine (1.2.5)
+    eventmachine (1.2.7)
+    excon (0.62.0)
     ffi (1.9.21)
+    fission (0.5.0)
+      CFPropertyList (~> 2.2)
+    fog (1.32.0)
+      fog-atmos
+      fog-aws (>= 0.6.0)
+      fog-brightbox (~> 0.4)
+      fog-core (~> 1.32)
+      fog-ecloud (= 0.1.1)
+      fog-google (>= 0.0.2)
+      fog-json
+      fog-local
+      fog-powerdns (>= 0.1.1)
+      fog-profitbricks
+      fog-radosgw (>= 0.0.2)
+      fog-riakcs
+      fog-sakuracloud (>= 0.0.4)
+      fog-serverlove
+      fog-softlayer
+      fog-storm_on_demand
+      fog-terremark
+      fog-vmfusion
+      fog-voxel
+      fog-xml (~> 0.1.1)
+      ipaddress (~> 0.5)
+      nokogiri (~> 1.5, >= 1.5.11)
+    fog-atmos (0.1.0)
+      fog-core
+      fog-xml
+    fog-aws (2.0.1)
+      fog-core (~> 1.38)
+      fog-json (~> 1.0)
+      fog-xml (~> 0.1)
+      ipaddress (~> 0.8)
+    fog-brightbox (0.16.1)
+      dry-inflector
+      fog-core
+      fog-json
+      mime-types
+    fog-core (1.43.0)
+      builder
+      excon (~> 0.49)
+      formatador (~> 0.2)
+    fog-ecloud (0.1.1)
+      fog-core
+      fog-xml
+    fog-google (0.6.0)
+      fog-core
+      fog-json
+      fog-xml
+    fog-json (1.2.0)
+      fog-core
+      multi_json (~> 1.10)
+    fog-local (0.6.0)
+      fog-core (>= 1.27, < 3.0)
+    fog-powerdns (0.2.0)
+      fog-core
+      fog-json
+      fog-xml
+    fog-profitbricks (4.1.1)
+      fog-core (~> 1.42)
+      fog-json (~> 1.0)
+    fog-radosgw (0.0.5)
+      fog-core (>= 1.21.0)
+      fog-json
+      fog-xml (>= 0.0.1)
+    fog-riakcs (0.1.0)
+      fog-core
+      fog-json
+      fog-xml
+    fog-sakuracloud (1.7.5)
+      fog-core
+      fog-json
+    fog-serverlove (0.1.2)
+      fog-core
+      fog-json
+    fog-softlayer (1.1.4)
+      fog-core
+      fog-json
+    fog-storm_on_demand (0.1.1)
+      fog-core
+      fog-json
+    fog-terremark (0.1.0)
+      fog-core
+      fog-xml
+    fog-vmfusion (0.1.0)
+      fission
+      fog-core
+    fog-voxel (0.1.0)
+      fog-core
+      fog-xml
+    fog-xml (0.1.3)
+      fog-core
+      nokogiri (>= 1.5.11, < 2.0.0)
+    formatador (0.2.5)
     history (0.3.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
@@ -101,6 +201,7 @@ GEM
       cause
       json
     inifile (3.0.0)
+    ipaddress (0.8.3)
     jmespath (1.4.0)
     json (1.8.6)
     jsonpath (0.5.8)
@@ -112,36 +213,45 @@ GEM
       json (~> 1.8)
       rest-client (~> 1.6)
     mime-types (2.99.3)
+    mini_portile2 (2.4.0)
     minitest (5.11.3)
     mixlib-cli (1.7.0)
     multi_json (1.13.1)
     net-ping (1.7.8)
+    net-sftp (2.1.0)
+      net-ssh (>= 2.6.4)
+    net-ssh (5.1.0)
     netrc (0.11.0)
+    nokogiri (1.10.1)
+      mini_portile2 (~> 2.4.0)
     numerizer (0.1.1)
     oj (2.18.1)
     parse-cron (0.1.4)
-    public_suffix (3.0.3)
+    public_suffix (2.0.5)
     redis (3.3.5)
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
+    right_aws (3.1.0)
+      right_http_connection (>= 1.2.5)
+    right_http_connection (1.5.0)
     ruby-ntlm (0.0.3)
     ruby_dig (0.0.2)
     rubyipmi (0.10.0)
-    sensu (1.5.0)
+    sensu (1.6.2)
       em-http-request (= 1.1.5)
       em-http-server (= 0.1.8)
-      eventmachine (= 1.2.5)
+      eventmachine (= 1.2.7)
       parse-cron (= 0.1.4)
       sensu-extension (= 1.5.2)
       sensu-extensions (= 1.10.0)
       sensu-json (= 2.1.1)
       sensu-logger (= 1.2.2)
-      sensu-redis (= 2.3.0)
+      sensu-redis (= 2.4.0)
       sensu-settings (= 10.14.0)
       sensu-spawn (= 2.5.0)
-      sensu-transport (= 7.1.0)
+      sensu-transport (= 8.2.0)
     sensu-extension (1.5.2)
       eventmachine
     sensu-extensions (1.10.0)
@@ -171,7 +281,7 @@ GEM
       sensu-extension
     sensu-extensions-ruby-hash (1.0.0)
       sensu-extension
-    sensu-extensions-snmp-trap (0.1.0)
+    sensu-extensions-snmp-trap (0.2.0)
       sensu-extension
       snmp (= 1.2.0)
     sensu-extensions-system-profile (1.0.0)
@@ -181,16 +291,26 @@ GEM
     sensu-logger (1.2.2)
       eventmachine
       sensu-json
-    sensu-plugin (1.4.5)
+    sensu-plugin (1.4.6)
       json (< 2.0.0)
-      mixlib-cli (>= 1.5.0)
+      mixlib-cli (~> 1.5)
+    sensu-plugins-aws (6.3.0)
+      aws-sdk (~> 2.3)
+      aws-sdk-v1 (= 1.66.0)
+      erubis (= 2.7.0)
+      fog (= 1.32.0)
+      fog-core (= 1.43.0)
+      rest-client (= 1.8.0)
+      right_aws (= 3.1.0)
+      sensu-plugin (~> 1.3)
     sensu-plugins-cgroups (1.1.0)
       sensu-plugin (~> 1.2)
-    sensu-plugins-disk-checks (3.1.0)
+    sensu-plugins-disk-checks (4.0.0)
       sensu-plugin (~> 1.2)
       sys-filesystem (= 1.1.7)
-    sensu-plugins-dns (2.1.0)
+    sensu-plugins-dns (2.1.1)
       dnsruby (~> 1.59, >= 1.59.2)
+      public_suffix (~> 2)
       sensu-plugin (~> 1.2)
       whois (~> 4.0)
       whois-parser (~> 1.0)
@@ -207,7 +327,7 @@ GEM
       sensu-plugin (~> 1.2)
     sensu-plugins-logs (1.3.2)
       sensu-plugin (~> 1.2)
-    sensu-plugins-mailer (2.0.1)
+    sensu-plugins-mailer (2.1.0)
       aws-ses (= 0.6.0)
       erubis (= 2.7.0)
       mail (= 2.6.3)
@@ -235,6 +355,9 @@ GEM
       chronic_duration (= 0.10.6)
       rest-client (= 1.8.0)
       sensu-plugin (~> 1.2)
+    sensu-plugins-sftp (1.0.1)
+      net-sftp (= 2.1.0)
+      sensu-plugin (~> 1.2)
     sensu-plugins-snmp (2.1.0)
       sensu-plugin (~> 1.2)
       snmp (= 1.2.0)
@@ -242,7 +365,7 @@ GEM
       sensu-plugin (~> 1.2)
     sensu-plugins-uptime-checks (2.0.0)
       sensu-plugin (~> 1.2)
-    sensu-redis (2.3.0)
+    sensu-redis (2.4.0)
       eventmachine
     sensu-settings (10.14.0)
       parse-cron
@@ -252,7 +375,7 @@ GEM
       em-worker (= 0.0.2)
       eventmachine
       ffi (= 1.9.21)
-    sensu-transport (7.1.0)
+    sensu-transport (8.2.0)
       amq-protocol (= 2.0.1)
       amqp (= 1.6.0)
       eventmachine
@@ -280,6 +403,7 @@ DEPENDENCIES
   sensu-extensions-influxdb2
   sensu-extensions-snmp-trap
   sensu-extensions-system-profile
+  sensu-plugins-aws
   sensu-plugins-cgroups
   sensu-plugins-disk-checks
   sensu-plugins-dns
@@ -295,10 +419,11 @@ DEPENDENCIES
   sensu-plugins-raid-checks
   sensu-plugins-redis
   sensu-plugins-sensu
+  sensu-plugins-sftp
   sensu-plugins-snmp
   sensu-plugins-systemd
   sensu-plugins-uptime-checks
   whois-parser!
 
 BUNDLED WITH
-   1.16.3
+   1.17.2
