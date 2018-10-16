@@ -8,14 +8,14 @@ let
 
 in stdenv.mkDerivation rec {
   name = "${pname}-${version}";
-  version = "1.63";
+  version = "1.64";
 
   # We fetch from github.com instead of the proper upstream as nix-build errors out with 406 when trying to fetch the sources
   src = fetchFromGitHub {
     owner  = "speartail";
     repo   = "checkwmiplus";
     rev    = "v${version}";
-    sha256 = "1zs2n52hsx8n5mfk6sdqpj8ir7qdrxbgbnnvb29q33q4mb728nm1";
+    sha256 = "1m36rd2wnc5dk4mm9q4ch67w19144dl112p9s6lhc1sh6h25ln6r";
   };
 
   patches = [
