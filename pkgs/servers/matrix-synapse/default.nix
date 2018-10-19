@@ -1,8 +1,8 @@
-{ lib, stdenv, python2
+{ lib, stdenv, python
 , enableSystemd ? true
 }:
 
-with python2.pkgs;
+with python.pkgs;
 
 let
   matrix-angular-sdk = buildPythonPackage rec {
