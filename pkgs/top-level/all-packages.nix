@@ -13220,6 +13220,8 @@ with pkgs;
 
   jetty = callPackage ../servers/http/jetty { };
 
+  knxd = callPackage ../servers/knxd { };
+
   knot-dns = callPackage ../servers/dns/knot-dns { };
   knot-resolver = callPackage ../servers/dns/knot-resolver { };
 
