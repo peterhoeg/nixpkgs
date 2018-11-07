@@ -58,8 +58,35 @@ let
     ${text}
   ''; in "${dir}/bin/${name}";
 
+
   defaultInterface = { default = mapAttrs (name: value: cfg."${name}") commonOptions; };
   allInterfaces = defaultInterface // cfg.interfaces;
+
+  failsafeScript = writeShScript "firewall-failsafe" (let
+    chains = [ "INPUT" "FORWARD" "OUTPUT" ];
+    policy = if cfg.failsafe == "open" then "ACCEPT" else "DROP";
+    sshPorts = lib.concatStringsSep "," (map (e: toString e) (builtins.unique config.services.openssh.ports));
+  in ''
+    ${lib.optionalString (cfg.failsafe == "noop") ''
+      # failsafe not configured, exiting
+      exit 0
+    ''}
+
+    ${helpers}
+
+    # flush built-in chains and set policy to ${policy}
+    ${lib.concatStringsSep "\n" (map (chain: ''
+      ip46tables -F ${chain}
+      ip46tables -P ${chain} ${policy}
+    '') chains)}
+    # allow outbound traffic
+    ip46tables -P OUTPUT ACCEPT
+
+    ${lib.optionalString (cfg.failsafe == "ssh-only") ''
+      # allow SSH
+      ip46tables -A INPUT -p tcp --dports ${sshPorts} -j ACCEPT
+    ''}
+  '');
 
   startScript = writeShScript "firewall-start" ''
     ${helpers}
@@ -352,6 +379,22 @@ in
           '';
       };
 
+      failsafe = mkOption {
+        type = types.enum [ "open" "closed" "ssh-only" "noop" ];
+        default = "noop";
+        description = ''
+          In case of errors when starting/stopping/reloading the main firewall
+          script, reset the firewall state to a known good configuration.
+          </para>
+          <para>
+          The options are:
+          - open: do not block connections
+          - closed: block all connections
+          - ssh-only: allow only SSH
+          - noop: do not do anything (the default)
+        '';
+      };
+
       logRefusedUnicastsOnly = mkOption {
         type = types.bool;
         default = true;
@@ -581,6 +624,7 @@ in
       # better have all necessary modules already loaded.
       unitConfig.ConditionCapability = "CAP_NET_ADMIN";
       unitConfig.DefaultDependencies = false;
+      unitConfig.OnFailure = "firewall-failsafe.service";
 
       reloadIfChanged = true;
 
@@ -593,6 +637,15 @@ in
       };
     };
 
+    systemd.services.firewall-failsafe = {
+      description = "Fail-safe firewall";
+      path = with pkgs; [ iptables ];
+      unitConfig.ConditionCapability = "CAP_NET_ADMIN";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = failsafeScript;
+      };
+    };
   };
 
 }
