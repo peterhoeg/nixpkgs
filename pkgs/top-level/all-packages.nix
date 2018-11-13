@@ -134,6 +134,8 @@ with pkgs;
 
   castxml = callPackage ../development/tools/castxml { };
 
+  espurna-ota = callPackage ../development/tools/espurna-ota { };
+
   cmark = callPackage ../development/libraries/cmark { };
 
   corgi = callPackage ../development/tools/corgi { };
