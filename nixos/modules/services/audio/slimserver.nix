@@ -6,6 +6,9 @@ let
 
   cfg = config.services.slimserver;
 
+  defaultDataDir = "/var/lib/slimserver";
+  customDataDir = defaultDataDir != cfg.dataDir;
+
 in {
   options = {
 
@@ -28,7 +31,7 @@ in {
 
       dataDir = mkOption {
         type = types.path;
-        default = "/var/lib/slimserver";
+        default = defaultDataDir;
         description = ''
           The directory where slimserver stores its state, tag cache,
           playlists etc.
@@ -47,24 +50,16 @@ in {
       description = "Slim Server for Logitech Squeezebox Players";
       wantedBy = [ "multi-user.target" ];
 
-      preStart = "mkdir -p ${cfg.dataDir} && chown -R slimserver:slimserver ${cfg.dataDir}";
-      serviceConfig = {
-        User = "slimserver";
-        PermissionsStartOnly = true;
+      serviceConfig = rec {
+        ExecStartPre = lib.mkIf customDataDir "!mkdir -p ${cfg.dataDir} && chown -R slimserver:slimserver ${cfg.dataDir}";
         # Issue 40589: Disable broken image/video support (audio still works!)
-        ExecStart = "${cfg.package}/slimserver.pl --logdir ${cfg.dataDir}/logs --prefsdir ${cfg.dataDir}/prefs --cachedir ${cfg.dataDir}/cache --noimage --novideo";
+        ExecStart = "${cfg.package}/slimserver.pl --logdir /var/log/${LogsDirectory} --prefsdir ${cfg.dataDir}/prefs --cachedir ${cfg.dataDir}/cache --noimage --novideo";
+        StateDirectory = builtins.baseNameOf defaultDataDir;
+        LogsDirectory = StateDirectory;
+        DynamicUser = true;
+        ReadWritePaths = lib.mkIf customDataDir [ cfg.dataDir ];
       };
-    };
-
-    users = {
-      users.slimserver = {
-        description = "Slimserver daemon user";
-        home = cfg.dataDir;
-        group = "slimserver";
-      };
-      groups.slimserver = {};
     };
   };
-
 }
 
