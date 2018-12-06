@@ -1,25 +1,49 @@
 { mkDerivation, lib, fetchFromGitHub, cmake, python3, qtbase, qtquickcontrols2, curaengine }:
 
-mkDerivation rec {
+let
+  inherit (curaengine) version;
+
+  materials = fetchFromGitHub {
+    owner = "Ultimaker";
+    repo = "fdm_materials";
+    rev = version;
+    sha256 = "0g2dkph0ll7d9109n17vmfwb4fpc8lhyb1z1q68j8vblyvg08d12";
+  };
+
+  libsavitar = python3.pkgs.buildPythonPackage {
+    pname = "libsavitar";
+    inherit version;
+    format = "other";
+
+    src = fetchFromGitHub {
+      owner = "Ultimaker";
+      repo = "libsavitar";
+      rev = version;
+      sha256 = "1bz8ga0n9aw65hqzajbr93dcv5g555iaihbhs1jq2k47cx66klzv";
+    };
+
+    propagatedBuildInputs = with python3.pkgs; [ sip ];
+
+    nativeBuildInputs = [ cmake ];
+
+    postPatch = ''
+      # To workaround buggy SIP detection which overrides PYTHONPATH
+      sed -i '/SET(ENV{PYTHONPATH}/d' cmake/FindSIP.cmake
+    '';
+  };
+
+in mkDerivation rec {
   name = "cura-${version}";
-  version = "3.4.1";
 
   src = fetchFromGitHub {
     owner = "Ultimaker";
     repo = "Cura";
     rev = version;
-    sha256 = "03s9nf1aybbnbf1rzqja41m9g6991bbvrcly1lcrfqksianfn06w";
-  };
-
-  materials = fetchFromGitHub {
-    owner = "Ultimaker";
-    repo = "fdm_materials";
-    rev = "3.4.1";
-    sha256 = "1pw30clxqd7qgnidsyx6grizvlgfn8rhj6rd5ppkvv3rdjh0gj28";
+    sha256 = "0wzkbqdd1670smw1vnq634rkpcjwnhwcvimhvjq904gy2fylgr90";
   };
 
   buildInputs = [ qtbase qtquickcontrols2 ];
-  propagatedBuildInputs = with python3.pkgs; [ uranium zeroconf pyserial numpy-stl ];
+  propagatedBuildInputs = with python3.pkgs; [ libsavitar numpy-stl pyserial requests shapely uranium zeroconf ];
   nativeBuildInputs = [ cmake python3.pkgs.wrapPython ];
 
   cmakeFlags = [
