@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchFromGitHub, fetchpatch, clang, cmake, llvm, qmake, makeWrapper, makeDesktopItem
+{ stdenv, lib, fetchurl, fetchFromGitHub, fetchpatch, cmake, scons, makeWrapper, makeDesktopItem
 , coin3d, xercesc, ode, eigen, opencascade, gts, mesa, mesa_glu
 , hdf5, vtk, medfile, zlib, python3Packages, swig, gfortran
 , soqt, libf2c
@@ -10,23 +10,6 @@ assert mpi != null;
 let
   pythonPackages = python3Packages;
 
-  pivy = pythonPackages.buildPythonPackage rec {
-    pname = "pivy";
-    version = "0.6.4";
-    # format = "other";
-
-    src = fetchFromGitHub {
-      owner = "FreeCAD";
-      repo = "pivy";
-      rev = version;
-      sha256 = "1116rf60gyp4wv3djp5yihm0yib7n6xcmz1h7l47dr1jz3qp5x8q";
-    };
-
-    # nativeBuildInputs = [ clang cmake ];
-
-    # buildInputs = [ qtbase qtxmlpatterns ];
-  };
-
 in stdenv.mkDerivation rec {
   name = "freecad-${version}";
   version = "0.17";
@@ -34,17 +17,9 @@ in stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "FreeCAD";
     repo = "FreeCAD";
-    rev = version;
-    sha256 = "1z03r8950rqzm0ifvz5vplr395canzdkz6mk13pc6wsj5244q65g";
+    rev = "releases/FreeCAD-${lib.replaceStrings [ "." ] [ "-" ] version}";
+    sha256 = "00mdyhrspnaid7ljrdn52ix7s2kapc0v84n4byn0f4xazy6da77n";
   };
-
-  patches = [
-    # Fix for finding boost_python. Boost >= 1.67.0 appends the Python version.
-    (fetchpatch {
-      url = https://github.com/FreeCAD/FreeCAD/commit/3c9e6b038ed544e446c61695dab62f83e781a28a.patch;
-      sha256 = "0f09qywzn0y41hylizb5g8jy74fi53iqmvqr5zznaz16wpw4hqbp";
-    })
-  ];
 
   # Their main() removes PYTHONPATH=, and we rely on it.
   postPatch = ''
@@ -57,9 +32,9 @@ in stdenv.mkDerivation rec {
     qtbase qtsvg qtwebkit
     coin3d xercesc ode eigen opencascade gts mesa mesa_glu
     zlib swig gfortran soqt libf2c mpi vtk hdf5 medfile
-    pivy 
+
   ] ++ (with pythonPackages; [
-    matplotlib pycollada pyside2 python boost
+    matplotlib pivy pycollada python boost # pyside2
   ]);
 
   NIX_LDFLAGS="-L${gfortran.cc}/lib64 -L${gfortran.cc}/lib";
