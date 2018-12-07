@@ -611,6 +611,8 @@ in {
 
   pyside = callPackage ../development/python-modules/pyside { };
 
+  pyside2 = callPackage ../development/python-modules/pyside2 { stdenv = pkgs.clangStdenv; };
+
   pysideShiboken = callPackage ../development/python-modules/pyside/shiboken.nix {
     inherit (pkgs) libxml2 libxslt; # Do not need the Python bindings.
   };
