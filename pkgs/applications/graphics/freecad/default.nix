@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchFromGitHub, fetchpatch, clang, cmake, makeWrapper, makeDesktopItem, qmake
+{ stdenv, fetchurl, fetchFromGitHub, fetchpatch, clang, cmake, llvm, qmake, makeWrapper, makeDesktopItem
 , coin3d, xercesc, ode, eigen, opencascade, gts, mesa, mesa_glu
 , hdf5, vtk, medfile, zlib, python3Packages, swig, gfortran
 , soqt, libf2c
@@ -10,19 +10,21 @@ assert mpi != null;
 let
   pythonPackages = python3Packages;
 
-  shiboken2 = pythonPackages.buildPythonPackage rec {
-    pname = "shiboken2";
-    version = "5.11.2";
+  pivy = pythonPackages.buildPythonPackage rec {
+    pname = "pivy";
+    version = "0.6.4";
     # format = "other";
 
-    src = fetchurl {
-      url = "http://download.qt.io/official_releases/QtForPython/pyside2/PySide2-${version}-src/pyside-setup-everywhere-src-${version}.tar.xz";
-      sha256 = "1hl6rf60gyp4wv3djp5yihm0yib7n6xcmz1h7l47dr1jz3qp5x8q";
+    src = fetchFromGitHub {
+      owner = "FreeCAD";
+      repo = "pivy";
+      rev = version;
+      sha256 = "1116rf60gyp4wv3djp5yihm0yib7n6xcmz1h7l47dr1jz3qp5x8q";
     };
 
-    nativeBuildInputs = [ clang cmake qmake ];
+    # nativeBuildInputs = [ clang cmake ];
 
-    buildInputs = [ qtbase qtxmlpatterns ];
+    # buildInputs = [ qtbase qtxmlpatterns ];
   };
 
 in stdenv.mkDerivation rec {
@@ -55,15 +57,21 @@ in stdenv.mkDerivation rec {
     qtbase qtsvg qtwebkit
     coin3d xercesc ode eigen opencascade gts mesa mesa_glu
     zlib swig gfortran soqt libf2c mpi vtk hdf5 medfile
+    pivy 
   ] ++ (with pythonPackages; [
-    matplotlib pycollada pyside shiboken2 pysideTools python boost
+    matplotlib pycollada pyside2 python boost
   ]);
 
   NIX_LDFLAGS="-L${gfortran.cc}/lib64 -L${gfortran.cc}/lib";
 
   cmakeFlags = [
     "-DBUILD_QT5=ON"
+    "-DBUILD_QT5_WEBKIT=OFF"
+    "-DBUILD_START=OFF"
+    "-DBUILD_WEB=OFF"
     "-DOpenGL_GL_PREFERENCE=GLVND"
+    "-DFREECAD_USE_OCC_VARIANT='Official Version'"
+    "-DFREECAD_USE_EXTERNAL_PIVY=ON"
   ];
 
   enableParallelBuilding = true;
