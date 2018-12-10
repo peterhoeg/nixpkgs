@@ -1,30 +1,31 @@
 { stdenv
-, fetchFromGitHub
-, qtbase
-, qtmultimedia
-, qscintilla
 , bison
-, flex
-, eigen
 , boost
-, libGLU, libGL
-, glew
-, opencsg
 , cgal
-, mpfr
-, gmp
-, glib
-, pkgconfig
-, harfbuzz
-, gettext
-, freetype
-, fontconfig
 , double-conversion
+, eigen
+, fetchFromGitHub
+, flex
+, fontconfig
+, freetype
+, gettext
+, glew
+, glib
+, gmp
+, harfbuzz
 , lib3mf
+, libGLU, libGL
 , libzip
 , mkDerivation
-, qtmacextras
+, mpfr
+, opencsg
+, pcre
+, pkgconfig
 , qmake
+, qscintilla
+, qtbase
+, qtmacextras
+, qtmultimedia
 }:
 
 mkDerivation rec {
@@ -38,17 +39,21 @@ mkDerivation rec {
     sha256 = "1qz384jqgk75zxk7sqd22ma9pyd94kh4h6a207ldx7p9rny6vc5l";
   };
 
-  nativeBuildInputs = [ bison flex pkgconfig gettext qmake ];
-
   buildInputs = [
-    eigen boost glew opencsg cgal mpfr gmp glib
-    harfbuzz lib3mf libzip double-conversion freetype fontconfig
+    bison flex eigen boost glew opencsg cgal mpfr gmp glib
+    lib3mf libzip double-conversion freetype fontconfig pcre
     qtbase qtmultimedia qscintilla
+    harfbuzz gettext pcre libzip
   ] ++ stdenv.lib.optionals stdenv.isLinux [ libGLU libGL ]
     ++ stdenv.lib.optional stdenv.isDarwin qtmacextras
   ;
 
-  qmakeFlags = [ "VERSION=${version}" ];
+  nativeBuildInputs = [ pkgconfig ];
+  # nativeBuildInputs = [ bison flex pkgconfig gettext qmake ];
+
+  cmakeFlags = [
+    "-DOpenGL_GL_PREFERENCE=GLVND"
+  ];
 
   # src/lexer.l:36:10: fatal error: parser.hxx: No such file or directory
   enableParallelBuilding = false; # true by default due to qmake
@@ -64,7 +69,7 @@ mkDerivation rec {
     rmdir $out/share/openscad
   '';
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "3D parametric model compiler";
     longDescription = ''
       OpenSCAD is a software for creating solid 3D CAD objects. It is free
@@ -77,10 +82,9 @@ mkDerivation rec {
       machine parts but pretty sure is not what you are looking for when you are more
       interested in creating computer-animated movies.
     '';
-    homepage = "http://openscad.org/";
-    license = stdenv.lib.licenses.gpl2;
-    platforms = stdenv.lib.platforms.unix;
-    maintainers = with stdenv.lib.maintainers;
-      [ bjornfor raskin the-kenny gebner ];
+    homepage = "https://openscad.org/";
+    license = licenses.gpl2;
+    maintainers = with maintainers; [ bjornfor raskin the-kenny gebner ];
+    platforms = platforms.unix;
   };
 }
