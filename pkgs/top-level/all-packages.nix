@@ -22297,6 +22297,8 @@ with pkgs;
     callPackage ../applications/networking/znc/modules.nix { }
   );
 
+  zoneminder = callPackage ../servers/zoneminder { };
+
   zsnes = pkgsi686Linux.callPackage ../misc/emulators/zsnes { };
 
   xcpc = callPackage ../misc/emulators/xcpc { };
