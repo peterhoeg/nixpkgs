@@ -28,9 +28,9 @@ in {
 
   ###### interface
 
-  options = {
+  options.virtualisation.libvirtd = {
 
-    virtualisation.libvirtd.enable = mkOption {
+    enable = mkOption {
       type = types.bool;
       default = false;
       description = ''
@@ -41,7 +41,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.qemuPackage = mkOption {
+    qemuPackage = mkOption {
       type = types.package;
       default = pkgs.qemu;
       description = ''
@@ -51,7 +51,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.extraConfig = mkOption {
+    extraConfig = mkOption {
       type = types.lines;
       default = "";
       description = ''
@@ -60,7 +60,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.qemuRunAsRoot = mkOption {
+    qemuRunAsRoot = mkOption {
       type = types.bool;
       default = true;
       description = ''
@@ -72,7 +72,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.qemuVerbatimConfig = mkOption {
+    qemuVerbatimConfig = mkOption {
       type = types.lines;
       default = ''
         namespaces = []
@@ -84,7 +84,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.qemuOvmf = mkOption {
+    qemuOvmf = mkOption {
       type = types.bool;
       default = true;
       description = ''
@@ -93,7 +93,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.extraOptions = mkOption {
+    extraOptions = mkOption {
       type = types.listOf types.str;
       default = [ ];
       example = [ "--verbose" ];
@@ -102,7 +102,7 @@ in {
       '';
     };
 
-    virtualisation.libvirtd.onShutdown = mkOption {
+    onShutdown = mkOption {
       type = types.enum ["shutdown" "suspend" ];
       default = "suspend";
       description = ''
@@ -113,6 +113,14 @@ in {
       '';
     };
 
+    allowedBridges = mkOption {
+      type = types.listOf types.str;
+      default = [ "virbr0" ];
+      description = ''
+        List of bridge devices that can be used by qemu:///session
+      '';
+    };
+
   };
 
 
@@ -120,7 +128,12 @@ in {
 
   config = mkIf cfg.enable {
 
-    environment.systemPackages = with pkgs; [ libvirt libressl.nc cfg.qemuPackage ];
+    environment = {
+      # this file is expected in /etc/qemu and not sysconfdir (/var/lib)
+      etc."qemu/bridge.conf".text = (lib.concatStringsSep "\n" (map (e:
+        "allow ${e}") cfg.allowedBridges));
+      systemPackages = with pkgs; [ libvirt libressl.nc cfg.qemuPackage ];
+    };
 
     boot.kernelModules = [ "tun" ];
 
@@ -132,6 +145,10 @@ in {
       uid = config.ids.uids.qemu-libvirtd;
       isNormalUser = false;
       group = "qemu-libvirtd";
+    };
+
+    security.wrappers.qemu-bridge-helper = {
+      source = "${cfg.qemuPackage}/libexec/qemu-bridge-helper";
     };
 
     systemd.packages = [ pkgs.libvirt ];
@@ -149,15 +166,6 @@ in {
              ++ optional vswitch.enable vswitch.package;
 
       preStart = ''
-        mkdir -p /var/log/libvirt/qemu -m 755
-        rm -f /var/run/libvirtd.pid
-
-        mkdir -p /var/lib/libvirt
-        mkdir -p /var/lib/libvirt/dnsmasq
-
-        chmod 755 /var/lib/libvirt
-        chmod 755 /var/lib/libvirt/dnsmasq
-
         # Copy default libvirt network config .xml files to /var/lib
         # Files modified by the user will not be overwritten
         for i in $(cd ${pkgs.libvirt}/var/lib && echo \
@@ -178,9 +186,8 @@ in {
         done
 
         ${optionalString cfg.qemuOvmf ''
-            mkdir -p /run/libvirt/nix-ovmf
-            ln -s --force ${pkgs.OVMF.fd}/FV/OVMF_CODE.fd /run/libvirt/nix-ovmf/
-            ln -s --force ${pkgs.OVMF.fd}/FV/OVMF_VARS.fd /run/libvirt/nix-ovmf/
+          ln -s --force ${pkgs.OVMF.fd}/FV/OVMF_CODE.fd /run/libvirt/nix-ovmf/
+          ln -s --force ${pkgs.OVMF.fd}/FV/OVMF_VARS.fd /run/libvirt/nix-ovmf/
         ''}
       '';
 
@@ -188,6 +195,8 @@ in {
         Type = "notify";
         KillMode = "process"; # when stopping, leave the VMs alone
         Restart = "no";
+        LogsDirectory = "libvirt/qemu";
+        RuntimeDirectory = [ "libvirt/dnsmasq" "libvirt/nix-ovmf" ];
       };
       restartIfChanged = false;
     };
