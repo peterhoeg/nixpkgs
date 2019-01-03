@@ -409,6 +409,7 @@
   ./services/misc/uhub.nix
   ./services/misc/weechat.nix
   ./services/misc/xmr-stak.nix
+  ./services/misc/zoneminder.nix
   ./services/misc/zookeeper.nix
   ./services/monitoring/apcupsd.nix
   ./services/monitoring/arbtt.nix
