@@ -696,6 +696,8 @@ in {
 
   PyWebDAV = callPackage ../development/python-modules/pywebdav { };
 
+  py-wmi-client = callPackage ../development/python-modules/py-wmi-client { };
+
   pyxml = disabledIf isPy3k (callPackage ../development/python-modules/pyxml{ });
 
   pyvcd = callPackage ../development/python-modules/pyvcd { };
