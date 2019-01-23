@@ -94,10 +94,10 @@ let
       ${optionalString (cfg.userlistFile != null) ''
         userlist_file=${cfg.userlistFile}
       ''}
-      background=YES
+      background=NO
       listen=YES
       nopriv_user=vsftpd
-      secure_chroot_dir=/var/empty
+      secure_chroot_dir=/run/vsftpd/empty
       syslog_enable=YES
       ${optionalString (pkgs.stdenv.hostPlatform.system == "x86_64-linux") ''
         seccomp_sandbox=NO
@@ -225,9 +225,11 @@ in
               chown -R ftp:ftp ${cfg.anonymousUserHome}
             '';
 
-        serviceConfig.ExecStart = "@${vsftpd}/sbin/vsftpd vsftpd ${configFile}";
-        serviceConfig.Restart = "always";
-        serviceConfig.Type = "forking";
+        serviceConfig = {
+          ExecStart = "@${vsftpd}/sbin/vsftpd vsftpd ${configFile}";
+          Restart = "on-failure";
+          RuntimeDirectory = [ "vsftpd" "vsftpd/empty" ];
+        };
       };
 
   };
