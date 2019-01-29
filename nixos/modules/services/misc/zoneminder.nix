@@ -204,6 +204,7 @@ in {
       };
 
       mysql = lib.mkIf cfg.database.createLocally {
+        enable = true;
         ensureDatabases = [ cfg.database.name ];
         ensureUsers = {
           name = cfg.database.username;
@@ -278,7 +279,7 @@ in {
 
       phpfpm = lib.mkIf useNginx {
         phpOptions = ''
-          date.timezone = "${config.time.timeZone}"
+          date.timezone = "${config.time.timeZone ? "UTC"}"
 
           ${lib.concatStringsSep "\n" (map (e:
           "extension=${e.pkg}/lib/php/extensions/${e.name}.so") phpExtensions)}
