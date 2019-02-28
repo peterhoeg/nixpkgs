@@ -1,5 +1,5 @@
 { stdenv, fetchFromGitHub, fetchpatch, cmake, docbook_xsl, libxslt
-, openssl, libuuid, libwebsockets, c-ares, libuv }:
+, openssl, libuuid, libwebsockets, c-ares, libuv, systemd }:
 
 stdenv.mkDerivation rec {
   name = "mosquitto-${version}";
@@ -26,13 +26,14 @@ stdenv.mkDerivation rec {
     popd
   '';
 
-  buildInputs = [ openssl libuuid libwebsockets c-ares libuv ];
+  buildInputs = [ openssl libuuid libwebsockets c-ares libuv systemd ];
 
   nativeBuildInputs = [ cmake docbook_xsl libxslt ];
 
   enableParallelBuilding = true;
 
   cmakeFlags = [
+    "-DWITH_SYSTEMD=ON"
     "-DWITH_THREADING=ON"
     "-DWITH_WEBSOCKETS=ON"
   ];
