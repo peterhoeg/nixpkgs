@@ -17,7 +17,6 @@ let
   '';
 
   mosquittoConf = pkgs.writeText "mosquitto.conf" ''
-    pid_file /run/mosquitto/pid
     acl_file ${aclFile}
     persistence true
     allow_anonymous ${boolToString cfg.allowAnonymous}
@@ -196,15 +195,15 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       serviceConfig = {
-        Type = "forking";
+        Type = "notify";
+        NotifyAccess = "main";
         User = "mosquitto";
         Group = "mosquitto";
         RuntimeDirectory = "mosquitto";
         WorkingDirectory = cfg.dataDir;
         Restart = "on-failure";
-        ExecStart = "${pkgs.mosquitto}/bin/mosquitto -c ${mosquittoConf} -d";
+        ExecStart = "${pkgs.mosquitto}/bin/mosquitto -c ${mosquittoConf}";
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
-        PIDFile = "/run/mosquitto/pid";
       };
       preStart = ''
         rm -f ${cfg.dataDir}/passwd
