@@ -25,6 +25,8 @@ let
   ) cfg.virtualHosts;
   enableIPv6 = config.networking.enableIPv6;
 
+  runDir = "/run/nginx";
+
   recommendedProxyConfig = pkgs.writeText "nginx-recommended-proxy-headers.conf" ''
     proxy_set_header        Host $host;
     proxy_set_header        X-Real-IP $remote_addr;
@@ -59,6 +61,8 @@ let
   pre-configFile = pkgs.writeText "pre-nginx.conf" ''
     user ${cfg.user} ${cfg.group};
     error_log ${cfg.logError};
+    lock_file ${runDir}/nginx.lock;
+    pid ${runDir}/nginx.pid;
     daemon off;
 
     ${cfg.config}
@@ -372,7 +376,7 @@ in
       preStart =  mkOption {
         type = types.lines;
         default = ''
-          test -d ${cfg.stateDir}/logs || mkdir -m 750 -p ${cfg.stateDir}/logs  
+          test -d ${cfg.stateDir}/logs || mkdir -m 750 -p ${cfg.stateDir}/logs
           test `stat -c %a ${cfg.stateDir}` = "750" || chmod 750 ${cfg.stateDir}
           test `stat -c %a ${cfg.stateDir}/logs` = "750" || chmod 750 ${cfg.stateDir}/logs
           chown -R ${cfg.user}:${cfg.group} ${cfg.stateDir}
@@ -655,8 +659,10 @@ in
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/nginx -c ${configFile} -p ${cfg.stateDir}";
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+        PrivateTmp = true;
         Restart = "always";
         RestartSec = "10s";
+        RuntimeDirectory = builts.baseNameOf runDir;
         StartLimitInterval = "1min";
       };
     };
