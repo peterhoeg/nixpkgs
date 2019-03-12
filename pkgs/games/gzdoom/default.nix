@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, cmake, makeWrapper
+{ stdenv, fetchFromGitHub, cmake, makeWrapper, pkgconfig
 , openal, fluidsynth, soundfont-fluid, libGL, SDL2
 , bzip2, zlib, libjpeg, libsndfile, mpg123, game-music-emu }:
 
@@ -7,13 +7,14 @@ stdenv.mkDerivation rec {
   version = "3.7.2";
 
   src = fetchFromGitHub {
-    owner = "coelckers";
-    repo = "gzdoom";
-    rev = "g${version}";
+    owner  = "coelckers";
+    repo   = "gzdoom";
+    rev    = "g${version}";
     sha256 = "1kjvjg218d2jk7mzlzihaa90fji4wm5zfix7ikm18wx83hcsgby3";
   };
 
-  nativeBuildInputs = [ cmake makeWrapper ];
+  nativeBuildInputs = [ cmake makeWrapper pkgconfig ];
+
   buildInputs = [
     SDL2 libGL openal fluidsynth bzip2 zlib libjpeg libsndfile mpg123
     game-music-emu
@@ -23,20 +24,26 @@ stdenv.mkDerivation rec {
 
   NIX_CFLAGS_LINK = [ "-lopenal" "-lfluidsynth" ];
 
-  preConfigure = ''
-    sed -i \
-      -e "s@/usr/share/sounds/sf2/@${soundfont-fluid}/share/soundfonts/@g" \
-      -e "s@FluidR3_GM.sf2@FluidR3_GM2-2.sf2@g" \
-      src/sound/mididevices/music_fluidsynth_mididevice.cpp
+  postPatch = ''
+    substituteInPlace src/sound/mididevices/music_fluidsynth_mididevice.cpp \
+      --replace libfluidsynth.so.1     libfluidsynth.so \
+      --replace /usr/share/sounds/sf2/ ${soundfont-fluid}/share/soundfonts/ \
+      --replace FluidR3_GM.sf2         FluidR3_GM2-2.sf2
+
+    substituteInPlace tools/updaterevision/updaterevision.c \
+      --replace '<unknown version>' '${version}'
   '';
 
   installPhase = ''
+    runHook preInstall
+
+    mkdir -p $out/bin
+
     install -Dm755 gzdoom "$out/lib/gzdoom/gzdoom"
-    for i in *.pk3; do
-      install -Dm644 "$i" "$out/lib/gzdoom/$i"
-    done
-    mkdir $out/bin
+    install -Dm644 -t $out/lib/gzdoom *.pk3
     makeWrapper $out/lib/gzdoom/gzdoom $out/bin/gzdoom
+
+    runHook postInstall
   '';
 
   meta = with stdenv.lib; {
