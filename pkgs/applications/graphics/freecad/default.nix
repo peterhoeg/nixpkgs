@@ -1,33 +1,42 @@
-{ stdenv, fetchurl, cmake, coin3d, xercesc, ode, eigen, qt4, opencascade, gts
-, hdf5, vtk, medfile, zlib, python27Packages, swig, gfortran, fetchpatch
+{ stdenv, fetchFromGitHub, cmake, coin3d, xercesc, ode, eigen, qtbase, opencascade, gts
+, hdf5, vtk, medfile, zlib, python2Packages, swig, gfortran, fetchpatch
 , soqt, libf2c, makeWrapper, makeDesktopItem
 , mpi ? null }:
 
 assert mpi != null;
 
 let
-  pythonPackages = python27Packages;
+  pythonPackages = python2Packages;
+
 in stdenv.mkDerivation rec {
   name = "freecad-${version}";
-  version = "0.17";
+  version = "0.18";
 
-  src = fetchurl {
-    url = "https://github.com/FreeCAD/FreeCAD/archive/${version}.tar.gz";
-    sha256 = "1yv6abdzlpn4wxy315943xwrnbywxqfgkjib37qwfvbb8y9p60df";
+  # FreeCAD doesn't update the release tarball after the initial release, so we have to pick the
+  # latest commit on the relevant version branch instead of relying on the tag
+  # For 0.18, this is releases/FreeCAD-0-18
+  src = fetchFromGitHub {
+    owner = "FreeCAD";
+    repo = "FreeCAD";
+    rev = "8ece48c70bb7438112aa0cccb892c2109ae53082";
+    sha256 = "0yxkv7gjzijqk7g4wc2qnf8xdy6dq3zbmzj82v61x46jjc74pzcc";
   };
 
-  buildInputs = [ cmake coin3d xercesc ode eigen qt4 opencascade gts
-    zlib  swig gfortran soqt libf2c makeWrapper  mpi vtk hdf5 medfile
+  nativeBuildInputs = [ cmake makeWrapper ];
+
+  buildInputs = [
+    coin3d xercesc ode eigen qtbase opencascade gts
+    zlib  swig gfortran soqt libf2c mpi vtk hdf5 medfile
   ] ++ (with pythonPackages; [
-    matplotlib pycollada pyside pysideShiboken pysideTools pivy python boost
+    matplotlib pycollada pyside pysideShiboken python boost pivy pysideTools
   ]);
 
   patches = [
     # Fix for finding boost_python. Boost >= 1.67.0 appends the Python version.
-    (fetchpatch {
-      url = https://github.com/FreeCAD/FreeCAD/commit/3c9e6b038ed544e446c61695dab62f83e781a28a.patch;
-      sha256 = "0f09qywzn0y41hylizb5g8jy74fi53iqmvqr5zznaz16wpw4hqbp";
-    })
+    # (fetchpatch {
+      # url = https://github.com/FreeCAD/FreeCAD/commit/3c9e6b038ed544e446c61695dab62f83e781a28a.patch;
+      # sha256 = "0f09qywzn0y41hylizb5g8jy74fi53iqmvqr5zznaz16wpw4hqbp";
+    # })
   ];
 
   enableParallelBuilding = true;
@@ -83,7 +92,7 @@ in stdenv.mkDerivation rec {
     description = "General purpose Open Source 3D CAD/MCAD/CAx/CAE/PLM modeler";
     homepage = https://www.freecadweb.org/;
     license = licenses.lgpl2Plus;
-    maintainers = [ maintainers.viric ];
+    maintainers = with maintainers; [ viric ];
     platforms = platforms.linux;
   };
 }
