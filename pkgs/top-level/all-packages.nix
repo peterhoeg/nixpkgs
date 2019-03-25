@@ -1581,6 +1581,8 @@ in
 
   massren = callPackage ../tools/misc/massren { };
 
+  devilutionx = callPackage ../games/devilutionx { };
+
   meritous = callPackage ../games/meritous { };
 
   opendune = callPackage ../games/opendune { };
