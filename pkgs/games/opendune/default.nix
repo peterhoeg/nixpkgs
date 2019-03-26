@@ -1,5 +1,10 @@
-{ stdenv, fetchFromGitHub, which
-,  alsaLib, libpulseaudio, SDL2, SDL2_image }:
+{ stdenv, lib, fetchFromGitHub, pkgconfig
+, libpulseaudio, SDL2, SDL2_image, SDL2_mixer }:
+
+# - set the opendune configuration at ~/.config/opendune/opendune.ini:
+#     [opendune]
+#     datadir=/path/to/opendune-data
+# - download dune2 into [datadir] http://www.bestoldgames.net/eng/old-games/dune-2.php
 
 stdenv.mkDerivation rec {
   name = "opendune-${version}";
@@ -13,23 +18,36 @@ stdenv.mkDerivation rec {
   };
 
   postPatch = ''
-    echo ${version} > .ottdrev
+pkg-config --libs-only-l libpulse
+pkg-config --cflags libpulse
+    #exit 1
   '';
 
-  nativeBuildInputs = [ which ];
+  NIX_CFLAGS_COMPILE = [
+    "-I${lib.getDev libpulseaudio}/include/pulse"
+  ];
 
-  buildInputs = [ alsaLib libpulseaudio SDL2 SDL2_image ];
+  configureFlags = [ "--with-pulse=${lib.getLib libpulseaudio}/lib/libpulse.so" ];
+
+  nativeBuildInputs = [ pkgconfig ];
+
+  buildInputs = [ libpulseaudio SDL2 SDL2_image SDL2_mixer ];
 
   enableParallelBuilding = true;
 
-  postInstall = ''
-    mv $out/games $out/bin
+  installPhase = ''
+    runHook preInstall
+
+    install -Dm555 -t $out/bin bin/opendune
+    install -Dm644 -t $out/share/doc/opendune enhancement.txt README.txt
+
+    runHook postInstall
   '';
 
   meta = with stdenv.lib; {
-    description = "An open source, real time strategy game sharing game elements with the Dungeon Keeper series and Evil Genius.";
-    homepage = https://github.com/OpenDUNE;
+    description = "Dune, Reinvented";
+    homepage = https://github.com/OpenDUNE/OpenDUNE;
     license = licenses.gpl2;
-    maintainers = with maintainers; [ peterhoeg ];
+    maintainers = with maintainers; [ nand0p ];
   };
 }
