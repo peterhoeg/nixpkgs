@@ -6833,7 +6833,11 @@ in
   };
   fasm-bin = callPackage ../development/compilers/fasm/bin.nix { };
 
-  fpc = callPackage ../development/compilers/fpc { };
+  inherit (callPackages ../development/compilers/fpc {})
+    fpc_300
+    fpc_302
+    fpc_304
+    fpc;
 
   gambit = callPackage ../development/compilers/gambit { stdenv = gccStdenv; };
   gambit-unstable = callPackage ../development/compilers/gambit/unstable.nix { stdenv = gccStdenv; };
