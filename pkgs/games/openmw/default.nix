@@ -1,33 +1,40 @@
-{ stdenv, fetchFromGitHub, qtbase, openscenegraph, mygui, bullet, ffmpeg
-, boost, cmake, SDL2, unshield, openal, libXt, pkgconfig }:
+{ stdenv, fetchFromGitHub, pkgconfig, cmake
+, qtbase, openscenegraph, mygui, bullet, ffmpeg
+, boost, glew, libGLU_combined, SDL2, unshield, openal, libXt }:
 
 let
   openscenegraph_ = openscenegraph.overrideDerivation (self: {
+    # requires version 3.4.x: https://wiki.openmw.org/index.php?title=Development_Environment_Setup
     src = fetchFromGitHub {
-      owner = "OpenMW";
-      repo = "osg";
-      rev = "2b4c8e37268e595b82da4b9aadd5507852569b87";
-      sha256 = "0admnllxic6dcpic0h100927yw766ab55dix002vvdx36i6994jb";
+      owner  = "OpenMW";
+      repo   = "osg";
+      rev    = "OpenSceneGraph-3.4.1";
+      sha256 = "1fbzg1ihjpxk6smlq80p3h3ggllbr16ihd2fxpfwzam8yr8yxip9";
     };
   });
+
 in stdenv.mkDerivation rec {
-  version = "0.44.0";
+  version = "0.45.0";
   name = "openmw-${version}";
 
   src = fetchFromGitHub {
-    owner = "OpenMW";
-    repo = "openmw";
-    rev = name;
-    sha256 = "0rxkw0bzag7qffifg28dyyga47aaaf5ziiccpv7p8yax1wglvymh";
+    owner  = "OpenMW";
+    repo   = "openmw";
+    rev    = name;
+    sha256 = "1r87zrsnza2v9brksh809zzqj6zhk5xj15qs8iq11v1bscm2a2j4";
   };
 
-  enableParallelBuilding = true;
+  nativeBuildInputs = [ cmake pkgconfig ];
 
-  nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ cmake boost ffmpeg bullet mygui openscenegraph_ SDL2 unshield openal libXt qtbase ];
+  buildInputs = [
+    boost ffmpeg bullet mygui openscenegraph_ SDL2 unshield openal libXt
+    glew libGLU_combined
+    qtbase
+  ];
 
   cmakeFlags = [
     "-DDESIRED_QT_VERSION:INT=5"
+    "-DOpenGL_GL_PREFERENCE=LEGACY" # fails with GLVND
   ];
 
   meta = with stdenv.lib; {
