@@ -1,7 +1,8 @@
-{ stdenv, lib, fetchurl, cmake, pkgconfig, doxygen, unzip
+{ stdenv, lib, fetchFromGitHub, cmake, pkgconfig, doxygen, unzip
 , freetype, libjpeg, jasper, libxml2, zlib, gdal, curl, libX11
-, cairo, poppler, librsvg, libpng, libtiff, libXrandr
+, cairo, poppler, librsvg, libpng, libtiff, libpthreadstubs, libXrandr, pcre
 , xineLib, boost
+, openGLPreference ? "GLVND"
 , withApps ? false
 , withSDL ? false, SDL
 , withQt4 ? false, qt4
@@ -9,11 +10,13 @@
 
 stdenv.mkDerivation rec {
   name = "openscenegraph-${version}";
-  version = "3.4.0";
+  version = "3.4.1";
 
-  src = fetchurl {
-    url = "http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-${version}.zip";
-    sha256 = "03h4wfqqk7rf3mpz0sa99gy715cwpala7964z2npd8jxfn27swjw";
+  src = fetchFromGitHub {
+    owner  = "openscenegraph";
+    repo   = "OpenSceneGraph";
+    rev    = "OpenSceneGraph-${version}";
+    sha256 = "1fbzg1ihjpxk6smlq80p3h3ggllbr16ihd2fxpfwzam8yr8yxip9";
   };
 
   nativeBuildInputs = [ pkgconfig cmake doxygen unzip ];
@@ -21,19 +24,21 @@ stdenv.mkDerivation rec {
   buildInputs = [
     freetype libjpeg jasper libxml2 zlib gdal curl libX11
     cairo poppler librsvg libpng libtiff libXrandr boost
-    xineLib
+    libpthreadstubs xineLib pcre
   ] ++ lib.optional withSDL SDL
     ++ lib.optional withQt4 qt4;
 
   enableParallelBuilding = true;
 
-  cmakeFlags = lib.optional (!withApps) "-DBUILD_OSG_APPLICATIONS=OFF";
+  cmakeFlags = [
+    "-DOpenGL_GL_PREFERENCE=${openGLPreference}"
+  ] ++ lib.optional (!withApps) "-DBUILD_OSG_APPLICATIONS=OFF";
 
   meta = with stdenv.lib; {
     description = "A 3D graphics toolkit";
     homepage = http://www.openscenegraph.org/;
-    maintainers = [ maintainers.raskin ];
-    platforms = platforms.linux;
     license = "OpenSceneGraph Public License - free LGPL-based license";
+    maintainers = with maintainers; [ raskin ];
+    platforms = platforms.linux;
   };
 }

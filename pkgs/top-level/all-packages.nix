@@ -12010,7 +12010,7 @@ in
   opensaml-cpp = callPackage ../development/libraries/opensaml-cpp { };
 
   openscenegraph = callPackage ../development/libraries/openscenegraph { };
-  openscenegraph_3_4 = callPackage ../development/libraries/openscenegraph/3.4.0.nix { };
+  openscenegraph_3_4 = callPackage ../development/libraries/openscenegraph/3.4.nix { };
 
   openslp = callPackage ../development/libraries/openslp {};
 
