@@ -26,25 +26,18 @@ let
     # It shouldn't in any way interfere with building on other platforms.
     preConfigure = ''
       sed -i fpcsrc/compiler/systems/t_linux.pas \
-        -e "s@'/lib/@'${stdenv.cc.libc}/lib/@"   \
-        -e "s@'/lib64/@'${stdenv.cc.libc}/lib/@"
+        -e "s,'/lib/,'${stdenv.cc.libc}/lib/,"   \
+        -e "s,'/lib64/,'${stdenv.cc.libc}/lib/,"
     '';
 
     makeFlags = [
       "NOGDB=1"
       "FPC=${binary}/bin/fpc"
-      # "LD=${binutils}/bin/ld.gold"
-      ''OPT="-gl"''
     ];
 
     installFlags = [
       "INSTALL_PREFIX=$(out)"
     ];
-
-    # NIX_LDFLAGS = [
-    #   "-rpath ${stdenv.cc.cc.lib}/lib"
-    #   "-rpath ${stdenv.cc.libc}/lib"
-    # ];
 
     postInstall = ''
       for i in $out/lib/fpc/*/ppc*; do
