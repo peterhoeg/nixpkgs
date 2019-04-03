@@ -29,6 +29,9 @@ let
         -e "s,'/lib/,'${stdenv.cc.libc}/lib/,"   \
         -e "s,'/lib64/,'${stdenv.cc.libc}/lib/,"
     '';
+      # export OPT="-gl -Fl${stdenv.cc.libc}/lib"
+
+    OPT="-gl -Fl${stdenv.cc.libc}/lib -Fl${stdenv.cc.cc.lib}";
 
     makeFlags = [
       "NOGDB=1"
