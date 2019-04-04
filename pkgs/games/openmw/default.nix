@@ -1,17 +1,19 @@
-{ stdenv, fetchFromGitHub, pkgconfig, cmake
-, qtbase, openscenegraph, mygui, bullet, ffmpeg
-, boost, glew, libGLU_combined, SDL2, unshield, openal, libXt }:
+{ stdenv, lib, fetchFromGitHub, pkgconfig, cmake
+, qtbase, openscenegraph_3_4, mygui, bullet, ffmpeg, tinyxml
+, boost, glew, libGL, libGLU, SDL2, unshield, openal, libXt }:
 
 let
-  openscenegraph_ = openscenegraph.overrideDerivation (self: {
+  openscenegraph_ = openscenegraph_3_4.overrideDerivation (self: {
     # requires version 3.4.x: https://wiki.openmw.org/index.php?title=Development_Environment_Setup
     src = fetchFromGitHub {
       owner  = "OpenMW";
       repo   = "osg";
-      rev    = "OpenSceneGraph-3.4.1";
+      rev    = "OpenSceneGraph-${openscenegraph_3_4.version}";
       sha256 = "1fbzg1ihjpxk6smlq80p3h3ggllbr16ihd2fxpfwzam8yr8yxip9";
     };
   });
+
+  openGL = openscenegraph_.openGLPreference;
 
 in stdenv.mkDerivation rec {
   version = "0.45.0";
@@ -28,20 +30,23 @@ in stdenv.mkDerivation rec {
 
   buildInputs = [
     boost ffmpeg bullet mygui openscenegraph_ SDL2 unshield openal libXt
-    glew libGLU_combined
+    glew libGL libGLU tinyxml
     qtbase
   ];
 
   cmakeFlags = [
     "-DDESIRED_QT_VERSION:INT=5"
-    "-DOpenGL_GL_PREFERENCE=LEGACY" # fails with GLVND
+    "-DOpenGL_GL_PREFERENCE=${openGL}"
+    "-DUSE_SYSTEM_TINYXML=ON"
   ];
+
+  NIX_LDFLAGS = [ ] ++ lib.optional (openGL == "GLVND") "-lGL";
 
   meta = with stdenv.lib; {
     description = "An unofficial open source engine reimplementation of the game Morrowind";
-    homepage = http://openmw.org;
+    homepage = https://openmw.org;
     license = licenses.gpl3;
-    platforms = platforms.linux;
     maintainers = with maintainers; [ abbradar ];
+    platforms = platforms.linux;
   };
 }
