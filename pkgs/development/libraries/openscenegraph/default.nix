@@ -1,5 +1,5 @@
 { stdenv, lib, fetchFromGitHub, cmake, pkgconfig, doxygen,
-  libX11, libXinerama, libXrandr, libGLU_combined,
+  libX11, libXinerama, libXrandr, libGL, libGLU,
   glib, ilmbase, libxml2, pcre, zlib,
   jpegSupport ? true, libjpeg,
   jasperSupport ? true, jasper,
@@ -21,6 +21,7 @@
   luaSupport ? false, lua,
   sdlSupport ? false, SDL2,
   restSupport ? false, asio, boost,
+  openGLPreference ? "GLVND",
   withApps ? false,
   withExamples ? false, fltk, wxGTK,
 }:
@@ -36,10 +37,10 @@ stdenv.mkDerivation rec {
     sha256 = "0h32z15sa8sbq276j0iib0n707m8bs4p5ji9z2ah411446paad9q";
   };
 
-  nativeBuildInputs = [ pkgconfig cmake doxygen ];
+  nativeBuildInputs = [ cmake doxygen pkgconfig ];
 
   buildInputs = [
-    libX11 libXinerama libXrandr libGLU_combined
+    libX11 libXinerama libXrandr libGL libGLU
     glib ilmbase libxml2 pcre zlib
   ] ++ lib.optional jpegSupport libjpeg
     ++ lib.optional jasperSupport jasper
@@ -66,13 +67,22 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  cmakeFlags = lib.optional (!withApps) "-DBUILD_OSG_APPLICATIONS=OFF" ++ lib.optional withExamples "-DBUILD_OSG_EXAMPLES=ON";
+  cmakeFlags = [
+    "-DOpenGL_GL_PREFERENCE=${openGLPreference}"
+  ] ++ lib.optional (!withApps) "-DBUILD_OSG_APPLICATIONS=OFF"
+    ++ lib.optional withExamples "-DBUILD_OSG_EXAMPLES=ON";
+
+  NIX_LDFLAGS = [ ] ++ lib.optional (openGLPreference == "GLVND") "-lGL";
+
+  passthru = {
+    inherit openGLPreference;
+  };
 
   meta = with stdenv.lib; {
     description = "A 3D graphics toolkit";
-    homepage = http://www.openscenegraph.org/;
-    maintainers = [ maintainers.raskin ];
-    platforms = platforms.linux;
+    homepage = https://www.openscenegraph.org/;
     license = "OpenSceneGraph Public License - free LGPL-based license";
+    maintainers = with maintainers; [ raskin ];
+    platforms = platforms.linux;
   };
 }
