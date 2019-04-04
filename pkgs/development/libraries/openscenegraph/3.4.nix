@@ -34,9 +34,15 @@ stdenv.mkDerivation rec {
     "-DOpenGL_GL_PREFERENCE=${openGLPreference}"
   ] ++ lib.optional (!withApps) "-DBUILD_OSG_APPLICATIONS=OFF";
 
+  NIX_LDFLAGS = [ ] ++ lib.optional (openGLPreference == "GLVND") "-lGL";
+
+  passthru = {
+    inherit openGLPreference;
+  };
+
   meta = with stdenv.lib; {
     description = "A 3D graphics toolkit";
-    homepage = http://www.openscenegraph.org/;
+    homepage = https://www.openscenegraph.org/;
     license = "OpenSceneGraph Public License - free LGPL-based license";
     maintainers = with maintainers; [ raskin ];
     platforms = platforms.linux;
