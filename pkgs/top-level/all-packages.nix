@@ -15027,6 +15027,8 @@ in
 
     v86d = callPackage ../os-specific/linux/v86d { };
 
+    vga2usb = callPackage ../os-specific/linux/vga2usb { };
+
     vhba = callPackage ../misc/emulators/cdemu/vhba.nix { };
 
     virtualbox = callPackage ../os-specific/linux/virtualbox {
