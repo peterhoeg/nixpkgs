@@ -1,16 +1,16 @@
-{ stdenv, fetchurl, kernel, kmod, dpkg, tree }:
+{ stdenv, fetchurl, kernel, kmod, cpio, rpm, tree }:
 
 let
-  kernelVersion = "4.9.30";
+  kernelVersion = "4.14.13-300";
 
 in stdenv.mkDerivation rec {
   name = "vga2usb-${version}";
   version = "3.30.2.11";
 
   src = fetchurl {
-    url = "https://ssl.epiphan.com/downloads/linux/browse.php?dir=dists%2Fdebian%2F9.0%2Fx86_64&file=vga2usb-${version}-debian-${kernelVersion}-x86_64.deb";
-    sha256 = "17wi8zykfkqjrb3wpq6hnwzw88x30pv9i1yl6fr55gpvrr5p736h";
-    name = "vga2usb-${version}-debian-${kernelVersion}-x86_64.deb";
+    url = "https://ssl.epiphan.com/downloads/linux/browse.php?dir=dists%2Ffedora%2F27%2Fx86_64&file=${name}-fedora-${kernelVersion}.fc27.x86_64-x86_64.rpm";
+    sha256 = "0kqzzivkhvi9bsfs3w7f9kcdhq41gz8ibqpzasf2mcdjw16m59cy";
+    name = "vga2usb-${version}-fedora-${kernelVersion}-x86_64.rpm";
   };
 
   patches = [ ./do_not_remove.patch ];
@@ -18,11 +18,13 @@ in stdenv.mkDerivation rec {
   postPatch = ''
     substituteInPlace Config.mak \
       --replace /lib/modules $out/lib/modules
+
+      echo $src
   '';
 
   sourceRoot = "usr/src/${name}";
 
-  nativeBuildInputs = [ kernel.moduleBuildDependencies dpkg tree ];
+  nativeBuildInputs = [ kernel.moduleBuildDependencies cpio rpm tree ];
 
   buildInputs = [ kernel kmod ];
 
@@ -31,7 +33,7 @@ in stdenv.mkDerivation rec {
     "KDIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
   ];
 
-  unpackPhase = "dpkg -x $src .";
+  unpackPhase = "rpm2cpio $src | cpio -idmv";
 
   hardeningDisable = [ "format" "pic" "fortify" ];
 
