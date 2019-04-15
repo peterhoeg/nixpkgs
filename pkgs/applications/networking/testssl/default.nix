@@ -2,10 +2,18 @@
 , dnsutils, coreutils, openssl, nettools, utillinux, procps }:
 
 let
-  version = "2.9.5-7";
+  binPath = lib.makeBinPath [
+    coreutils # for pwd and printf
+    dnsutils  # for dig
+    nettools  # for hostname
+    openssl   # for openssl
+    procps    # for ps
+    utillinux # for hexdump
+  ];
 
 in stdenv.mkDerivation rec {
   name = "testssl.sh-${version}";
+  version = "2.9.5-7";
 
   src = fetchFromGitHub {
     owner = "drwetter";
@@ -15,28 +23,25 @@ in stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ makeWrapper ];
-  buildInputs = [
-    coreutils # for pwd and printf
-    dnsutils  # for dig
-    nettools  # for hostname
-    openssl   # for openssl
-    procps    # for ps
-    utillinux # for hexdump
-  ];
 
   postPatch = ''
-    substituteInPlace testssl.sh                                               \
-      --replace /bin/pwd                    pwd                                \
-      --replace TESTSSL_INSTALL_DIR:-\"\"   TESTSSL_INSTALL_DIR:-\"$out\"
+    substituteInPlace testssl.sh \
+      --replace /bin/pwd                       pwd \
+      --replace 'TESTSSL_INSTALL_DIR:-""'      TESTSSL_INSTALL_DIR:-\"$out\" \
+      --replace 'PROG_NAME="$(basename "$0")"' PROG_NAME="testssl.sh"
   '';
 
   installPhase = ''
+    runHook preInstall
+
     install -Dt $out/bin testssl.sh
 
-    wrapProgram $out/bin/testssl.sh                                            \
-      --prefix PATH ':' ${lib.makeBinPath buildInputs}
+    wrapProgram $out/bin/testssl.sh \
+      --prefix PATH ':' ${binPath}
 
     cp -r etc $out
+
+    runHook postInstall
   '';
 
   meta = with stdenv.lib; {
