@@ -5164,6 +5164,8 @@ in
 
   pwgen = callPackage ../tools/security/pwgen { };
 
+  pwgen_secure = callPackage ../tools/security/pwgen_secure { };
+
   pwnat = callPackage ../tools/networking/pwnat { };
 
   pwndbg = python3Packages.callPackage ../development/tools/misc/pwndbg { };
