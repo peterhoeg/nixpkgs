@@ -1,23 +1,38 @@
-{ stdenv, fetchurl }:
+{ stdenv, lib, fetchFromGitHub }:
 
 stdenv.mkDerivation rec {
-  name = "mksh-${version}";
+  pname = "mksh";
   version = "57";
 
-  src = fetchurl {
-    urls = [
-      "https://www.mirbsd.org/MirOS/dist/mir/mksh/mksh-R${version}.tgz"
-      "http://pub.allbsd.org/MirOS/dist/mir/mksh/mksh-R${version}.tgz"
-    ];
-    sha256 = "0xdykm1z710wriwd6nc8s8lwk2dwjl63dq96xxaawlid31a1241x";
+  src = fetchFromGitHub {
+    owner = "MirBSD";
+    repo = pname;
+    rev = "${pname}-R${version}";
+    sha256 = "1m8s8yxif63p2fvzx28gc4zzixi785bkqzn45kn29h7xwj91hc1q";
   };
 
-  buildPhase = ''sh ./Build.sh -r -c lto'';
+  args = lib.concatStringsSep " " [
+    "-j"      # parallel
+    "-r"      # ?
+    "-c lto"  # ?
+  ];
+
+  buildPhase = ''
+    runHook preBuild
+
+    sh ./Build.sh ${args}
+
+    runHook postBuild
+  '';
 
   installPhase = ''
+    runHook preInstall
+
     install -D -m 755 mksh $out/bin/mksh
     install -D -m 644 mksh.1 $out/share/man/man1/mksh.1
     install -D -m 644 dot.mkshrc $out/share/mksh/mkshrc
+
+    runHook postInstall
   '';
 
   meta = with stdenv.lib; {
