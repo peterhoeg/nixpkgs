@@ -1,12 +1,13 @@
 { stdenv, fetchFromGitHub, fetchsvn, fetchpatch, cmake, pkgconfig
 , openal, freealut, libGLU_combined, libvorbis, libogg, gettext, curl, freetype
-, fribidi, libtool, bluez, libjpeg, libpng, zlib, libX11, libXrandr, enet }:
+, fribidi, libtool, bluez, libjpeg, libpng, zlib, libX11, libXrandr, enet
+, onlyServer ? false }:
 
 let
   dir = "stk-code";
 
 in stdenv.mkDerivation rec {
-  pname = "supertuxkart";
+  pname = if onlyServer then "supertuxkart-server" else "supertuxkart";
   version = "1.0";
 
   srcs = [
@@ -38,7 +39,7 @@ in stdenv.mkDerivation rec {
   cmakeFlags = [
     "-DBUILD_RECORDER=OFF"         # libopenglrecorder is not in nixpkgs
     "-DUSE_SYSTEM_ANGELSCRIPT=OFF" # doesn't work with 2.31.2 or 2.32.0
-  ];
+  ] ++ stdenv.lib.optional onlyServer "-DSERVER_ONLY=ON";
 
   sourceRoot = dir;
 

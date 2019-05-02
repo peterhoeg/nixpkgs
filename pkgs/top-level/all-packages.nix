@@ -21558,6 +21558,8 @@ in
 
   superTuxKart = callPackage ../games/super-tux-kart { };
 
+  superTuxKart-server = callPackage ../games/super-tux-kart { onlyServer = true; };
+
   synthv1 = callPackage ../applications/audio/synthv1 { };
 
   t4kcommon = callPackage ../games/t4kcommon { };
