@@ -13,28 +13,26 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  # add dependencies
   propagatedBuildInputs = with python3Packages; [ requests beautifulsoup4 plotly ];
 
   installPhase = ''
-    # create dirs
+    runHook preInstall
+
     mkdir -p $out/share/${pname} $out/bin
 
-    # move project code
     mv * $out/share/${pname}/
 
-    # make project runnable
-    chmod +x $out/share/${pname}/theHarvester.py
-    ln -s $out/share/${pname}/theHarvester.py $out/bin
+    makeWrapper $out/share/${pname}/theHarvester.py $out/bin/theharvester \
+      --prefix PYTHONPATH : $out/share/${pname}:$PYTHONPATH
 
-    wrapProgram "$out/bin/theHarvester.py" --prefix PYTHONPATH : $out/share/${pname}:$PYTHONPATH
+    runHook postInstall
   '';
 
   meta = with stdenv.lib; {
     description = "Gather E-mails, subdomains and names from different public sources";
     homepage = "https://github.com/laramies/theHarvester";
+    license = licenses.gpl2;
     platforms = platforms.all;
     maintainers = with maintainers; [ treemo ];
-    license = licenses.gpl2;
   };
 }
