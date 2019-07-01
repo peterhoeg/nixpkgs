@@ -15,6 +15,8 @@ buildRubyGem rec {
     sha256 = "05y8sy6v9km1dwvpjzkjxpfzv95g6yzac1b5blac2f1r2kw167p8";
   };
 
+  patches = [ ./bundix_dot_git.patch ];
+
   buildInputs = [ ruby bundler ];
   nativeBuildInputs = [ makeWrapper ];
 
