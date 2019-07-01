@@ -7,6 +7,7 @@ with lib;
   config = mkIf config.boot.isContainer {
 
     # Disable some features that are not useful in a container.
+    services.nix.optimise.automatic = mkDefault false;
     services.udisks2.enable = mkDefault false;
     powerManagement.enable = mkDefault false;
 
