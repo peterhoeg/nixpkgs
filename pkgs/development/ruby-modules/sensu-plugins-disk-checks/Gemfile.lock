@@ -1,0 +1,23 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ffi (1.11.1)
+    json (2.2.0)
+    mixlib-cli (1.7.0)
+    sensu-plugin (4.0.0)
+      json (< 3.0.0)
+      mixlib-cli (~> 1.5)
+    sensu-plugins-disk-checks (5.0.0)
+      sensu-plugin (~> 4.0)
+      sys-filesystem (= 1.1.7)
+    sys-filesystem (1.1.7)
+      ffi
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sensu-plugins-disk-checks
+
+BUNDLED WITH
+   1.17.2

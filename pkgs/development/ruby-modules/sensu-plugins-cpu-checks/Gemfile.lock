@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (2.2.0)
+    linux-kstat (0.1.3-universal-linux)
+    mixlib-cli (1.7.0)
+    sensu-plugin (4.0.0)
+      json (< 3.0.0)
+      mixlib-cli (~> 1.5)
+    sensu-plugins-cpu-checks (4.0.0)
+      linux-kstat (= 0.1.3)
+      sensu-plugin (~> 4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sensu-plugins-cpu-checks
+
+BUNDLED WITH
+   1.17.2

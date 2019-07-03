@@ -1,0 +1,27 @@
+GIT
+  remote: git@github.com:speartail/sensu-plugins-ipmi.git
+  revision: 19c3fdf5fdc8740d29ddf5d6af9f36d6448121a8
+  branch: a/driver
+  specs:
+    sensu-plugins-ipmi (1.0.1)
+      rubyipmi (= 0.10.0)
+      sensu-plugin (~> 1.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (1.8.6)
+    mixlib-cli (1.7.0)
+    rubyipmi (0.10.0)
+    sensu-plugin (1.4.7)
+      json (< 2.0.0)
+      mixlib-cli (~> 1.5)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sensu-plugins-ipmi!
+
+BUNDLED WITH
+   1.17.2

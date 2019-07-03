@@ -1,0 +1,23 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    english (0.6.3)
+      language
+    json (1.8.6)
+    language (0.6.0)
+    mixlib-cli (1.7.0)
+    sensu-plugin (1.4.7)
+      json (< 2.0.0)
+      mixlib-cli (~> 1.5)
+    sensu-plugins-raid-checks (2.0.3)
+      english (= 0.6.3)
+      sensu-plugin (~> 1.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sensu-plugins-raid-checks
+
+BUNDLED WITH
+   1.17.2

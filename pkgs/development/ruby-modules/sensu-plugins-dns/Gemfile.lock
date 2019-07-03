@@ -1,0 +1,44 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activesupport (5.2.3)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 0.7, < 2)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
+    addressable (2.6.0)
+      public_suffix (>= 2.0.2, < 4.0)
+    concurrent-ruby (1.1.5)
+    dnsruby (1.61.2)
+      addressable (~> 2.5)
+    i18n (1.6.0)
+      concurrent-ruby (~> 1.0)
+    json (1.8.6)
+    minitest (5.11.3)
+    mixlib-cli (1.7.0)
+    public_suffix (2.0.5)
+    sensu-plugin (1.4.7)
+      json (< 2.0.0)
+      mixlib-cli (~> 1.5)
+    sensu-plugins-dns (2.1.1)
+      dnsruby (~> 1.59, >= 1.59.2)
+      public_suffix (~> 2)
+      sensu-plugin (~> 1.2)
+      whois (~> 4.0)
+      whois-parser (~> 1.0)
+    thread_safe (0.3.6)
+    tzinfo (1.2.5)
+      thread_safe (~> 0.1)
+    whois (4.1.0)
+    whois-parser (1.2.0)
+      activesupport (>= 4)
+      whois (>= 4.0.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  sensu-plugins-dns
+
+BUNDLED WITH
+   1.17.2
