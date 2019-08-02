@@ -376,6 +376,7 @@
   ./services/hardware/undervolt.nix
   ./services/hardware/vdr.nix
   ./services/hardware/xow.nix
+  ./services/home-automation/openhab.nix
   ./services/logging/SystemdJournal2Gelf.nix
   ./services/logging/awstats.nix
   ./services/logging/fluentd.nix
