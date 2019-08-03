@@ -1,20 +1,20 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
-
   cfg = config.services.openvpn;
 
-  inherit (pkgs) openvpn;
+  inherit (lib)
+    literalExpression mkIf mkOption mkRemovedOptionModule types
+    getExe
+    getAttr listToAttrs makeBinPath mapAttrsFlatten nameValuePair
+    optional optionalAttrs optionalString;
 
   makeOpenVPNJob = cfg: name:
     let
-
       path = makeBinPath (getAttr "openvpn-${name}" config.systemd.services).path;
 
       upScript = ''
-        #! /bin/sh
+        #!${pkgs.runtimeShell}
         export PATH=${path}
 
         # For convenience in client scripts, extract the remote domain
@@ -34,52 +34,46 @@ let
       '';
 
       downScript = ''
-        #! /bin/sh
+        #!${pkgs.runtimeShell}
         export PATH=${path}
         ${optionalString cfg.updateResolvConf
            "${pkgs.update-resolv-conf}/libexec/openvpn/update-resolv-conf"}
         ${cfg.down}
       '';
 
-      configFile = pkgs.writeText "openvpn-config-${name}"
-        ''
-          errors-to-stderr
-          ${optionalString (cfg.up != "" || cfg.down != "" || cfg.updateResolvConf) "script-security 2"}
-          ${cfg.config}
-          ${optionalString (cfg.up != "" || cfg.updateResolvConf)
-              "up ${pkgs.writeScript "openvpn-${name}-up" upScript}"}
-          ${optionalString (cfg.down != "" || cfg.updateResolvConf)
-              "down ${pkgs.writeScript "openvpn-${name}-down" downScript}"}
-          ${optionalString (cfg.authUserPass != null)
-              "auth-user-pass ${pkgs.writeText "openvpn-credentials-${name}" ''
-                ${cfg.authUserPass.username}
-                ${cfg.authUserPass.password}
-              ''}"}
-        '';
+      configFile = pkgs.writeText "openvpn-config-${name}" ''
+        errors-to-stderr
+        ${optionalString (cfg.up != "" || cfg.down != "" || cfg.updateResolvConf) "script-security 2"}
+        ${cfg.config}
+        ${optionalString (cfg.up != "" || cfg.updateResolvConf)
+            "up ${pkgs.writeScript "openvpn-${name}-up" upScript}"}
+        ${optionalString (cfg.down != "" || cfg.updateResolvConf)
+            "down ${pkgs.writeScript "openvpn-${name}-down" downScript}"}
+        ${optionalString (cfg.authUserPass != null)
+            "auth-user-pass ${pkgs.writeText "openvpn-credentials-${name}" ''
+              ${cfg.authUserPass.username}
+              ${cfg.authUserPass.password}
+            ''}"}
+      '';
 
     in
     {
       description = "OpenVPN instance ‘${name}’";
 
-      wantedBy = optional cfg.autoStart "multi-user.target";
+      wantedBy = optional cfg.autoStart "openvpn.target";
       after = [ "network.target" ];
 
-      path = [ pkgs.iptables pkgs.iproute2 pkgs.nettools ];
+      path = with pkgs; [ iptables iproute2 nettools ];
 
-      serviceConfig.ExecStart = "@${openvpn}/sbin/openvpn openvpn --suppress-timestamps --config ${configFile}";
-      serviceConfig.Restart = "always";
-      serviceConfig.Type = "notify";
+      serviceConfig = {
+        ExecStart = "@${getExe pkgs.openvpn} openvpn --suppress-timestamps --config ${configFile}";
+        Restart = "always";
+        Type = "notify";
+        RuntimeDirectory = "openvpn";
+        StateDirectory = "openvpn";
+        Slice = "openvpn.slice";
+      };
     };
-
-  restartService = optionalAttrs cfg.restartAfterSleep {
-    openvpn-restart = {
-      wantedBy = [ "sleep.target" ];
-      path = [ pkgs.procps ];
-      script = "pkill --signal SIGHUP --exact openvpn";
-      #SIGHUP makes openvpn process to self-exit and then it got restarted by systemd because of Restart=always
-      description = "Sends a signal to OpenVPN process to trigger a restart after return from sleep";
-    };
-  };
 
 in
 
@@ -90,9 +84,16 @@ in
 
   ###### interface
 
-  options = {
+  options.services.openvpn = {
+    enableForwarding = mkOption {
+      default = false;
+      type = types.bool;
+      description = ''
+        Set up IP forwarding on the host.
+      '';
+    };
 
-    services.openvpn.servers = mkOption {
+    servers = mkOption {
       default = { };
 
       example = literalExpression ''
@@ -207,31 +208,59 @@ in
             });
           };
         };
-
       });
-
     };
 
-    services.openvpn.restartAfterSleep = mkOption {
+    restartAfterSleep = mkOption {
       default = true;
       type = types.bool;
       description = lib.mdDoc "Whether OpenVPN client should be restarted after sleep.";
     };
-
   };
-
 
   ###### implementation
 
   config = mkIf (cfg.servers != { }) {
 
     systemd.services = (listToAttrs (mapAttrsFlatten (name: value: nameValuePair "openvpn-${name}" (makeOpenVPNJob value name)) cfg.servers))
-      // restartService;
+      // optionalAttrs cfg.restartAfterSleep {
+      openvpn-restart = {
+        wantedBy = [ "sleep.target" ];
+        path = [ pkgs.procps ];
+        script = "pkill --signal SIGHUP --exact openvpn";
+        #SIGHUP makes openvpn process to self-exit and then it got restarted by systemd because of Restart=always
+        description = "Sends a signal to OpenVPN process to trigger a restart after return from sleep";
+      };
+    };
 
-    environment.systemPackages = [ openvpn ];
+    systemd.targets.openvpn = {
+      description = "OpenVPN instances";
+      wantedBy = [ "multi-user.target" ];
+    };
+
+    environment.systemPackages = [ pkgs.openvpn ];
 
     boot.kernelModules = [ "tun" ];
 
-  };
+    boot.kernel.sysctl = lib.mkIf cfg.enableForwarding ({
+      "net.ipv4.ip_forward" = true;
+    } // (lib.optionalAttrs config.networking.enableIPv6 {
+      "net.ipv6.conf.all.forwarding" = true;
+    }));
 
+    users =
+      let
+        user = "openvpn";
+      in
+      {
+        users."${user}" = {
+          description = "OpenVPN";
+          isNormalUser = false;
+          group = user;
+          uid = config.ids.uids."${user}";
+        };
+
+        groups."${user}".gid = config.ids.gids."${user}";
+      };
+  };
 }
