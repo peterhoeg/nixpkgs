@@ -60,14 +60,23 @@ let
     in {
       description = "OpenVPN instance ‘${name}’";
 
-      wantedBy = optional cfg.autoStart "multi-user.target";
+      wantedBy = optional cfg.autoStart "openvpn.target";
       after = [ "network.target" ];
 
       path = [ pkgs.iptables pkgs.iproute pkgs.nettools ];
 
-      serviceConfig.ExecStart = "@${openvpn}/sbin/openvpn openvpn --suppress-timestamps --config ${configFile}";
-      serviceConfig.Restart = "always";
-      serviceConfig.Type = "notify";
+      preStart = ''
+        chown openvpn:openvpn /var/lib/openvpn /run/openvpn -R
+      '';
+
+      serviceConfig = {
+        ExecStart = "@${openvpn}/sbin/openvpn openvpn --suppress-timestamps --config ${configFile}";
+        Restart = "always";
+        Type = "notify";
+        RuntimeDirectory = "openvpn";
+        StateDirectory = "openvpn";
+        Slice = "openvpn.slice";
+      };
     };
 
 in
@@ -81,7 +90,17 @@ in
 
   options = {
 
-    services.openvpn.servers = mkOption {
+    services.openvpn = {
+
+      enableForwarding = mkOption {
+        default = false;
+        type = types.bool;
+        description = ''
+          Set up IP forwarding on the host.
+        '';
+      };
+
+      servers = mkOption {
       default = {};
 
       example = literalExample ''
@@ -196,13 +215,10 @@ in
             });
           };
         };
-
       });
-
     };
-
   };
-
+  };
 
   ###### implementation
 
@@ -210,10 +226,33 @@ in
 
     systemd.services = listToAttrs (mapAttrsFlatten (name: value: nameValuePair "openvpn-${name}" (makeOpenVPNJob value name)) cfg.servers);
 
+    systemd.targets.openvpn = {
+      description = "OpenVPN instances";
+      wantedBy = [ "multi-user.target" ];
+    };
+
     environment.systemPackages = [ openvpn ];
 
     boot.kernelModules = [ "tun" ];
 
+    boot.kernel.sysctl = lib.mkIf cfg.enableForwarding ({
+      "net.ipv4.ip_forward" = true;
+    } // (lib.optionalAttrs config.networking.enableIPv6 {
+      "net.ipv6.conf.all.forwarding" = true;
+    }));
+
+    users = let
+      user = "openvpn";
+    in {
+      users."${user}" = {
+        description = "OpenVPN";
+        isNormalUser = false;
+        group = user;
+        uid = config.ids.uids."${user}";
+      };
+
+      groups."${user}".gid = config.ids.gids."${user}";
+    };
   };
 
 }
