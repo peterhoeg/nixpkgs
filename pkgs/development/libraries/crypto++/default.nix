@@ -1,49 +1,50 @@
-{ fetchFromGitHub, stdenv }:
+{ stdenv, lib, fetchFromGitHub, cmake }:
 
-stdenv.mkDerivation rec {
-  name = "crypto++-${version}";
-  majorVersion = "5.6";
-  version = "${majorVersion}.5";
+let
+  version = "8.2.0";
+  rev = "CRYPTOPP_${lib.replaceStrings [ "." ] [ "_" ] version}";
+
+  # Build via cmake which adds support for downstream consumers to use cmake
+  # as well
+  cmakeFiles = fetchFromGitHub {
+    owner = "noloader";
+    repo = "cryptopp-cmake";
+    inherit rev;
+    sha256 = "10ln100055nxb38dk6v2vn737drxkly44lq699k0l6qc2ikbdiwa";
+  };
+
+in stdenv.mkDerivation rec {
+  pname = "crypto++";
+  inherit version;
 
   src = fetchFromGitHub {
     owner = "weidai11";
     repo = "cryptopp";
-    rev = "CRYPTOPP_5_6_5";
-    sha256 = "1yk7jyf4va9425cg05llskpls2jm7n3jwy2hj5jm74zkr4mwpvl7";
+    inherit rev;
+    sha256 = "01zrrzjn14yhkb9fzzl57vmh7ig9a6n6fka45f8za0gf7jpcq3mj";
   };
 
-  patches = stdenv.lib.concatLists [
-    (stdenv.lib.optional (stdenv.hostPlatform.system != "i686-cygwin") ./dll.patch)
-    (stdenv.lib.optional stdenv.hostPlatform.isDarwin ./GNUmakefile-darwin.patch)
-  ];
-
-
-  configurePhase = ''
-      sed -i GNUmakefile \
-        -e 's|-march=native|-fPIC|g' \
-        -e '/^CXXFLAGS =/s|-g ||'
+  postPatch = ''
+    cp ${cmakeFiles}/{CMakeLists.txt,cryptopp-config.cmake} .
   '';
 
-  enableParallelBuilding = true;
-
-  makeFlags = [ "PREFIX=$(out)" ];
-  buildFlags = [ "libcryptopp.so" ];
-  installFlags = [ "LDCONF=true" ];
+  nativeBuildInputs = [ cmake ];
 
   doCheck = true;
-  checkPhase = "LD_LIBRARY_PATH=`pwd` make test";
 
-  # prefer -fPIC and .so to .a; cryptotest.exe seems superfluous
-  postInstall = ''
-    rm "$out"/lib/*.a -r "$out/bin"
-    ln -sf "$out"/lib/libcryptopp.so.${version} "$out"/lib/libcryptopp.so.${majorVersion}
+  checkPhase = ''
+    runHook preCheck
+    
+    LD_LIBRARY_PATH=`pwd` make test
+
+    runHook postCheck
   '';
 
   meta = with stdenv.lib; {
     description = "Crypto++, a free C++ class library of cryptographic schemes";
     homepage = http://cryptopp.com/;
     license = licenses.boost;
-    platforms = platforms.all;
     maintainers = [ ];
+    platforms = platforms.all;
   };
 }
