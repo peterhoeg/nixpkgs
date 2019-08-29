@@ -4,8 +4,8 @@
 }:
 
 stdenv.mkDerivation rec {
-  inherit version;
   pname = "libsigrok";
+  inherit version;
 
   src = fetchurl {
     url = "https://sigrok.org/download/source/${pname}/${pname}-${version}.tar.gz";
@@ -18,20 +18,24 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ pkgconfig ];
+
   buildInputs = [ libzip glib libusb1 libftdi1 check libserialport
     librevisa doxygen glibmm python
   ];
 
+  enableParallelBuilding = true;
+
   postInstall = ''
     mkdir -p "$out/share/sigrok-firmware/"
     tar --strip-components=1 -xvf "${firmware}" -C "$out/share/sigrok-firmware/"
+    install -Dm444 -t $out/lib/udev/rules.d contrib/*.rules
   '';
 
   meta = with stdenv.lib; {
     description = "Core library of the sigrok signal analysis software suite";
-    homepage = https://sigrok.org/;
+    homepage = "https://sigrok.org/";
     license = licenses.gpl3Plus;
+    maintainers = with maintainers; [ bjornfor ];
     platforms = platforms.linux ++ platforms.darwin;
-    maintainers = [ maintainers.bjornfor ];
   };
 }
