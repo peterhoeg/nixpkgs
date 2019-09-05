@@ -1,53 +1,98 @@
-{ fetchurl, stdenv, pkgconfig, python, file, bc, fetchpatch
-, qtbase, qtsvg, hunspell, makeWrapper #, mythes, boost
+{ aspell
+, bc
+, boost168 # 2.3.3 bundles 1.6.8
+, cmake
+, enchant
+, fetchpatch
+, fetchurl
+, file
+, hunspell
+, lib
+, makeWrapper
+, mkDerivation
+, mythes
+, ninja
+, pkgconfig
+, python
+, qtbase
+, qtsvg
 }:
 
-stdenv.mkDerivation rec {
-  version = "2.3.0";
+let
+  # we have to manually provide the paths, so define them which allows us to
+  # check if they are actually present before continuing with the build
+  enchantInc = "${enchant.dev}/include/enchant-2";
+  enchantLib = "${enchant}/lib/libenchant-2.so";
+  hunspellLib = "${hunspell.out}/lib/libhunspell-1.7.so";
+
+in
+mkDerivation rec {
   pname = "lyx";
+  version = "2.3.3";
 
   src = fetchurl {
     url = "ftp://ftp.lyx.org/pub/lyx/stable/2.3.x/${pname}-${version}.tar.xz";
-    sha256 = "0axri2h8xkna4mkfchfyyysbjl7s486vx80p5hzj9zgsvdm5a3ri";
+    sha256 = "0faf5028pdp42k6m9xd97ymim5xx370qlgv9lxvd50djvpmyy7lr";
   };
 
-  # LaTeX is used from $PATH, as people often want to have it with extra pkgs
-  nativeBuildInputs = [ pkgconfig ];
+  nativeBuildInputs = [ cmake makeWrapper ninja pkgconfig ];
+
   buildInputs = [
-    qtbase qtsvg python file/*for libmagic*/ bc
-    hunspell makeWrapper # enchant
+    aspell
+    bc
+    boost168
+    enchant
+    file # for libmagic
+    hunspell
+    mythes
+    python
+    qtbase
+    qtsvg
   ];
 
-  configureFlags = [
-    "--enable-qt5"
-    #"--without-included-boost"
-    /*  Boost is a huge dependency from which 1.4 MB of libs would be used.
-        Using internal boost stuff only increases executable by around 0.2 MB. */
-    #"--without-included-mythes" # such a small library isn't worth a separate package
+  cmakeFlags = [
+    # we need to manually provide these in order for them to be found
+    "-DENCHANT_INCLUDE_DIR=${enchantInc}"
+    "-DENCHANT_LIBRARY=${enchantLib}"
+    "-DHUNSPELL_LIBRARY=${hunspellLib}"
+    "-DLYX_ENCHANT=ON"
+    # we prefer to use our system-installed libraries
+    "-DLYX_EXTERNAL_BOOST=ON"
+    "-DLYX_EXTERNAL_MYTHES=ON"
+    "-DLYX_INSTALL=ON"
+    "-DLYX_MERGE_FILES=OFF" # supposedly speeds up compilation but breaks the build
+    "-DLYX_PACKAGE_SUFFIX=OFF"
+    "-DLYX_PROGRAM_SUFFIX=OFF"
+    "-DLYX_RELEASE=ON" # lyx defaults to debug mode
   ];
 
-  enableParallelBuilding = true;
-  doCheck = true;
+  # Sanity check up front that our manually provided paths actually exist
+  preBuild = ''
+    checkDep() {
+      if [ ! -e $1 ]; then
+        echo "Unable to find: $1"
+        exit 1
+      fi
+    }
 
-  # python is run during runtime to do various tasks
-  postFixup = ''
-    wrapProgram "$out/bin/lyx" \
-      --prefix PATH : '${python}/bin'
+    ${lib.concatMapStringsSep "\n" (l:
+      "checkDep ${l}"
+    ) [ enchantInc enchantLib hunspellLib ]}
   '';
 
-  patches = [
-    (fetchpatch {
-      url = "https://gitweb.gentoo.org/repo/gentoo.git/plain/app-office/lyx/files/lyx-2.3.0-qt-5.11.patch?id=07e82fd1fc07bf055c78b81eaa128f8f837da80d";
-      sha256 = "1bnx0il2iv36lnrnyb370wyvww0rd8bphcy6z8d7zmvd3pwhyfql";
-    })
+  # half the tests are broken
+  doCheck = false;
+
+  qtWrapperArgs = [
+    # python is used during runtime to do various tasks
+    "--prefix PATH : ${lib.makeBinPath [ python ]}"
   ];
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "WYSIWYM frontend for LaTeX, DocBook";
-    homepage = http://www.lyx.org;
+    homepage = "https://www.lyx.org";
     license = licenses.gpl2Plus;
-    maintainers = [ maintainers.vcunat ];
+    maintainers = with maintainers; [ vcunat ];
     platforms = platforms.linux;
   };
 }
-
