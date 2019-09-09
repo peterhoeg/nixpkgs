@@ -3,13 +3,13 @@
 
 stdenv.mkDerivation rec {
   pname = "yad";
-  version = "0.42.0";
+  version = "4.1";
 
   src = fetchFromGitHub {
     owner = "v1cont";
     repo = "yad";
-    rev = "v${version}";
-    sha256 = "0ym8pgbzx7ydk5rmi2kwwdyzi6pdpcps86i0c20cqcjmqh8kdl36";
+    rev = version;
+    sha256 = "192j2q9fjifwq4v1whfsvcrl0lk1b7vzasa1sq9qjjr0i6y10mp9";
   };
 
   configureFlags = [
@@ -21,6 +21,8 @@ stdenv.mkDerivation rec {
   buildInputs = [ gtk3 hicolor-icon-theme ];
 
   nativeBuildInputs = [ autoreconfHook pkgconfig intltool wrapGAppsHook ];
+
+  enableParallelBuilding = true;
 
   postPatch = ''
     sed -i src/file.c -e '21i#include <glib/gprintf.h>'
