@@ -1,4 +1,4 @@
-{ stdenv, lib, buildGoPackage, fetchFromGitHub
+{ stdenv, lib, buildGoPackage, fetchFromGitHub, installShellFiles
 , Cocoa ? null }:
 
 buildGoPackage rec {
@@ -13,6 +13,9 @@ buildGoPackage rec {
   };
 
   buildInputs = lib.optional stdenv.isDarwin Cocoa;
+
+  nativeBuildInputs = [ installShellFiles ];
+
   # TODO: Remove this when we update apple_sdk
   NIX_CFLAGS_COMPILE = lib.optional stdenv.isDarwin "-fno-objc-arc";
 
@@ -23,8 +26,7 @@ buildGoPackage rec {
   '';
 
   postInstall = ''
-    install -Dm444 -t $out/share/man/man1 $src/docs/man/*.1
-    install -Dm444 -t $out/share/man/man5 $src/docs/man/*.5
+    installManPage $src/docs/man/*.{1,5}
   '';
 
   meta = with lib; {
@@ -34,9 +36,9 @@ buildGoPackage rec {
 
       Never sit and wait for some long-running process to finish. Noti can alert you when it's done. You can receive messages on your computer or phone.
     '';
-    homepage = https://github.com/variadico/noti;
+    homepage = "https://github.com/variadico/noti";
     license = licenses.mit;
-    maintainers = with maintainers; [ stites ];
+    maintainers = with maintainers; [ stites peterhoeg ];
     platforms = platforms.all;
   };
 }
