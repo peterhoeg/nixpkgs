@@ -14,7 +14,6 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--enable-icon-browser"
-    "--with-gtk=gtk3"
     "--with-rgb=${placeholder "out"}/share/yad/rgb.txt"
   ];
 
