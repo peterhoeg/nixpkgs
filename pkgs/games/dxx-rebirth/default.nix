@@ -1,5 +1,5 @@
 { stdenv, fetchurl, fetchpatch, scons, pkgconfig
-, SDL, SDL_mixer, libGLU_combined, physfs
+, SDL, SDL_mixer, libGLU, physfs
 }:
 
 let
@@ -33,20 +33,20 @@ in stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkgconfig scons ];
 
-  buildInputs = [ libGLU_combined physfs SDL SDL_mixer ];
+  buildInputs = [ libGLU physfs SDL SDL_mixer ];
 
   enableParallelBuilding = true;
 
-  NIX_CFLAGS_COMPILE = "-Wno-format-nonliteral";
+  NIX_CFLAGS_COMPILE = "-Wno-format-nonliteral -Wno-error=useless-cast";
 
   postInstall = ''
-    install -Dm644 ${music} $out/share/games/dxx-rebirth/d2xr-sc55-music.dxa
+    install -Dm644 ${music} $out/share/games/dxx-rebirth/${music.name}
     install -Dm644 -t $out/share/doc/dxx-rebirth *.txt
   '';
 
   meta = with stdenv.lib; {
     description = "Source Port of the Descent 1 and 2 engines";
-    homepage = https://www.dxx-rebirth.com/;
+    homepage = "https://www.dxx-rebirth.com/";
     license = licenses.free;
     maintainers = with maintainers; [ peterhoeg ];
     platforms = with platforms; linux;
