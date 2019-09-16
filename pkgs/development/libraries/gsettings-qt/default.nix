@@ -1,62 +1,61 @@
-{ stdenv, fetchbzr, pkgconfig
-, qmake, qtbase, qtdeclarative, wrapQtAppsHook
-, glib, gobject-introspection
+{ stdenv, mkDerivation, lib, extra-cmake-modules, fetchFromGitHub, pkgconfig
+, cmake, qtbase, qtdeclarative, wrapQtAppsHook
+, glib, gobject-introspection, pcre, utillinux
 }:
 
-stdenv.mkDerivation {
-  pname = "gsettings-qt";
-  version = "0.1.20170824";
+let
+  cmakeShared = stdenv.mkDerivation rec {
+    pname = "lirios-cmake-shared";
+    version = "1.1.0";
 
-  src = fetchbzr {
-    url = http://bazaar.launchpad.net/~system-settings-touch/gsettings-qt/trunk;
-    rev = "85";
-    sha256 = "1kcw0fgdyndx9c0dyha11wkj0gi05spdc1adf1609mrinbb4rnyi";
+    src = fetchFromGitHub {
+      owner = "lirios";
+      repo = "cmake-shared";
+      rev = "v${version}";
+      sha256 = "0bs17lz856frk65q9gb3lckkr0c2qi4krnp2719kdxxz9n6mjz9f";
+    };
+
+    nativeBuildInputs = [ cmake ];
+
+    meta = with lib; {
+      description = "Liri OS shared CMake functions and macros";
+      license = licenses.bsd;
+      inherit (src.meta) homepage;
+    };
+  };
+
+in
+mkDerivation rec {
+  pname = "gsettings-qt";
+  version = "1.3.0";
+
+  src = fetchFromGitHub {
+    owner = "lirios";
+    repo = "qtgsettings";
+    rev = "v${version}";
+    sha256 = "0pl285r1ny7l15rs4zmlff2yh7ssdxqxivxvr3az5q4b7qs743yn";
   };
 
   nativeBuildInputs = [
-    pkgconfig
-    qmake
+    cmake
+    cmakeShared
+    extra-cmake-modules
     gobject-introspection
-    wrapQtAppsHook
+    pkgconfig
   ];
 
   buildInputs = [
     glib
+    pcre
     qtdeclarative
+    utillinux
   ];
 
-  patchPhase = ''
-    # force ordered build of subdirs
-    sed -i -e "\$aCONFIG += ordered" gsettings-qt.pro
-
-    # It seems that there is a bug in qtdeclarative: qmlplugindump fails
-    # because it can not find or load the Qt platform plugin "minimal".
-    # A workaround is to set QT_PLUGIN_PATH and QML2_IMPORT_PATH explicitly.
-    export QT_PLUGIN_PATH=${qtbase.bin}/${qtbase.qtPluginPrefix}
-    export QML2_IMPORT_PATH=${qtdeclarative.bin}/${qtbase.qtQmlPrefix}
-
-    substituteInPlace GSettings/gsettings-qt.pro \
-      --replace '$$[QT_INSTALL_QML]' "$out/$qtQmlPrefix" \
-      --replace '$$[QT_INSTALL_BINS]/qmlplugindump' "qmlplugindump"
-
-    substituteInPlace src/gsettings-qt.pro \
-      --replace '$$[QT_INSTALL_LIBS]' "$out/lib" \
-      --replace '$$[QT_INSTALL_HEADERS]' "$out/include"
-  '';
-
-  preInstall = ''
-    # do not install tests
-    for f in tests/Makefile{,.cpptest}; do
-      substituteInPlace $f \
-        --replace "install: install_target" "install: "
-    done
-  '';
-
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Qt/QML bindings for GSettings";
-    homepage = https://launchpad.net/gsettings-qt;
     license = licenses.lgpl3;
+    maintainers = with maintainers; [ romildo ];
     platforms = platforms.linux;
-    maintainers = [ maintainers.romildo ];
+    inherit (src.meta) homepage;
   };
 }
