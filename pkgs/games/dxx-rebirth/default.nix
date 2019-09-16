@@ -37,7 +37,7 @@ in stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  NIX_CFLAGS_COMPILE = "-Wno-format-nonliteral -Werror=useless-cast";
+  NIX_CFLAGS_COMPILE = "-Wno-format-nonliteral -Wno-useless-cast";
 
   postInstall = ''
     install -Dm644 ${music} $out/share/games/dxx-rebirth/d2xr-sc55-music.dxa
