@@ -1,52 +1,40 @@
-{ stdenv, fetchurl, fetchpatch, scons, pkgconfig
-, SDL, SDL_mixer, libGLU_combined, physfs
+{ gcc6Stdenv, lib, fetchFromGitHub, fetchurl, scons, pkgconfig
+, libpng, SDL, SDL_mixer, libGL, libGLU, physfs
 }:
 
-let
-  music = fetchurl {
-    url = "https://www.dxx-rebirth.com/download/dxx/res/d2xr-sc55-music.dxa";
-    sha256 = "05mz77vml396mff43dbs50524rlm4fyds6widypagfbh5hc55qdc";
-  };
+# no dxx release will compile with gcc7 without patches and gcc8 at all so just
+# stick to gcc6 for now
 
-in stdenv.mkDerivation rec {
+gcc6Stdenv.mkDerivation rec {
   pname = "dxx-rebirth";
-  version = "0.59.100";
+  version = "0.60.0-beta2";
 
-  src = fetchurl {
-    url = "https://www.dxx-rebirth.com/download/dxx/dxx-rebirth_v${version}-src.tar.gz";
-    sha256 = "0m9k34zyr8bbni9szip407mffdpwbqszgfggavgqjwq0k9c1w7ka";
+  src = fetchFromGitHub {
+    owner = "dxx-rebirth";
+    repo = "dxx-rebirth";
+    rev = version;
+    sha256 = "01mv4yjcydmi04p51zbiv0786853h6hm8ryaz9zsvpd90rfdmz66";
   };
-
-  # TODO: drop these when upgrading to version > 0.59.100
-  patches = [
-    (fetchpatch {
-      name   = "dxx-gcc7-fix1.patch";
-      url    = "https://github.com/dxx-rebirth/dxx-rebirth/commit/1ed7cec714c623758e3418ec69eaf3b3ff03e9f6.patch";
-      sha256 = "026pn8xglmxryaj8555h5rhzkx30lxmksja1fzdlfyb1vll75gq0";
-    })
-    (fetchpatch {
-      name   = "dxx-gcc7-fix2.patch";
-      url    = "https://github.com/dxx-rebirth/dxx-rebirth/commit/73057ad8ec6977ac747637db1080686f11b4c3cc.patch";
-      sha256 = "0s506vdd2djrrm3xl0ygn9ylpg6y8qxii2nnzk3sf9133glp3swy";
-    })
-  ];
 
   nativeBuildInputs = [ pkgconfig scons ];
 
-  buildInputs = [ libGLU_combined physfs SDL SDL_mixer ];
+  buildInputs = [ libpng libGL libGLU physfs SDL SDL_mixer ];
+
+  sconsFlags = [
+    "lto=1"
+    "sdlmixer=1"
+    "sharepath=${placeholder "out"}/share/${pname}"
+  ];
 
   enableParallelBuilding = true;
 
-  NIX_CFLAGS_COMPILE = "-Wno-format-nonliteral";
-
   postInstall = ''
-    install -Dm644 ${music} $out/share/games/dxx-rebirth/d2xr-sc55-music.dxa
-    install -Dm644 -t $out/share/doc/dxx-rebirth *.txt
+    install -Dm644 -t $out/share/doc/${pname} *.txt
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Source Port of the Descent 1 and 2 engines";
-    homepage = https://www.dxx-rebirth.com/;
+    homepage = "https://www.dxx-rebirth.com/";
     license = licenses.free;
     maintainers = with maintainers; [ peterhoeg ];
     platforms = with platforms; linux;

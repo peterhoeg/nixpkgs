@@ -21861,17 +21861,15 @@ in
 
   dwarf-therapist = dwarf-fortress-packages.dwarf-therapist;
 
-  dxx-rebirth = callPackage ../games/dxx-rebirth {
-    physfs = physfs_2;
-  };
+  dxx-rebirth = callPackage ../games/dxx-rebirth { physfs = physfs_2; };
 
   inherit (callPackages ../games/dxx-rebirth/assets.nix { })
     descent1-assets
     descent2-assets;
 
-  inherit (callPackages ../games/dxx-rebirth/full.nix { })
-    d1x-rebirth-full
-    d2x-rebirth-full;
+  inherit (callPackages ../games/dxx-rebirth/wrapped.nix {})
+    d1x-rebirth-with-assets
+    d2x-rebirth-with-assets;
 
   easyrpg-player = callPackage ../games/easyrpg-player { };
 
