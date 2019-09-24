@@ -14939,7 +14939,9 @@ in
 
   munin = callPackage ../servers/monitoring/munin { };
 
-  monitoring-plugins = callPackage ../servers/monitoring/plugins { };
+  inherit (callPackages ../servers/monitoring/plugins { })
+    monitoring-plugins
+    monitoring-plugins-unstable;
 
   inherit (callPackage ../servers/monitoring/plugins/labs_consol_de.nix { })
     check-mssql-health
