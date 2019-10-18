@@ -61,8 +61,38 @@ env NIXPKGS_ALLOW_BROKEN=1 nix-instantiate --show-trace ../../../../ -A emacsPac
           ];
         });
 
-        # Expects bash to be at /bin/bash
-        company-rtags = markBroken super.company-rtags;
+        company-rtags = let
+          rct = pkgs.stdenv.mkDerivation {
+            pname = "rct";
+            version = "unstable-20191009";
+            src = pkgs.fetchFromGitHub {
+              owner = "Andersbakken";
+              repo = "rct";
+              rev = "362ab9746b367a492dcb793df3453c0c17d45ad9";
+              sha256 = "1mmspcd366hxim4wrki65j5mmxac1143k9qr7qlm3rj397m1nh70";
+            };
+
+            buildInputs = with pkgs; [ openssl zlib ];
+            nativeBuildInputs = with pkgs; [ cmake pkgconfig ];
+          };
+        in super.company-rtags.overrideAttrs (attrs: {
+          postPatch = ''
+            substituteInPlace src/CMakeLists.txt \
+              --replace rct/rct.cmake ${rct}/lib/cmake/rct.cmake
+            patchShebangs .
+          '';
+
+          buildInputs = attrs.buildInputs ++ [ rct ];
+          nativeBuildInputs = (attrs.nativeBuildInputs or []) ++ (with pkgs; with pkgs.llvmPackages; [
+            cmake pkgconfig clang clang-unwrapped llvm
+          ]);
+
+          cmakeFlags = (attrs.cmakeFlags or []) ++ [
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=1"
+            "-DCMAKE_C_COMPILER=clang"
+            "-DCMAKE_CXX_COMPILER=clang++"
+          ];
+        });
 
         easy-kill-extras = super.easy-kill-extras.override {
           inherit (self.melpaPackages) easy-kill;
