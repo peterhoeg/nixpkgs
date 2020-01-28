@@ -1,6 +1,10 @@
-{ writeShellScript, nix-prefetch-git
-, curl, jq, xe
-, src }:
+{ writeShellScript
+, nix-prefetch-git
+, curl
+, jq
+, xe
+, src
+}:
 
 let
   # print all the grammar names mentioned in the fetch-fixtures script
@@ -22,7 +26,7 @@ let
     res=$(${curl}/bin/curl \
       --silent \
       "https://api.github.com/repos/${urlEscape owner}/$(${urlEscapeSh} "$repo")/releases/latest")
-    if [[ "$(printf "%s" "$res" | ${jq}bin/jq '.message')" =~ "rate limit" ]]; then
+    if [[ "$(printf "%s" "$res" | ${jq}/bin/jq '.message')" =~ "rate limit" ]]; then
       echo "rate limited" >&2
     fi
     release=$(printf "%s" "$res" | ${jq}/bin/jq '.tag_name')
@@ -45,7 +49,7 @@ let
       --no-deepClone \
       --url "https://github.com/${urlEscape owner}/$(${urlEscapeSh} "$repo")" \
       --rev "$latest"
-    '';
+  '';
 
   update-all-grammars = writeShellScript "update-all-grammars.sh" ''
     set -euo pipefail
@@ -65,4 +69,5 @@ let
       > "$outputDir/default.nix"
   '';
 
-in update-all-grammars
+in
+update-all-grammars

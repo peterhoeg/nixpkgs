@@ -10,11 +10,11 @@ let
   # 1) change all these hashes
   # 2) nix-build -A tree-sitter.updater.update-all-grammars
   # 3) run the script that is output by that (it updates ./grammars)
-  version = "0.15.7";
-  sha256 = "0q6w8wl4a4s49xlgbv531pandzrj3n12hc1cwfshzcgikx303dg0";
-  sha256Js = "11ig4cc2m85siyhafh4hq9sjb5if4gfwsf9k87izkxpiyflda0wp";
-  sha256Wasm = "1zm4bvjri8ivhah3sy22mx6jbvibgbn2hk67d148j3nyka3y4gc0";
-  cargoSha256 = "0ls9cb2p6cgqvnrmx72n79ga7687n8mzhh7n8n1pzv11r6cah9ki";
+  version = "0.16.3";
+  sha256 = "12vpgn9b3mzcsl6f7fy09hdxm8xwzsca3wfc099zx4jkw9s2zpgf";
+  sha256Js = "11114cc2m85siyhafh4hq9sjb5if4gfwsf9k87izkxpiyflda0wp"; # FIXME
+  sha256Wasm = "1111bvjri8ivhah3sy22mx6jbvibgbn2hk67d148j3nyka3y4gc0"; # FIXME
+  cargoSha256 = "0cvwrii9mhi2ixsp7yhffcl402760zwh32clww6m81qmf0skin00";
 
 
   src = fetchFromGitHub {
