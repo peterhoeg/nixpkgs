@@ -9,22 +9,27 @@ let
   keyFile = "${stateDir}/chrony.keys";
 
   configFile = pkgs.writeText "chrony.conf" ''
-    ${concatMapStringsSep "\n" (server: "server " + server + " iburst") cfg.servers}
+    ${concatMapStringsSep "\n" (server: "server ${server} iburst") cfg.servers}
 
-    ${optionalString
-      (cfg.initstepslew.enabled && (cfg.servers != []))
+    ${optionalString (cfg.initstepslew.enabled && (cfg.servers != []))
       "initstepslew ${toString cfg.initstepslew.threshold} ${concatStringsSep " " cfg.servers}"
     }
 
     driftfile ${stateDir}/chrony.drift
     keyfile ${keyFile}
+    dumpdir ${stateDir}
 
     ${optionalString (!config.time.hardwareClockInLocalTime) "rtconutc"}
+
+    ${optionalString cfg.serverMode (lib.concatMapStringsSep "\n" (subnet:
+      "allow ${subnet}"
+    ) cfg.allowClientsFrom)}
 
     ${cfg.extraConfig}
   '';
 
   chronyFlags = "-n -m -u chrony -f ${configFile} ${toString cfg.extraFlags}";
+
 in
 {
   options = {
@@ -32,8 +37,7 @@ in
       enable = mkOption {
         default = false;
         description = ''
-          Whether to synchronise your machine's time using chrony.
-          Make sure you disable NTP if you enable this service.
+          Whether to synchronise your machine's time using chrony.Make sure you disable NTP if you enable this service.
         '';
       };
 
@@ -71,56 +75,71 @@ in
         type = types.listOf types.str;
         description = "Extra flags passed to the chronyd command.";
       };
+
+      serverMode = mkOption {
+        default = false;
+        type = types.bool;
+        description = ''
+          Run chrony in server mode.
+        '';
+      };
+
+      openFirewall = mkOption {
+        default = config.services.chrony.serverMode;
+        type = types.bool;
+        description = ''
+          Automatically allow the traffic through the firewall when running an NTP server.
+        '';
+      };
+
+      allowClientsFrom = mkOption {
+        default = [ "" ];
+        example = [ "1.2.3.4/17" ];
+        type = types.listOf types.str;
+        description = ''
+          Subnets from which to allow clients to connect. Default is everywhere.
+        '';
+      };
     };
   };
 
   config = mkIf cfg.enable {
-    meta.maintainers = with lib.maintainers; [ thoughtpolice ];
+    meta.maintainers = with lib.maintainers; [ thoughtpolice peterhoeg ];
 
-    environment.systemPackages = [ pkgs.chrony ];
+    environment.systemPackages = with pkgs; [ chrony ];
 
-    users.groups.chrony.gid = config.ids.gids.chrony;
-
-    users.users.chrony =
-      { uid = config.ids.uids.chrony;
-        group = "chrony";
-        description = "chrony daemon user";
-        home = stateDir;
-      };
+    networking.firewall.allowedUdpPorts = lib.mkIf cfg.openFirewall [ 123 ];
 
     services.timesyncd.enable = mkForce false;
 
-    systemd.services.systemd-timedated.environment = { SYSTEMD_TIMEDATED_NTP_SERVICES = "chronyd.service"; };
+    systemd.services = {
+      systemd-timedated.environment = { SYSTEMD_TIMEDATED_NTP_SERVICES = "chronyd.service"; };
 
-    systemd.services.chronyd =
-      { description = "chrony NTP daemon";
+      chronyd = {
+        description = "chrony NTP daemon";
 
         wantedBy = [ "multi-user.target" ];
-        wants    = [ "time-sync.target" ];
-        before   = [ "time-sync.target" ];
-        after    = [ "network.target" ];
+        wants = [ "time-sync.target" ];
+        before = [ "time-sync.target" ];
+        after = [ "network.target" ];
         conflicts = [ "ntpd.service" "systemd-timesyncd.service" ];
 
-        path = [ pkgs.chrony ];
+        serviceConfig = {
+          Type = "exec";
+          ExecStart = "${pkgs.chrony}/bin/chronyd ${chronyFlags}";
 
-        preStart = ''
-          mkdir -m 0755 -p ${stateDir}
-          touch ${keyFile}
-          chmod 0640 ${keyFile}
-          chown chrony:chrony ${stateDir} ${keyFile}
-        '';
+          DynamicUser = true;
+          ProtectHome = "tmpfs";
+          ProtectSystem = "strict";
 
-        unitConfig.ConditionCapability = "CAP_SYS_TIME";
-        serviceConfig =
-          { Type = "simple";
-            ExecStart = "${pkgs.chrony}/bin/chronyd ${chronyFlags}";
+          AmbientCapabilities = [
+            "CAP_NET_BIND_SERVICE"
+            "CAP_SYS_TIME"
+          ];
 
-            ProtectHome = "yes";
-            ProtectSystem = "full";
-            PrivateTmp = "yes";
-
-          };
-
+          StateDirectory = "chrony";
+        };
       };
+    };
   };
 }
