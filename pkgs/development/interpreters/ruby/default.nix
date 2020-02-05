@@ -1,9 +1,10 @@
 { stdenv, buildPackages, lib
 , fetchurl, fetchpatch, fetchFromSavannah, fetchFromGitHub
-, zlib, openssl, gdbm, ncurses, readline, groff, libyaml, libffi, autoreconfHook, bison
+, zlib, openssl, gdbm, ncurses, readline, groff, libyaml, libffi, autoreconfHook, bison, pkgconfig
 , autoconf, libiconv, libobjc, libunwind, Foundation
 , buildEnv, bundler, bundix
 , makeWrapper, buildRubyGem, defaultGemConfig, removeReferencesTo
+, jemalloc
 } @ args:
 
 let
@@ -45,12 +46,13 @@ let
       , groff, docSupport ? true
       , libyaml, yamlSupport ? true
       , libffi, fiddleSupport ? true
+      , jemalloc, jemallocSupport ? true
       # ruby -e "puts RbConfig::CONFIG['configure_args']"
       # puts a reference to the C compiler in the binary.
       # This might be required by some gems at runtime,
       # but we allow to strip it out for smaller closure size.
       , removeReferencesTo, removeReferenceToCC ? true
-      , autoreconfHook, bison, autoconf
+      , autoreconfHook, bison, autoconf, pkgconfig
       , buildEnv, bundler, bundix
       , libiconv, libobjc, libunwind, Foundation
       , makeWrapper, buildRubyGem, defaultGemConfig
@@ -74,11 +76,12 @@ let
 
         outputs = [ "out" ] ++ lib.optional docSupport "devdoc";
 
-        nativeBuildInputs = [ autoreconfHook bison ]
+        nativeBuildInputs = [ autoreconfHook bison pkgconfig ]
           ++ (op docSupport groff)
           ++ op (stdenv.buildPlatform != stdenv.hostPlatform) buildPackages.ruby;
-        buildInputs =
-             (op fiddleSupport libffi)
+        buildInputs = [ ]
+          ++ (op jemallocSupport jemalloc )
+          ++ (op fiddleSupport libffi)
           ++ (ops cursesSupport [ ncurses readline ])
           ++ (op zlibSupport zlib)
           ++ (op opensslSupport openssl)
@@ -123,7 +126,12 @@ let
         # https://github.com/ruby/ruby/commit/97a5af62a318fcd93a4e5e4428d576c0280ddbae
         buildFlags = lib.optionals atLeast27 [ "REVISION_LATEST=0" ];
 
-        configureFlags = ["--enable-shared" "--enable-pthread" "--with-soname=ruby_${tag}"]
+        configureFlags = [
+          "--enable-shared"
+          "--enable-pthread"
+          "--with-jemalloc"
+          "--with-soname=ruby_${tag}"
+        ]
           ++ op useRailsExpress "--with-baseruby=${baseruby}/bin/ruby"
           ++ op (!docSupport) "--disable-install-doc"
           ++ ops stdenv.isDarwin [

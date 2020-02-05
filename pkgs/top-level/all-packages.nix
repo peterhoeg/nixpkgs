@@ -9442,6 +9442,7 @@ in
     docSupport = false;
     yamlSupport = false;
     fiddleSupport = false;
+    jemallocSupport = false;
   };
 
   ruby = ruby_2_6;
