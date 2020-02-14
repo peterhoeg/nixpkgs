@@ -3,10 +3,11 @@
 with lib;
 
 let
-
+  dirName = "slimserver";
   cfg = config.services.slimserver;
 
-in {
+in
+{
   options = {
 
     services.slimserver = {
@@ -25,15 +26,6 @@ in {
         defaultText = "pkgs.slimserver";
         description = "Slimserver package to use.";
       };
-
-      dataDir = mkOption {
-        type = types.path;
-        default = "/var/lib/slimserver";
-        description = ''
-          The directory where slimserver stores its state, tag cache,
-          playlists etc.
-        '';
-      };
     };
   };
 
@@ -42,31 +34,32 @@ in {
 
   config = mkIf cfg.enable {
 
-    systemd.tmpfiles.rules = [
-      "d '${cfg.dataDir}' - slimserver slimserver - -"
-    ];
-
     systemd.services.slimserver = {
-      after = [ "network.target" ];
       description = "Slim Server for Logitech Squeezebox Players";
+      after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = {
-        User = "slimserver";
-        # Issue 40589: Disable broken image/video support (audio still works!)
-        ExecStart = "${cfg.package}/slimserver.pl --logdir ${cfg.dataDir}/logs --prefsdir ${cfg.dataDir}/prefs --cachedir ${cfg.dataDir}/cache --noimage --novideo";
+      serviceConfig = rec {
+        Type = "exec";
+        ExecStart = lib.concatStringsSep " " [
+          "${cfg.package}/slimserver.pl"
+          "--logdir /var/log/${dirName}"
+          # Preferences should just go into /var/lib/slimserver instead of a
+          # prefs subdir but to avoid having to deal with migrating it, it's
+          # easier just to leave it
+          "--prefsdir /var/lib/${dirName}/prefs"
+          "--cachedir /var/cache/${dirName}"
+          # Issue 40589: Disable broken image/video support (audio still works!)
+          "--noimage --novideo"
+        ];
+        DynamicUser = true;
+        StateDirectory = dirName;
+        CacheDirectory = dirName;
+        LogsDirectory = dirName;
+        Restart = "on-failure";
       };
     };
 
-    users = {
-      users.slimserver = {
-        description = "Slimserver daemon user";
-        home = cfg.dataDir;
-        group = "slimserver";
-      };
-      groups.slimserver = {};
-    };
   };
 
 }
-
