@@ -6,13 +6,15 @@ let
   dataDir = "/var/lib/squeezelite";
   cfg = config.services.squeezelite;
 
-in {
+
+in
+{
 
   ###### interface
 
   options = {
 
-    services.squeezelite= {
+    services.squeezelite = {
 
       enable = mkEnableOption "Squeezelite, a software Squeezebox emulator";
 
@@ -33,15 +35,22 @@ in {
 
   config = mkIf cfg.enable {
 
-    systemd.services.squeezelite= {
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" "sound.target" ];
+    systemd.services.squeezelite = {
       description = "Software Squeezebox emulator";
+      after = [ "network.target" "sound.target" ];
+      wantedBy = [ "multi-user.target" ];
+
       serviceConfig = {
+        Type = "exec";
+        ExecStart = lib.concatStringsSep " " [
+          "${pkgs.squeezelite}/bin/squeezelite"
+          "-N ${dataDir}/player-name"
+          cfg.extraArguments
+        ];
         DynamicUser = true;
-        ExecStart = "${pkgs.squeezelite}/bin/squeezelite -N ${dataDir}/player-name ${cfg.extraArguments}";
         StateDirectory = builtins.baseNameOf dataDir;
         SupplementaryGroups = "audio";
+        Restart = "on-failure";
       };
     };
 
