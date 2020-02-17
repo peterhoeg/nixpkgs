@@ -13825,7 +13825,7 @@ in
       knotifyconfig kpackage kparts kpeople kplotting kpty kross krunner
       kservice ktexteditor ktextwidgets kunitconversion kwallet kwayland
       kwidgetsaddons kwindowsystem kxmlgui kxmlrpcclient modemmanager-qt
-      networkmanager-qt plasma-framework prison solid sonnet syntax-highlighting
+      networkmanager-qt plasma-framework prison qqc2-desktop-style solid sonnet syntax-highlighting
       syndication threadweaver kirigami2 kholidays kpurpose;
 
     ### KDE PLASMA 5
