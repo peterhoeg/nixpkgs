@@ -7,13 +7,15 @@ let
   cfg = config.services.opensmtpd;
   conf = pkgs.writeText "smtpd.conf" cfg.serverConfiguration;
   args = concatStringsSep " " cfg.extraServerArgs;
+  dataDir = "/var/spool/smtpd";
 
   sendmail = pkgs.runCommand "opensmtpd-sendmail" { preferLocalBuild = true; } ''
     mkdir -p $out/bin
     ln -s ${cfg.package}/sbin/smtpctl $out/bin/sendmail
   '';
 
-in {
+in
+{
 
   ###### interface
 
@@ -102,9 +104,9 @@ in {
     };
 
     systemd.tmpfiles.rules = [
-      "d /var/spool/smtpd 711 root - - -"
-      "d /var/spool/smtpd/offline 770 root smtpq - -"
-      "d /var/spool/smtpd/purge 700 smtpq root - -"
+      "d ${dataDir}         711 root  root"
+      "d ${dataDir}/offline 770 root  smtpq"
+      "d ${dataDir}/purge   700 smtpq root"
     ];
 
     systemd.services.opensmtpd = let
@@ -113,12 +115,38 @@ in {
         paths = [ cfg.package ] ++ cfg.procPackages;
         pathsToLink = [ "/libexec/opensmtpd" ];
       };
-    in {
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ];
-      serviceConfig.ExecStart = "${cfg.package}/sbin/smtpd -d -f ${conf} ${args}";
-      environment.OPENSMTPD_PROC_PATH = "${procEnv}/libexec/opensmtpd";
-    };
+    in
+      {
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network.target" ];
+        serviceConfig = {
+          Type = "exec";
+          ExecStart = "${cfg.package}/sbin/smtpd -d -f ${conf} ${args}";
+          Restart = "on-failure";
+          # https://www.ctrl.blog/entry/systemd-opensmtpd-hardening.html
+          CapabilityBoundingSet = [ "CAP_SYS_CHROOT" "CAP_SETUID" "CAP_SETGID" "CAP_CHOWN" "CAP_DAC_READ_SEARCH" "CAP_NET_BIND_SERVICE" ];
+          SystemCallFilter = [ "@system-service" "@mount" ];
+          SystemCallErrorNumber = "EPERM";
+          PrivateTmp = true;
+          PrivateDevices = true;
+          ProtectHostname = true;
+          ProtectControlGroups = true;
+          ProtectKernelModules = true;
+          ProtectKernelTunables = true;
+          ProtectHome = "tmpfs";
+          ProtectSystem = "strict";
+          ReadWritePaths = [
+            dataDir
+            "/run" # needed for pid and socket
+          ];
+          MemoryDenyWriteExecute = true;
+          LockPersonality = true;
+          RestrictSUIDSGID = true;
+          SystemCallArchitectures = "native";
+        };
+
+        environment.OPENSMTPD_PROC_PATH = "${procEnv}/libexec/opensmtpd";
+      };
 
     environment.systemPackages = mkIf cfg.addSendmailToSystemPath [ sendmail ];
   };
