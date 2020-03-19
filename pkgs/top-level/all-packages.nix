@@ -3952,6 +3952,8 @@ in
 
   httplab = callPackage ../tools/networking/httplab { };
 
+  lucky-cli = callPackage ../development/web/lucky-cli { };
+
   partclone = callPackage ../tools/backup/partclone { };
 
   partimage = callPackage ../tools/backup/partimage { };
