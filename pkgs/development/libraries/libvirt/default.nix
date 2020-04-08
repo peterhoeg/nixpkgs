@@ -50,6 +50,13 @@ in stdenv.mkDerivation rec {
     libiconv gmp
   ];
 
+  postPatch = ''
+    for f in src/{logging,remote}/*.socket.*; do
+      substituteInPlace $f \
+        --replace /var/run /run
+    done
+  '';
+
   preConfigure = ''
     PATH=${stdenv.lib.makeBinPath ([ dnsmasq ] ++ optionals stdenv.isLinux [ iproute iptables ebtables lvm2 systemd numad ] ++ optionals enableIscsi [ openiscsi ])}:$PATH
     # the path to qemu-kvm will be stored in VM's .xml and .save files
