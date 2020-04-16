@@ -282,6 +282,19 @@ let
     };
   };
 
+  AnyEventAIO = buildPerlPackage {
+    pname = "AnyEvent-AIO";
+    version = "1.1";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/M/ML/MLEHMANN/AnyEvent-AIO-1.1.tar.gz";
+      sha256 = "0svh0mlp17g0ypq8bgs3h3axg8v7h0z45hryacgn6q8mcj65n43b";
+    };
+    buildInputs = [ AnyEvent IOAIO ];
+    meta = {
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
   AnyEventCacheDNS = buildPerlModule {
     pname = "AnyEvent-CacheDNS";
     version = "0.08";
@@ -2867,6 +2880,24 @@ let
     };
     meta = {
       description = "Implements some sane defaults for Perl programs";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+  CompilerLexer = buildPerlModule {
+    pname = "Compiler-Lexer";
+    version = "0.23";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/G/GO/GOCCY/Compiler-Lexer-0.23.tar.gz";
+      sha256 = "1nwr1bzq2yg47322hf02j5732cl2gfz4jj97594lzymvzr5cwcb0";
+    };
+    postPatch = ''
+      unset LD
+    '';
+    buildInputs = [ stdenv.cc.cc ];
+    propagatedBuildInputs = [ ModuleBuildXSUtil ];
+    meta = {
+      description = "Lexical Analyzer for Perl5";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
     };
   };
@@ -9255,6 +9286,20 @@ let
     doCheck = false;
     meta = {
       description = "Perl core IO modules";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+  IOAIO = buildPerlPackage {
+    pname = "IO-AIO";
+    version = "4.72";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/M/ML/MLEHMANN/IO-AIO-4.72.tar.gz";
+      sha256 = "17vfbqagpab8lsbf5nmp2frvxw7hvsyy2i87dpid8djzr615wnvf";
+    };
+    propagatedBuildInputs = [ CanaryStability commonsense ];
+    meta = {
+      description = "IO::AIO - Asynchronous/Advanced Input/Output";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
     };
   };
