@@ -14979,6 +14979,20 @@ let
     };
   };
 
+  PerlLanguageServer = buildPerlPackage {
+    pname = "Perl-LanguageServer";
+    version = "2.0.2";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/G/GR/GRICHTER/Perl-LanguageServer-2.0.2.tar.gz";
+      sha256 = "0ac4ypgnbql8n78cm8in3qazd38ww9p2xd83nhwp4xb2rbs6lr5h";
+    };
+    propagatedBuildInputs = [ AnyEventAIO CompilerLexer Coro DataDump IOAIO JSON Moose ];
+    meta = {
+      description = "Language Server Protocol server for Perl";
+      license = stdenv.lib.licenses.artistic2;
+    };
+  };
+
   perlldap = buildPerlPackage {
     pname = "perl-ldap";
     version = "0.66";
