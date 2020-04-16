@@ -7,6 +7,12 @@
 , freetype
 , libusb
 }:
+
+# We only a few required derivations here which is generally frowned upon in
+# nixpkgs. The reason is that this software was last updated about 10 years ago
+# and no new hardware is being made, so the expected lifespan of this is going
+# to be limited. I saw no reason to pollute the global attribute set with
+# derivations we do not need.
 let
   license = lib.licenses.gpl2;
   maintainers = with lib.maintainers; [ peterhoeg ];
@@ -59,11 +65,12 @@ stdenv.mkDerivation rec {
   version = "1.9.5.3";
 
   src = fetchurl {
-    url = "mirror://sourceforge/${pname}/G15Daemon%201.9x/${version}/${pname}-${version}.tar.bz2";
+    url = "mirror://sourceforge/${pname}/G15Daemon%20${lib.versions.majorMinor version}x/${version}/${pname}-${version}.tar.bz2";
     sha256 = "1613gsp5dgilwbshqxxhiyw73ksngnam7n1iw6yxdjkp9fyd2a3d";
   };
 
   patches = let
+    # NOTE: the URLs are *not* stable
     patch = fname: sha256: fetchurl rec {
       url = "https://git.archlinux.org/svntogit/community.git/plain/trunk/${pname}-${version}-${fname}.patch?h=packages/${pname}";
       name = "${fname}.patch";
