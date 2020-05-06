@@ -13666,6 +13666,7 @@ in
   mtxclient = callPackage ../development/libraries/mtxclient { };
 
   mu = callPackage ../tools/networking/mu {
+    batchSize = 10000;
     texinfo = texinfo4;
   };
 
