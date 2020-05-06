@@ -1,7 +1,8 @@
 { stdenv, fetchFromGitHub, sqlite, pkgconfig, autoreconfHook, pmccabe
 , xapian, glib, gmime3, texinfo , emacs, guile
 , gtk3, webkitgtk, libsoup, icu
-, withMug ? false }:
+, withMug ? false
+, batchSize ? null }:
 
 stdenv.mkDerivation rec {
   pname = "mu";
@@ -13,6 +14,11 @@ stdenv.mkDerivation rec {
     rev    = version;
     sha256 = "0q2ik7fj5k9i76js4ijyxbgrwqff437lass0sd5if2r40rqh0as0";
   };
+
+  postPatch = + stdenv.lib.optionalString (batchSize != null) ''
+    sed -i lib/mu-store.cc --regexp-extended \
+      -e 's@(constexpr auto BatchSize).*@\1 = ${toString batchSize};@'
+  '';
 
   buildInputs = [
     sqlite xapian glib gmime3 texinfo emacs guile libsoup icu
