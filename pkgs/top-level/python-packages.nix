@@ -7405,6 +7405,8 @@ in {
 
   rxv     = callPackage ../development/python-modules/rxv     { };
 
+  maestral = callPackage ../development/python-modules/maestral { };
+
 });
 
 in fix' (extends overrides packages)
