@@ -47,7 +47,7 @@ python.pkgs.buildPythonApplication rec {
     # Firstly, add all necessary QT variables
     # "\${qtWrapperArgs[@]}"
 
-    "--prefix" "PYTHONPATH" ":" "${path}"
+    "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python.libPrefix}/site-packages") (python.pkgs.requiredPythonModules pbi))}"
 
     "--prefix" "PYTHONPATH" ":" "$out/lib/${python.libPrefix}/site-packages"
 
