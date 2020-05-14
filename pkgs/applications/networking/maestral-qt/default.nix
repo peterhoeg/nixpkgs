@@ -5,6 +5,32 @@
 , wrapQtAppsHook
 }:
 
+let pbi = with python3.pkgs; [
+    bugsnag
+    click
+    markdown2
+    maestral
+    pyqt5
+    ] ++ (with python.pkgs; [
+    blinker
+    bugsnag
+    click
+    dropbox
+    keyring
+    keyrings-alt
+    lockfile
+    pathspec
+    Pyro5
+    requests
+    u-msgpack-python
+    watchdog
+    ]) ++ stdenv.lib.optionals stdenv.isLinux [
+    sdnotify
+    systemd
+  ];
+
+in
+
 python3.pkgs.buildPythonApplication rec {
   pname = "maestral-qt";
   version = "1.0.0";
@@ -18,13 +44,7 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "0izmy6vmzzzr7q9wp3zkkmcpqkwn36c7654wqsdbizr5p6z4kp80";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [
-    bugsnag
-    click
-    markdown2
-    maestral
-    pyqt5
-  ];
+  propagatedBuildInputs = pbi;
 
   nativeBuildInputs = [ wrapQtAppsHook ];
 
@@ -37,7 +57,8 @@ python3.pkgs.buildPythonApplication rec {
     "\${qtWrapperArgs[@]}"
 
     # # Then, add the installed scripts/ directory to the python path
-    # "--prefix" "PYTHONPATH" ":" "${python3.pkgs.maestral}/lib/${python3.libPrefix}/site-packages"
+    "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python3.libPrefix}/site-packages") (python3.pkgs.requiredPythonModules pbi))}"
+    "--prefix" "PYTHONPATH" ":" "${python3.pkgs.maestral}/lib/${python3.libPrefix}/site-packages"
     # "--prefix" "PYTHONPATH" ":" "${python3.pkgs.Pyro5}/lib/${python3.libPrefix}/site-packages"
 
     # Finally, move to directory that contains data
