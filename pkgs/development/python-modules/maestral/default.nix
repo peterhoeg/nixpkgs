@@ -1,11 +1,10 @@
 { stdenv
-, python
 , fetchFromGitHub
+, python
 , sdnotify
 , systemd
 }:
 let
-
   pbi = with python.pkgs; [
     blinker
     bugsnag
@@ -23,10 +22,7 @@ let
     sdnotify
     systemd
   ];
-
-  path = stdenv.lib.makeLibraryPath pbi;
 in
-
 
 python.pkgs.buildPythonApplication rec {
   pname = "maestral";
@@ -44,37 +40,10 @@ python.pkgs.buildPythonApplication rec {
   propagatedBuildInputs = pbi;
 
   makeWrapperArgs = [
-    # Firstly, add all necessary QT variables
-    # "\${qtWrapperArgs[@]}"
-
+    # Add the installed directories to the python path so the daemon can find them
     "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python.libPrefix}/site-packages") (python.pkgs.requiredPythonModules pbi))}"
-
     "--prefix" "PYTHONPATH" ":" "$out/lib/${python.libPrefix}/site-packages"
-
-    # # Then, add the installed scripts/ directory to the python path
-    # "--prefix" "PYTHONPATH" ":" "${python.pkgs.maestral}/lib/${python.libPrefix}/site-packages"
-    # "--prefix" "PYTHONPATH" ":" "${python.pkgs.Pyro5}/lib/${python.libPrefix}/site-packages"
-    # "--prefix" "PYTHONPATH" ":" "${python.pkgs.serpent}/lib/${python.libPrefix}/site-packages"
-
-    # finally, move to directory that contains data
-    # "--run" "\"cd $out/share/${pname}\""
   ];
-
-
-  # postPatch = ''
-  #   # sdnotify is correctly passed in buildInputs, but for some reason setup.py complains.
-  #   # The wrapped maestral has the correct path added, so ignore this.
-  #   substituteInPlace setup.py --replace "'sdnotify'," ""
-  # '';
-
-  #  ++ lib.optional withGui pyqt5;
-
-  # nativeBuildInputs = lib.optional withGui wrapQtAppsHook;
-
-  # postInstall = lib.optionalString withGui ''
-  #   makeQtWrapper $out/bin/maestral $out/bin/maestral-gui \
-  #     --add-flags gui
-  # '';
 
   # no tests
   doCheck = false;
