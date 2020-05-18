@@ -2,6 +2,7 @@
 
 targetRoot=/mnt-root
 console=tty1
+verbose=${verbose:-0}
 
 extraUtils="@extraUtils@"
 export LD_LIBRARY_PATH=@extraUtils@/lib
@@ -63,9 +64,11 @@ trap 'fail' 0
 
 
 # Print a greeting.
-echo
-echo "[1;32m<<< NixOS Stage 1 >>>[0m"
-echo
+if [ $verbose -eq 1 ]; then
+    echo
+    echo "[1;32m<<< NixOS Stage 1 >>>[0m"
+    echo
+fi
 
 # Make several required directories.
 mkdir -p /etc/udev
@@ -202,14 +205,18 @@ ln -s @modulesClosure@/lib/modules /lib/modules
 ln -s @modulesClosure@/lib/firmware /lib/firmware
 echo @extraUtils@/bin/modprobe > /proc/sys/kernel/modprobe
 for i in @kernelModules@; do
-    echo "loading module $(basename $i)..."
+    if [ $verbose -eq 1 ]; then
+        echo "loading module $(basename $i)..."
+    fi
     modprobe $i
 done
 
 
 # Create device nodes in /dev.
 @preDeviceCommands@
-echo "running udev..."
+if [ $verbose -eq 1 ]; then
+    echo "running udev..."
+fi
 mkdir -p /etc/systemd
 ln -sfn @linkUnits@ /etc/systemd/network
 mkdir -p /etc/udev
@@ -217,14 +224,15 @@ ln -sfn @udevRules@ /etc/udev/rules.d
 mkdir -p /dev/.mdadm
 systemd-udevd --daemon
 udevadm trigger --action=add
-udevadm settle
+# udevadm settle
 
 
 # XXX: Use case usb->lvm will still fail, usb->luks->lvm is covered
 @preLVMCommands@
 
-
-echo "starting device mapper and LVM..."
+if [ $verbose -eq 1 ]; then
+    echo "starting device mapper and LVM..."
+fi
 lvm vgchange -ay
 
 if test -n "$debug1devices"; then fail; fi
@@ -366,7 +374,9 @@ mountFS() {
         done
     fi
 
-    echo "mounting $device on $mountPoint..."
+    if [ $verbose -eq 1 ]; then
+        echo "mounting $device on $mountPoint..."
+    fi
 
     mkdir -p "/mnt-root$mountPoint"
 
