@@ -10,9 +10,9 @@ let
     bugsnag
     click
     dropbox
+    fasteners
     keyring
     keyrings-alt
-    lockfile
     pathspec
     Pyro5
     requests
@@ -26,7 +26,7 @@ in
 
 python.pkgs.buildPythonApplication rec {
   pname = "maestral";
-  version = "1.0.2";
+  version = "1.0.3";
 
   disabled = python.pkgs.pythonOlder "3.6";
 
@@ -34,7 +34,7 @@ python.pkgs.buildPythonApplication rec {
     owner = "SamSchott";
     repo = "maestral";
     rev = "v${version}";
-    sha256 = "16wmw7ximdlbv8vzc57xjrki0df29mps5r9xwx7iifbvp9n0m0cl";
+    sha256 = "1mwh6ilp7zjji3cl9k832j1xvbdnrsjwylj7srrkvzfb2m913rbp";
   };
 
   propagatedBuildInputs = pbi;

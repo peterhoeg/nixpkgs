@@ -12,14 +12,14 @@ let
     markdown2
     maestral
     pyqt5
-  ] ++ (with python.pkgs; [
+  ] ++ (with python.pkgs; [  # Transitive dependencies from maestral :-(
     blinker
     bugsnag
     click
     dropbox
+    fasteners
     keyring
     keyrings-alt
-    lockfile
     pathspec
     Pyro5
     requests
@@ -32,7 +32,7 @@ let
 in
 python3.pkgs.buildPythonApplication rec {
   pname = "maestral-qt";
-  version = "1.0.0";
+  version = "1.0.3";
 
   disabled = python3.pkgs.pythonOlder "3.6";
 
@@ -40,7 +40,7 @@ python3.pkgs.buildPythonApplication rec {
     owner = "SamSchott";
     repo = "maestral-qt";
     rev = "v${version}";
-    sha256 = "0izmy6vmzzzr7q9wp3zkkmcpqkwn36c7654wqsdbizr5p6z4kp80";
+    sha256 = "0x8f1m1g77ryh1hb3m4pq0gad12zcyv9k8zi4ky4kkrg6lcfscin";
   };
 
   propagatedBuildInputs = pbi;
