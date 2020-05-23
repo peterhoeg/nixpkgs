@@ -4,8 +4,20 @@
 , sdnotify
 , systemd
 }:
-let
-  pbi = with python.pkgs; [
+python.pkgs.buildPythonApplication rec {
+  pname = "maestral";
+  version = "1.0.3";
+
+  disabled = python.pkgs.pythonOlder "3.6";
+
+  src = fetchFromGitHub {
+    owner = "SamSchott";
+    repo = "maestral";
+    rev = "v${version}";
+    sha256 = "1mwh6ilp7zjji3cl9k832j1xvbdnrsjwylj7srrkvzfb2m913rbp";
+  };
+
+  propagatedBuildInputs = with python.pkgs; [
     blinker
     bugsnag
     click
@@ -22,26 +34,10 @@ let
     sdnotify
     systemd
   ];
-in
-
-python.pkgs.buildPythonApplication rec {
-  pname = "maestral";
-  version = "1.0.3";
-
-  disabled = python.pkgs.pythonOlder "3.6";
-
-  src = fetchFromGitHub {
-    owner = "SamSchott";
-    repo = "maestral";
-    rev = "v${version}";
-    sha256 = "1mwh6ilp7zjji3cl9k832j1xvbdnrsjwylj7srrkvzfb2m913rbp";
-  };
-
-  propagatedBuildInputs = pbi;
 
   makeWrapperArgs = [
     # Add the installed directories to the python path so the daemon can find them
-    "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python.libPrefix}/site-packages") (python.pkgs.requiredPythonModules pbi))}"
+    "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python.libPrefix}/site-packages") (python.pkgs.requiredPythonModules propagatedBuildInputs))}"
     "--prefix" "PYTHONPATH" ":" "$out/lib/${python.libPrefix}/site-packages"
   ];
 
