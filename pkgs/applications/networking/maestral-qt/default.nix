@@ -4,32 +4,6 @@
 , python3
 , wrapQtAppsHook
 }:
-
-let
-  pbi = with python3.pkgs; [
-    bugsnag
-    click
-    markdown2
-    maestral
-    pyqt5
-  ] ++ (with python.pkgs; [  # Transitive dependencies from maestral :-(
-    blinker
-    bugsnag
-    click
-    dropbox
-    fasteners
-    keyring
-    keyrings-alt
-    pathspec
-    Pyro5
-    requests
-    u-msgpack-python
-    watchdog
-  ]) ++ stdenv.lib.optionals stdenv.isLinux [
-    sdnotify
-    systemd
-  ];
-in
 python3.pkgs.buildPythonApplication rec {
   pname = "maestral-qt";
   version = "1.0.3";
@@ -43,7 +17,13 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "0x8f1m1g77ryh1hb3m4pq0gad12zcyv9k8zi4ky4kkrg6lcfscin";
   };
 
-  propagatedBuildInputs = pbi;
+  propagatedBuildInputs = with python3.pkgs; [
+    bugsnag
+    click
+    markdown2
+    maestral
+    pyqt5
+  ];
 
   nativeBuildInputs = [ wrapQtAppsHook ];
 
@@ -52,7 +32,7 @@ python3.pkgs.buildPythonApplication rec {
     "\${qtWrapperArgs[@]}"
 
     # Add the installed directories to the python path so the daemon can find them
-    "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python3.libPrefix}/site-packages") (python3.pkgs.requiredPythonModules pbi))}"
+    "--prefix" "PYTHONPATH" ":" "${stdenv.lib.concatStringsSep ":" (map (p: p + "/lib/${python3.libPrefix}/site-packages") (python3.pkgs.requiredPythonModules python3.pkgs.maestral.propagatedBuildInputs))}"
     "--prefix" "PYTHONPATH" ":" "${python3.pkgs.maestral}/lib/${python3.libPrefix}/site-packages"
   ];
 
