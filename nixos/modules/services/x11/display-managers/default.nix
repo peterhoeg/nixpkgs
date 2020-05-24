@@ -37,6 +37,11 @@ let
       . /etc/profile
       cd "$HOME"
 
+      # Allow the user to execute commands at the beginning of the X session.
+      if test -f ~/.xprofile; then
+          source ~/.xprofile
+      fi
+
       ${optionalString cfg.startDbusSession ''
         if test -z "$DBUS_SESSION_BUS_ADDRESS"; then
           /run/current-system/systemd/bin/systemctl --user start dbus.socket
@@ -72,21 +77,20 @@ let
 
       # Speed up application start by 50-150ms according to
       # http://kdemonkey.blogspot.nl/2008/04/magic-trick.html
-      rm -rf "$HOME/.compose-cache"
-      mkdir "$HOME/.compose-cache"
+      compose_cache="''${XCOMPOSECACHE:-$HOME/.compose-cache}"
+      rm -rf "$compose_cache"
+      mkdir "$compose_cache"
+      unset compose_cache
 
       # Work around KDE errors when a user first logs in and
       # .local/share doesn't exist yet.
-      mkdir -p "$HOME/.local/share"
+      xdg_data_home="''${XDG_DATA_HOME:-$HOME/.local/share}"
+      mkdir -p "$xdg_data_home"
+      unset xdg_data_home
 
       unset _DID_SYSTEMD_CAT
 
       ${cfg.displayManager.sessionCommands}
-
-      # Allow the user to execute commands at the beginning of the X session.
-      if test -f ~/.xprofile; then
-          source ~/.xprofile
-      fi
 
       # Start systemd user services for graphical sessions
       /run/current-system/systemd/bin/systemctl --user start graphical-session.target
