@@ -6,7 +6,7 @@
 }:
 python3.pkgs.buildPythonApplication rec {
   pname = "maestral-qt";
-  version = "1.0.3";
+  version = "1.1.0";
 
   disabled = python3.pkgs.pythonOlder "3.6";
 
@@ -14,7 +14,7 @@ python3.pkgs.buildPythonApplication rec {
     owner = "SamSchott";
     repo = "maestral-qt";
     rev = "v${version}";
-    sha256 = "0x8f1m1g77ryh1hb3m4pq0gad12zcyv9k8zi4ky4kkrg6lcfscin";
+    sha256 = "0clzzwwbrynfbvawhaaa4mp2qi8smng31mmz0is166z6g67bwdl6";
   };
 
   propagatedBuildInputs = with python3.pkgs; [

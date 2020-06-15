@@ -6,7 +6,7 @@
 }:
 python.pkgs.buildPythonApplication rec {
   pname = "maestral";
-  version = "1.0.3";
+  version = "1.1.0";
 
   disabled = python.pkgs.pythonOlder "3.6";
 
@@ -14,7 +14,7 @@ python.pkgs.buildPythonApplication rec {
     owner = "SamSchott";
     repo = "maestral";
     rev = "v${version}";
-    sha256 = "1mwh6ilp7zjji3cl9k832j1xvbdnrsjwylj7srrkvzfb2m913rbp";
+    sha256 = "0d1pxbg69ll07w4bbpzs7zz1yn82qyrym95b0mqmhrrg2ysxjngg";
   };
 
   propagatedBuildInputs = with python.pkgs; [
