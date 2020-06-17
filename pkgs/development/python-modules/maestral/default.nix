@@ -1,14 +1,17 @@
 { stdenv
+, buildPythonPackage
 , fetchFromGitHub
+, pythonOlder
 , python
+, blinker, bugsnag, click, dropbox, fasteners, keyring, keyrings-alt, pathspec, Pyro5, requests, u-msgpack-python, watchdog
 , sdnotify
 , systemd
 }:
-python.pkgs.buildPythonApplication rec {
+
+buildPythonPackage rec {
   pname = "maestral";
   version = "1.1.0";
-
-  disabled = python.pkgs.pythonOlder "3.6";
+  disabled = pythonOlder "3.6";
 
   src = fetchFromGitHub {
     owner = "SamSchott";
@@ -17,7 +20,7 @@ python.pkgs.buildPythonApplication rec {
     sha256 = "0d1pxbg69ll07w4bbpzs7zz1yn82qyrym95b0mqmhrrg2ysxjngg";
   };
 
-  propagatedBuildInputs = with python.pkgs; [
+  propagatedBuildInputs = [
     blinker
     bugsnag
     click
