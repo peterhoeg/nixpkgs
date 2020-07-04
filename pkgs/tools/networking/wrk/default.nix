@@ -13,9 +13,13 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ luajit openssl perl ];
 
-  makeFlags = [ "WITH_LUAJIT=${luajit}" "WITH_OPENSSL=${openssl.dev}" "VER=${version}" ];
+  makeFlags = [
+    "WITH_LUAJIT=${luajit}"
+    "WITH_OPENSSL=${openssl.dev}"
+    "VER=${version}"
+  ];
 
-  preBuild = ''
+  postPatch = ''
     for f in src/*.h; do
       substituteInPlace $f \
         --replace "#include <luajit-2.0/" "#include <"
@@ -25,8 +29,8 @@ stdenv.mkDerivation rec {
   NIX_CFLAGS_COMPILE = "-DluaL_reg=luaL_Reg"; # needed since luajit-2.1.0-beta3
 
   installPhase = ''
-    mkdir -p $out/bin
-    cp wrk $out/bin
+    install -Dm555 -t $out/bin wrk
+    install -Dm444 -t $out/share/doc/${pname} *.md CHANGES SCRIPTING
   '';
 
   meta = with stdenv.lib; {
