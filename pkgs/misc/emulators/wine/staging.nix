@@ -1,4 +1,4 @@
-{ stdenv, callPackage, wineUnstable }:
+{ lib, stdenv, callPackage, wineUnstable }:
 
 with callPackage ./util.nix {};
 
@@ -18,7 +18,7 @@ in assert stdenv.lib.getVersion wineUnstable == patch.version;
     chmod +w patches
     cd patches
     patchShebangs gitapply.sh
-    ./patchinstall.sh DESTDIR="$PWD/.." --all
+    ./patchinstall.sh DESTDIR="$PWD/.." --all ${lib.concatMapStringsSep " " (ps: "-W ${ps}") patch.disabledPatchsets}
     cd ..
   '';
 })) // {
