@@ -1,5 +1,6 @@
 { stdenv
-, fetchurl
+, fetchFromGitHub
+, autoreconfHook
 , libtsm
 , systemd
 , libxkbcommon
@@ -13,46 +14,46 @@
 }:
 
 stdenv.mkDerivation rec {
-  name = "kmscon-8";
+  pname = "kmscon";
+  version = "unstable-2019-11-06";
 
-  src = fetchurl {
-    url = "https://www.freedesktop.org/software/kmscon/releases/${name}.tar.xz";
-    sha256 = "0axfwrp3c8f4gb67ap2sqnkn75idpiw09s35wwn6kgagvhf1rc0a";
+  src = fetchFromGitHub {
+    owner = "CarlosNihelton";
+    repo = "kmscon";
+    rev = "3e15a2df50e82b540e0b5155ab9f90675b1bf790";
+    sha256 = "sha256-WHP27jAQN5wYmuZ7deT6ETV4Gk16TEkr47r/hdm5fI4=";
   };
 
   buildInputs = [
-    libtsm
-    systemd
-    libxkbcommon
-    libdrm
     libGLU libGL
+    libdrm
+    libtsm
+    libxkbcommon
+    libxslt
     pango
     pixman
-    pkgconfig
-    docbook_xsl
-    libxslt
+    systemd
   ];
 
-  patches = [ ./kmscon-8-glibc-2.26.patch ];
-
-  # FIXME: Remove as soon as kmscon > 8 comes along.
-  postPatch = ''
-    sed -i -e 's/libsystemd-daemon libsystemd-login/libsystemd/g' configure
-  '';
+  nativeBuildInputs = [
+    autoreconfHook
+    docbook_xsl
+    pkgconfig
+  ];
 
   configureFlags = [
-    "--enable-multi-seat"
     "--disable-debug"
+    "--enable-multi-seat"
     "--enable-optimizations"
     "--with-renderers=bbulk,gltex,pixman"
   ];
 
   enableParallelBuilding = true;
 
-  meta = {
+  meta = with stdenv.lib; {
     description = "KMS/DRM based System Console";
     homepage = "http://www.freedesktop.org/wiki/Software/kmscon/";
-    license = stdenv.lib.licenses.mit;
-    platforms = stdenv.lib.platforms.linux;
+    license = licenses.mit;
+    platforms = platforms.linux;
   };
 }
