@@ -3,6 +3,8 @@
   extra-cmake-modules, shared-mime-info,
   boost, kcompletion, kconfigwidgets, kcrash, kdbusaddons, kdesignerplugin,
   ki18n, kiconthemes, kio, kitemmodels, kwindowsystem, mysql, qttools,
+  # kaccounts-integration,
+  # kaccounts-providers
 }:
 
 mkDerivation {
@@ -20,6 +22,8 @@ mkDerivation {
   buildInputs = [
     kcompletion kconfigwidgets kcrash kdbusaddons kdesignerplugin ki18n
     kiconthemes kio kwindowsystem qttools
+    # kaccounts-integration
+    # kaccounts-providers
   ];
   propagatedBuildInputs = [ boost kitemmodels ];
   outputs = [ "out" "dev" ];
