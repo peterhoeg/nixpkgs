@@ -1,0 +1,42 @@
+diff --git a/abcde b/abcde
+index 61112fc..d3a4e58 100755
+--- a/abcde
++++ b/abcde
+@@ -4070,21 +4070,33 @@ CDDBAVAIL=y
+ GREP_OPTIONS=""
+ GREP_COLOR=""
+ 
++# Check if XFG_CONFIG_HOME is set, else use default value
++CONFIGDIR=${XDG_CONFIG_HOME:-$HOME/.config}/abcde
++test -d $CONFIGDIR || mkdir -p $CONFIGDIR
++# Check if XFG_CACHE_HOME is set, else use default value
++CACHEDIR=${XDG_CACHE_HOME:-$HOME/.cache}/abcde
++test -d $CACHEDIR || mkdir -p $CACHEDIR
++
+ if [ -z "$OUTPUTDIR" ]; then
+ 	OUTPUTDIR=$(pwd)
+ fi
+ 
+ if [ -z "$WAVOUTPUTDIR" ]; then
+-	WAVOUTPUTDIR="$OUTPUTDIR"
++	WAVOUTPUTDIR="$CACHEDIR"
+ fi
+ 
+ # Load system defaults
+ if [ -r /etc/abcde.conf ]; then
+ 	. /etc/abcde.conf
+ fi
+-# Load user preference defaults
+-if [ -r "$HOME/.abcde.conf" ]; then
+-	. "$HOME/.abcde.conf"
++# Load user preferences
++LEGACY_CFG_FILE=$HOME/.abcde.conf
++if [ -r "$LEGACY_CFG_FILE" ]; then
++    echo "Loading legacy user config: $LEGACY_CFG_FILE"
++	. "$LEGACY_CFG_FILE"
++    unset LEGACY_CFG_FILE
++elif [ -r "$CONFIGDIR/abcde.conf" ]; then
++	. "$CONFIGDIR/abcde.conf"
+ fi
+ 
+ # By this time, we need some HTTPGETOPTS already defined.
