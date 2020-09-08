@@ -2,7 +2,7 @@
   mkDerivation, lib,
   extra-cmake-modules, kdoctools,
 
-  epoxy,libICE, libSM, libinput, libxkbcommon, udev, wayland, xcb-util-cursor,
+  epoxy,libICE, libSM, libinput, libpthreadstubs, libXdmcp, libxkbcommon, udev, wayland, xcb-util-cursor,
   xwayland,
 
   qtdeclarative, qtmultimedia, qtquickcontrols2, qtscript, qtsensors,
@@ -11,7 +11,7 @@
   breeze-qt5, kactivities, kcompletion, kcmutils, kconfig, kconfigwidgets,
   kcoreaddons, kcrash, kdeclarative, kdecoration, kglobalaccel, ki18n,
   kiconthemes, kidletime, kinit, kio, knewstuff, knotifications, kpackage,
-  kscreenlocker, kservice, kwayland, kwidgetsaddons, kwindowsystem, kxmlgui,
+  kscreenlocker, kservice, kwayland, kwayland-server, kwidgetsaddons, kwindowsystem, kxmlgui,
   plasma-framework, libcap, libdrm, mesa
 }:
 
@@ -21,7 +21,7 @@ mkDerivation {
   name = "kwin";
   nativeBuildInputs = [ extra-cmake-modules kdoctools ];
   buildInputs = [
-    epoxy libICE libSM libinput libxkbcommon udev wayland xcb-util-cursor
+    epoxy libICE libSM libinput libpthreadstubs libXdmcp libxkbcommon udev wayland xcb-util-cursor
     xwayland
 
     qtdeclarative qtmultimedia qtquickcontrols2 qtscript qtsensors
@@ -30,7 +30,7 @@ mkDerivation {
     breeze-qt5 kactivities kcmutils kcompletion kconfig kconfigwidgets
     kcoreaddons kcrash kdeclarative kdecoration kglobalaccel ki18n kiconthemes
     kidletime kinit kio knewstuff knotifications kpackage kscreenlocker kservice
-    kwayland kwidgetsaddons kwindowsystem kxmlgui plasma-framework
+    kwayland kwayland-server kwidgetsaddons kwindowsystem kxmlgui plasma-framework
     libcap libdrm mesa
   ];
   outputs = [ "bin" "dev" "out" ];
