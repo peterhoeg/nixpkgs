@@ -1,7 +1,7 @@
-{ stdenv, lib, fetchurl, gtk2, lv2, pkgconfig, python, serd, sord, sratom
+{ stdenv, lib, fetchurl, gtk3, lv2, pkgconfig, python, serd, sord, sratom
 , wafHook
-, withQt4 ? true, qt4 ? null
-, withQt5 ? false, qt5 ? null }:
+, withQt4 ? false, qt4 ? null
+, withQt5 ? true, qt5 ? null }:
 
 # I haven't found an XOR operator in nix...
 assert withQt4 || withQt5;
@@ -18,9 +18,11 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ pkgconfig wafHook ];
-  buildInputs = [ gtk2 lv2 python serd sord sratom ]
-    ++ (lib.optionals withQt4 [ qt4 ])
-    ++ (lib.optionals withQt5 (with qt5; [ qtbase qttools ]));
+  buildInputs = [
+    gtk3 lv2 python serd sord sratom
+  ]
+  ++ lib.optionals withQt4 [ qt4 ]
+  ++ lib.optionals withQt5 (with qt5; [ qtbase qttools ]);
 
   meta = with stdenv.lib; {
     homepage = "http://drobilla.net/software/suil";
