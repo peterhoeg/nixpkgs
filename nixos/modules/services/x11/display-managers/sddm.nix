@@ -9,67 +9,69 @@ let
   cfg = dmcfg.sddm;
   xEnv = config.systemd.services.display-manager.environment;
 
-  inherit (pkgs) sddm;
+  inherit (pkgs) runtimeShell sddm;
 
   xserverWrapper = pkgs.writeScript "xserver-wrapper" ''
-    #!/bin/sh
+    #!${runtimeShell}
     ${concatMapStrings (n: "export ${n}=\"${getAttr n xEnv}\"\n") (attrNames xEnv)}
     exec systemd-cat -t xserver-wrapper ${dmcfg.xserverBin} ${toString dmcfg.xserverArgs} "$@"
   '';
 
   Xsetup = pkgs.writeScript "Xsetup" ''
-    #!/bin/sh
+    #!${runtimeShell}
     ${cfg.setupScript}
     ${dmcfg.setupCommands}
   '';
 
   Xstop = pkgs.writeScript "Xstop" ''
-    #!/bin/sh
+    #!${runtimeShell}
     ${cfg.stopScript}
   '';
 
-  cfgFile = pkgs.writeText "sddm.conf" ''
-    [General]
-    HaltCommand=/run/current-system/systemd/bin/systemctl poweroff
-    RebootCommand=/run/current-system/systemd/bin/systemctl reboot
-    ${optionalString cfg.autoNumlock ''
-    Numlock=on
-    ''}
+  sddmConf = lib.recursiveUpdate ({
+    General = {
+      HaltCommand = "/run/current-system/systemd/bin/systemctl poweroff";
+      RebootCommand = "/run/current-system/systemd/bin/systemctl reboot";
+      # unset InputMethod to avoid an OSK popping up
+      InputMethod = "";
+      Numlock = if cfg.autoNumlock then "on" else "off";
+    };
 
-    [Theme]
-    Current=${cfg.theme}
-    ThemeDir=/run/current-system/sw/share/sddm/themes
-    FacesDir=/run/current-system/sw/share/sddm/faces
+    Theme = {
+      Current = cfg.theme;
+      ThemeDir = "/run/current-system/sw/share/sddm/themes";
+      FacesDir = "/run/current-system/sw/share/sddm/faces";
+    };
 
-    [Users]
-    MaximumUid=${toString config.ids.uids.nixbld}
-    HideUsers=${concatStringsSep "," dmcfg.hiddenUsers}
-    HideShells=/run/current-system/sw/bin/nologin
+    Users = {
+      MaximumUid = config.ids.uids.nixbld;
+      HideUsers = concatStringsSep "," dmcfg.hiddenUsers;
+      HideShells = "/run/current-system/sw/bin/nologin";
+    };
 
-    [X11]
-    MinimumVT=${toString (if xcfg.tty != null then xcfg.tty else 7)}
-    ServerPath=${xserverWrapper}
-    XephyrPath=${pkgs.xorg.xorgserver.out}/bin/Xephyr
-    SessionCommand=${dmcfg.sessionData.wrapper}
-    SessionDir=${dmcfg.sessionData.desktops}/share/xsessions
-    XauthPath=${pkgs.xorg.xauth}/bin/xauth
-    DisplayCommand=${Xsetup}
-    DisplayStopCommand=${Xstop}
-    EnableHidpi=${if cfg.enableHidpi then "true" else "false"}
+    X11 = {
+      MinimumVT = xcfg.tty or 7;
+      ServerPath = xserverWrapper;
+      XephyrPath = "${pkgs.xorg.xorgserver.out}/bin/Xephyr";
+      SessionCommand = dmcfg.sessionData.wrapper;
+      SessionDir = "${dmcfg.sessionData.desktops}/share/xsessions";
+      XauthPath = "${pkgs.xorg.xauth}/bin/xauth";
+      DisplayCommand = Xsetup;
+      DisplayStopCommand = Xstop;
+      EnableHiDPI = cfg.enableHidpi;
+    };
 
-    [Wayland]
-    EnableHidpi=${if cfg.enableHidpi then "true" else "false"}
-    SessionDir=${dmcfg.sessionData.desktops}/share/wayland-sessions
-
-    ${optionalString dmcfg.autoLogin.enable ''
-    [Autologin]
-    User=${dmcfg.autoLogin.user}
-    Session=${autoLoginSessionName}.desktop
-    Relogin=${boolToString cfg.autoLogin.relogin}
-    ''}
-
-    ${cfg.extraConfig}
-  '';
+    Wayland = {
+      EnableHiDPI = cfg.enableHidpi;
+      SessionDir = "${dmcfg.sessionData.desktops}/share/wayland-sessions";
+    };
+  } // lib.optionalAttrs dmcfg.autoLogin.enable {
+    Autologin = {
+      User = dmcfg.autoLogin.user;
+      Session = "${autoLoginSessionName}.desktop";
+      Relogin = cfg.autoLogin.relogin;
+    };
+  }) cfg.extraConfig;
 
   autoLoginSessionName = dmcfg.sessionData.autologinSession;
 
@@ -117,12 +119,15 @@ in
       };
 
       extraConfig = mkOption {
-        type = types.lines;
-        default = "";
+        type = types.attrs;
+        default = {};
         example = ''
-          [Autologin]
-          User=john
-          Session=plasma.desktop
+          { 
+            Autologin = {
+              User = "john";
+              Session = "plasma.desktop";
+            };
+          }
         '';
         description = ''
           Extra lines appended to the configuration of SDDM.
@@ -230,7 +235,7 @@ in
 
       sddm-autologin.text = ''
         auth     requisite pam_nologin.so
-        auth     required  pam_succeed_if.so uid >= 1000 quiet
+        auth     required  pam_succeed_if.so uid >= ${toString dmcfg.autoLogin.minimumUid} quiet
         auth     required  pam_permit.so
 
         account  include   sddm
@@ -248,7 +253,7 @@ in
       uid = config.ids.uids.sddm;
     };
 
-    environment.etc."sddm.conf".source = cfgFile;
+    environment.etc."sddm.conf".source = pkgs.writeText "sddm.conf" (lib.generators.toINI {} sddmConf);
     environment.pathsToLink = [
       "/share/sddm"
     ];

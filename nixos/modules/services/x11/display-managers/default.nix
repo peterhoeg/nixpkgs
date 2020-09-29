@@ -358,6 +358,14 @@ in
                 User to be used for the automatic login.
               '';
             };
+
+            minimumUid = mkOption {
+              type = types.int;
+              default = 1000;
+              description = ''
+                Minimum user ID for auto-login user.
+              '';
+            };
           };
         };
 
