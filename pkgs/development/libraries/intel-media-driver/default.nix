@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
     longDescription = ''
       The Intel Media Driver for VAAPI is a new VA-API (Video Acceleration API)
       user mode driver supporting hardware accelerated decoding, encoding, and
-      video post processing for GEN based graphics hardware.
+      video post processing for GEN based graphics hardware (Broadwell and newer).
     '';
     homepage = "https://github.com/intel/media-driver";
     changelog = "https://github.com/intel/media-driver/releases/tag/intel-media-${version}";
