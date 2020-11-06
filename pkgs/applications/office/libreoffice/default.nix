@@ -65,6 +65,8 @@ in (mkDrv rec {
   # https://bugs.documentfoundation.org/show_bug.cgi?id=78174#c10
   ++ [ "-fno-visibility-inlines-hidden" ];
 
+  VCL_PLUGIN = if kdeIntegration then "kde5" else "gtk3";
+
   patches = [
     ./xdg-open-brief.patch
   ];

@@ -1,9 +1,8 @@
-{ libreoffice, runCommand, dbus, bash }:
-let
-  jdk = libreoffice.jdk;
-in
+{ libreoffice, runCommand, bash }:
+
 (runCommand libreoffice.name {
-  inherit dbus libreoffice jdk bash;
+  inherit (libreoffice) jdk VCL_PLUGIN;
+  inherit libreoffice bash;
 } ''
   mkdir -p "$out/bin"
   ln -s "${libreoffice}/share" "$out/share"
@@ -14,6 +13,6 @@ in
     test "$i" = "soffice" || ln -s soffice "$out/bin/$(basename "$i")"
   done
 '') // {
-  inherit libreoffice dbus;
+  inherit libreoffice;
   meta = libreoffice.meta;
 }
