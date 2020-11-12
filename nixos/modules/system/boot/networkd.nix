@@ -8,6 +8,8 @@ let
 
   cfg = config.systemd.network;
 
+  waitOnline = config.networking.waitForOnline;
+
   check = {
 
     link = {
@@ -1556,7 +1558,7 @@ in
         after = [ "systemd-udev-settle.service" ];
       };
 
-      systemd.services.systemd-networkd-wait-online = {
+      systemd.services.systemd-networkd-wait-online = lib.mkIf waitOnline {
         wantedBy = [ "network-online.target" ];
       };
 
