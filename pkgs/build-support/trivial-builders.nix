@@ -202,7 +202,7 @@ rec {
    *   '';
    *
   */
-  writeShellScriptBin = name : text :
+  writeShellScriptBin = name: text:
     writeTextFile {
       inherit name;
       executable = true;
