@@ -192,7 +192,7 @@ in {
           ln -s --force "$emulator" /run/${dirName}/nix-emulators/
         done
 
-        for helper in libexec/qemu-bridge-helper bin/qemu-pr-helper; do
+        for helper in libexec/qemu-bridge-helper libexec/qemu-pr-helper; do
           ln -s --force ${cfg.qemuPackage}/$helper /run/${dirName}/nix-helpers/
         done
 
