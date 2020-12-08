@@ -1,26 +1,56 @@
-{lib, stdenv, fetchFromGitHub, cmake, libGLU, libGL, zlib, openssl, libyamlcpp, boost
-, SDL, SDL_image, SDL_mixer, SDL_gfx }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, cmake
+, pkg-config
+, installShellFiles
+, libGLU
+, libGL
+, zlib
+, openssl
+, libyamlcpp
+, boost
+, SDL
+, SDL_image
+, SDL_mixer
+, SDL_gfx
+}:
 
-let version = "1.0.0.2019.10.18"; in
 stdenv.mkDerivation {
   pname = "openxcom";
-  inherit version;
+  version = "1.0.0.20220429";
+
   src = fetchFromGitHub {
     owner = "OpenXcom";
     repo = "OpenXcom";
-    rev = "f9853b2cb8c8f741ac58707487ef493416d890a3";
-    sha256 = "0kbfawj5wsp1mwfcm5mwpkq6s3d13pailjm5w268gqpxjksziyq0";
+    rev = "3af9628ba68fc6f35f46848f55c3beec64cd5691";
+    hash = "sha256-xYpCBeHq26G7Whx9FGKeE10P7gwnH48lNz8sR31SC/g=";
   };
 
-  nativeBuildInputs = [ cmake ];
-  buildInputs = [ SDL SDL_gfx SDL_image SDL_mixer boost libyamlcpp libGLU libGL openssl zlib ];
+  nativeBuildInputs = [ cmake pkg-config installShellFiles ];
 
-  meta = {
+  buildInputs = [
+    SDL
+    SDL_gfx
+    SDL_image
+    SDL_mixer
+    boost
+    libGL
+    libGLU
+    libyamlcpp
+    openssl
+    zlib
+  ];
+
+  postInstall = ''
+    installManPage ../docs/openxcom.6
+  '';
+
+  meta = with lib; {
     description = "Open source clone of UFO: Enemy Unknown";
     homepage = "https://openxcom.org";
-    maintainers = [ lib.maintainers.cpages ];
-    platforms = lib.platforms.linux;
-    license = lib.licenses.gpl3;
+    license = licenses.gpl3Only;
+    maintainers = with maintainers; [ cpages ];
+    platforms = platforms.linux;
   };
-
 }
