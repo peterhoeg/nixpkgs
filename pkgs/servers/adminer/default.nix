@@ -1,13 +1,15 @@
-{ stdenv, libbsd, fetchurl, phpPackages, php }:
+{ stdenv, fetchFromGitHub, libbsd, phpPackages, php }:
 
 stdenv.mkDerivation rec {
-  version = "4.7.7";
   pname = "adminer";
+  version = "4.7.8";
 
-  # not using fetchFromGitHub as the git repo relies on submodules that are included in the tar file
-  src = fetchurl {
-    url = "https://github.com/vrana/adminer/releases/download/v${version}/adminer-${version}.tar.gz";
-    sha256 = "1rvvc7xml7ycpbpjgqbgkan8djplx67balrmfignk1b6h9cw3l4q";
+  src = fetchFromGitHub {
+    owner = "vrana";
+    repo = "adminer";
+    rev = "v${version}";
+    sha256 = "sha256-rfrkybpO58SABIrcI21iRY7QGGU8lcBlNedOWqYvYbQ=";
+    fetchSubmodules = true;
   };
 
   nativeBuildInputs = with phpPackages; [ php composer ];
@@ -17,8 +19,7 @@ stdenv.mkDerivation rec {
   '';
 
   installPhase = ''
-    mkdir $out
-    cp adminer-${version}.php $out/adminer.php
+    install -Dm444 adminer-${version}.php $out/adminer.php
   '';
 
   meta = with stdenv.lib; {
