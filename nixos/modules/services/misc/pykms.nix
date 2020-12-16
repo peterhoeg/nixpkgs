@@ -46,7 +46,7 @@ in {
       };
 
       logLevel = mkOption {
-        type = types.enum [ "CRITICAL" "ERROR" "WARNING" "INFO" "DEBUG" "MINI" ];
+        type = types.enum [ "CRITICAL" "ERROR" "WARNING" "INFO" "DEBUG" "MININFO" ];
         default = "INFO";
         description = "How much to log";
       };
@@ -76,6 +76,7 @@ in {
           "${getBin pykms}/bin/server"
           "--logfile STDOUT"
           "--loglevel ${cfg.logLevel}"
+          "--sqlite ${libDir}/clients.db"
         ] ++ cfg.extraArgs ++ [
           cfg.listenAddress
           (toString cfg.port)
