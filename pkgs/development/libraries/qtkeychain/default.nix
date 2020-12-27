@@ -1,43 +1,47 @@
-{ stdenv, fetchFromGitHub, cmake, pkgconfig, qt4 ? null
-, withQt5 ? false, qtbase ? null, qttools ? null
+{ stdenv
+, lib
+, mkDerivation
+, fetchFromGitHub
+, cmake
+, pkg-config
+, qttools
 , darwin ? null
 , libsecret
+, pcre
 }:
 
-assert withQt5 -> qtbase != null;
-assert withQt5 -> qttools != null;
 assert stdenv.isDarwin -> darwin != null;
 
-stdenv.mkDerivation rec {
-  name = "qtkeychain-${if withQt5 then "qt5" else "qt4"}-${version}";
-  version = "0.9.1";            # verify after nix-build with `grep -R "set(PACKAGE_VERSION " result/`
+mkDerivation rec {
+  pname = "qtkeychain";
+  version = "0.12.0"; # verify after nix-build with `grep -R "set(PACKAGE_VERSION " result/`
 
   src = fetchFromGitHub {
     owner = "frankosterfeld";
     repo = "qtkeychain";
     rev = "v${version}";
-    sha256 = "0h4wgngn2yl35hapbjs24amkjfbzsvnna4ixfhn87snjnq5lmjbc"; # v0.9.1
+    sha256 = "sha256-2c0wtjcWtVRSyYJN4HcSIpUoYh8uskC44zswtki3IT4=";
   };
 
-  patches = (if withQt5 then [] else [ ./0001-Fixes-build-with-Qt4.patch ]) ++ (if stdenv.isDarwin then [ ./0002-Fix-install-name-Darwin.patch ] else []);
+  patches = lib.optional stdenv.isDarwin [ ./0002-Fix-install-name-Darwin.patch ];
 
   cmakeFlags = [ "-DQT_TRANSLATIONS_DIR=share/qt/translations" ];
 
-  nativeBuildInputs = [ cmake ]
-    ++ stdenv.lib.optionals (!stdenv.isDarwin) [ pkgconfig ] # for finding libsecret
-  ;
+  nativeBuildInputs = [ cmake pkg-config qttools ];
 
-  buildInputs = stdenv.lib.optionals (!stdenv.isDarwin) [ libsecret ]
-    ++ (if withQt5 then [ qtbase qttools ] else [ qt4 ])
-    ++ stdenv.lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
-      CoreFoundation Security
-    ])
-  ;
+  buildInputs = [
+    libsecret
+    pcre
+  ]
+  ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
+    CoreFoundation
+    Security
+  ]);
 
-  meta = {
+  meta = with lib; {
     description = "Platform-independent Qt API for storing passwords securely";
     homepage = "https://github.com/frankosterfeld/qtkeychain";
-    license = stdenv.lib.licenses.bsd3;
-    platforms = stdenv.lib.platforms.unix;
+    license = licenses.bsd3;
+    platforms = platforms.unix;
   };
 }
