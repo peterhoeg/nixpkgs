@@ -11,7 +11,13 @@ stdenv.mkDerivation rec {
     sha256 = "10ylpiqc06p0qpma72vwksd7hd107s0vlx9c6s9rz4vc3i274lb6";
   };
 
+  postPatch = ''
+    substituteInPlace src/tldr.h \
+      --replace '.tldrc' '.cache/tldr'
+  '';
+
   buildInputs = [ curl libzip ];
+
   nativeBuildInputs = [ pkgconfig ];
 
   makeFlags = ["CC=cc" "LD=cc" "CFLAGS="];
