@@ -11,6 +11,8 @@ let
 
   systemd = cfg.package;
 
+  cfmFmt = pkgs.formats.ini { };
+
   upstreamSystemUnits =
     [ # Targets.
       "basic.target"
@@ -634,10 +636,10 @@ in
       '';
     };
 
-    services.journald.extraConfig = mkOption {
-      default = "";
-      type = types.lines;
-      example = "Storage=volatile";
+    services.journald.settings = mkOption {
+      default = {};
+      type = cfmFmt.type;
+      example = ''{ Journal.Storage = "volatile"; }'';
       description = ''
         Extra config options for systemd-journald. See man journald.conf
         for available options.
@@ -988,20 +990,18 @@ in
         ${config.systemd.user.extraConfig}
       '';
 
-      "systemd/journald.conf".text = ''
-        [Journal]
-        Storage=persistent
-        RateLimitInterval=${config.services.journald.rateLimitInterval}
-        RateLimitBurst=${toString config.services.journald.rateLimitBurst}
-        ${optionalString (config.services.journald.console != "") ''
-          ForwardToConsole=yes
-          TTYPath=${config.services.journald.console}
-        ''}
-        ${optionalString (config.services.journald.forwardToSyslog) ''
-          ForwardToSyslog=yes
-        ''}
-        ${config.services.journald.extraConfig}
-      '';
+      "systemd/journald.conf".source = cfmFmt.generate "journald.conf" (lib.recursiveUpdate ({
+        Journal = {
+          Storage = "persistent";
+          RateLimitInterval = config.services.journald.rateLimitInterval;
+          RateLimitBurst = config.services.journald.rateLimitBurst;
+          ForwardToSyslog = config.services.journald.forwardToSyslog;
+        } // lib.optionalAttrs (config.services.journald.console != "") {
+          ForwardToConsole = true;
+          TTYPath = config.services.journald.console;
+        };
+      })
+      config.services.journald.settings);
 
       "systemd/coredump.conf".text =
         ''
