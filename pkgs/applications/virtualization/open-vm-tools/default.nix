@@ -1,18 +1,47 @@
-{ stdenv, lib, fetchFromGitHub, makeWrapper, autoreconfHook,
-  fuse, libmspack, openssl, pam, xercesc, icu, libdnet, procps, libtirpc, rpcsvc-proto,
-  libX11, libXext, libXinerama, libXi, libXrender, libXrandr, libXtst,
-  pkg-config, glib, gdk-pixbuf-xlib, gtk3, gtkmm3, iproute, dbus, systemd, which,
-  withX ? true }:
+{ stdenv
+, lib
+, fetchFromGitHub
+, makeWrapper
+, autoreconfHook
+, fuse
+, libmspack
+, openssl
+, pam
+, xercesc
+, icu
+, libdnet
+, procps
+, libtirpc
+, rpcsvc-proto
+, libxml2
+, libX11
+, libXext
+, libXinerama
+, libXi
+, libXrender
+, libXrandr
+, libXtst
+, pkg-config
+, glib
+, gdk-pixbuf-xlib
+, gtk3
+, gtkmm3
+, iproute
+, dbus
+, systemd
+, which
+, withX ? true
+}:
 
 stdenv.mkDerivation rec {
   pname = "open-vm-tools";
-  version = "11.2.0";
+  version = "11.2.5";
 
   src = fetchFromGitHub {
-    owner  = "vmware";
-    repo   = "open-vm-tools";
-    rev    = "stable-${version}";
-    sha256 = "125y3zdhj353dmmjmssdaib2zp1jg5aiqmvpgkrzhnh5nx2icfv6";
+    owner = "vmware";
+    repo = "open-vm-tools";
+    rev = "stable-${version}";
+    sha256 = "sha256-Jv+NSKw/+l+b4lfVGgCZFlcTScO/WAO/d7DtI0FAEV4=";
   };
 
   sourceRoot = "${src.name}/open-vm-tools";
@@ -20,46 +49,42 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ autoreconfHook makeWrapper pkg-config ];
-  buildInputs = [ fuse glib icu libdnet libmspack libtirpc openssl pam procps rpcsvc-proto xercesc ]
-      ++ lib.optionals withX [ gdk-pixbuf-xlib gtk3 gtkmm3 libX11 libXext libXinerama libXi libXrender libXrandr libXtst ];
+
+  buildInputs = [ fuse glib icu libdnet libmspack libtirpc libxml2 openssl pam procps rpcsvc-proto systemd xercesc ]
+    ++ lib.optionals withX [ gdk-pixbuf-xlib gtk3 gtkmm3 libX11 libXext libXinerama libXi libXrender libXrandr libXtst ];
 
   postPatch = ''
-     # Build bugfix for 10.1.0, stolen from Arch PKGBUILD
-     mkdir -p common-agent/etc/config
-     sed -i 's|.*common-agent/etc/config/Makefile.*|\\|' configure.ac
+    substituteInPlace Makefile.am \
+      --replace 'etc/vmware-tools' '${placeholder "out"}/libexec/vmware-tools'
 
-     sed -i 's,etc/vmware-tools,''${prefix}/etc/vmware-tools,' Makefile.am
-     sed -i 's,^confdir = ,confdir = ''${prefix},' scripts/Makefile.am
-     sed -i 's,usr/bin,''${prefix}/usr/bin,' scripts/Makefile.am
-     sed -i 's,etc/vmware-tools,''${prefix}/etc/vmware-tools,' services/vmtoolsd/Makefile.am
-     sed -i 's,$(PAM_PREFIX),''${prefix}/$(PAM_PREFIX),' services/vmtoolsd/Makefile.am
-     sed -i 's,$(UDEVRULESDIR),''${prefix}/$(UDEVRULESDIR),' udev/Makefile.am
+    sed -i scripts/Makefile.am \
+      -e 's,^confdir = ,confdir = ${placeholder "out"},' \
+      -e 's,usr/bin,${placeholder "out"}/bin,'
 
-     # Avoid a glibc >= 2.25 deprecation warning that gets fatal via -Werror.
-     sed 1i'#include <sys/sysmacros.h>' -i lib/wiper/wiperPosix.c
+    substituteInPlace services/vmtoolsd/Makefile.am \
+      --replace 'etc/vmware-tools' '${placeholder "out"}/libexec/vmware-tools' \
+      --replace '$(PAM_PREFIX)'    '${placeholder "out"}/$(PAM_PREFIX)'
 
-     # Make reboot work, shutdown is not in /sbin on NixOS
-     sed -i 's,/sbin/shutdown,shutdown,' lib/system/systemLinux.c
+    substituteInPlace udev/Makefile.am \
+      --replace '$(UDEVRULESDIR)' '${placeholder "out"}/$(UDEVRULESDIR)'
+
+    # Make reboot work, shutdown is not in /sbin on NixOS
+    substituteInPlace lib/system/systemLinux.c \
+      --replace '/sbin/shutdown -r now' '${lib.getBin systemd}/bin/systemctl reboot' \
+      --replace '/sbin/shutdown -p now' '${lib.getBin systemd}/bin/systemctl poweroff'
   '';
 
-  configureFlags = [ "--without-kernel-modules" "--without-xmlsecurity" ]
-    ++ lib.optional (!withX) "--without-x";
+  configureFlags = [
+    "--with-udev-rules-dir=${placeholder "out"}/lib/udev/rules.d"
+    "--with-xml2"
+  ]
+  ++ lib.optional (!withX) "--without-x";
 
   enableParallelBuilding = true;
 
-  NIX_CFLAGS_COMPILE = builtins.toString [
-    # igrone glib-2.62 deprecations
-    # Drop in next stable release.
-    "-DGLIB_DISABLE_DEPRECATION_WARNINGS"
-
-    # fix build with gcc9
-    "-Wno-error=address-of-packed-member"
-    "-Wno-error=format-overflow"
-  ];
-
   postInstall = ''
     wrapProgram "$out/etc/vmware-tools/scripts/vmware/network" \
-      --prefix PATH ':' "${lib.makeBinPath [ iproute dbus systemd which ]}"
+      --prefix PATH ':' "${lib.makeBinPath [ dbus iproute systemd which ]}"
   '';
 
   meta = with lib; {
@@ -70,7 +95,7 @@ stdenv.mkDerivation rec {
       better management of, and seamless user interactions with, guests.
     '';
     license = licenses.gpl2;
-    platforms =  [ "x86_64-linux" "i686-linux" ];
+    platforms = [ "x86_64-linux" "i686-linux" ];
     maintainers = with maintainers; [ joamaki ];
   };
 }
