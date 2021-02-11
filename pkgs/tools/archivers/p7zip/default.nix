@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, fetchpatch, lib, cmake, enableUnfree ? false }:
+{ stdenv, fetchFromGitHub, fetchpatch, lib, cmake, wxGTK31-gtk3, enableUnfree ? false, enableGUI ? true }:
 
 stdenv.mkDerivation rec {
   pname = "p7zip";
@@ -13,18 +13,19 @@ stdenv.mkDerivation rec {
 
   sourceRoot = "source/CPP/7zip/CMAKE";
 
-  preConfigure = ''
-    buildFlags=all3
+  postPatch = ''
+    # we get a ton of warnings otherwise
+    find . -name CMakeLists.txt -print0 | xargs -0 sed -i 's/^cmake_minimum_required.*/cmake_minimum_required(VERSION ${cmake.version})/'
+  '' + lib.optionalString (!enableUnfree) ''
+    # Remove non-free RAR source code
+    # (see DOC/License.txt, https://fedoraproject.org/wiki/Licensing:Unrar)
+    rm -r Rar
+    sed -i '/Rar/d' CMakeLists.txt
   '' + lib.optionalString stdenv.isDarwin ''
     cp makefile.macosx_llvm_64bits makefile.machine
   '';
 
-  # Remove non-free RAR source code
-  # (see DOC/License.txt, https://fedoraproject.org/wiki/Licensing:Unrar)
-  postPatch = lib.optionalString (!enableUnfree) ''
-    rm -r Rar
-    sed -i '/Rar/d' CMakeLists.txt
-  '';
+  buildInputs = lib.optional enableGUI wxGTK31-gtk3;
 
   nativeBuildInputs = [ cmake ];
 
@@ -41,7 +42,7 @@ stdenv.mkDerivation rec {
     description = "A new p7zip fork with additional codecs and improvements (forked from https://sourceforge.net/projects/p7zip/)";
     homepage = "https://github.com/jinfeihan57/p7zip";
     # RAR code is under non-free UnRAR license, but we remove it
-    license = if enableUnfree then lib.licenses.unfree else lib.licenses.lgpl2Plus;
+    license = if enableUnfree then licenses.unfree else licenses.lgpl2Plus;
     maintainers = with maintainers; [ raskin ];
     platforms = platforms.unix;
   };
