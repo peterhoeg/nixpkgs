@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, fetchpatch, lib, cmake, wxGTK31-gtk3, enableUnfree ? false, enableGUI ? true }:
+{ stdenv, fetchFromGitHub, lib, cmake, wxGTK31-gtk3, enableUnfree ? false, enableGUI ? true }:
 
 stdenv.mkDerivation rec {
   pname = "p7zip";
