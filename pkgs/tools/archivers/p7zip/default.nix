@@ -1,4 +1,11 @@
-{ stdenv, fetchFromGitHub, lib, cmake, wxGTK31-gtk3, enableUnfree ? false, enableGUI ? true }:
+{ stdenv
+, fetchFromGitHub
+, lib
+, cmake
+, wxGTK31-gtk3
+, enableUnfree ? false
+, enableGUI ? false
+}:
 
 stdenv.mkDerivation rec {
   pname = "p7zip";
@@ -45,5 +52,6 @@ stdenv.mkDerivation rec {
     license = if enableUnfree then licenses.unfree else licenses.lgpl2Plus;
     maintainers = with maintainers; [ raskin ];
     platforms = platforms.unix;
+    broken = enableGUI;
   };
 }
