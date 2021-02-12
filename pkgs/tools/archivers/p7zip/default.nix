@@ -2,6 +2,7 @@
 , fetchFromGitHub
 , lib
 , cmake
+, ninja
 , wxGTK31-gtk3
 , enableUnfree ? false
 , enableGUI ? false
@@ -34,16 +35,17 @@ stdenv.mkDerivation rec {
 
   buildInputs = lib.optional enableGUI wxGTK31-gtk3;
 
-  nativeBuildInputs = [ cmake ];
+  nativeBuildInputs = [ cmake ninja ];
 
   setupHook = ./setup-hook.sh;
 
   NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isClang "-Wno-error=c++11-narrowing";
 
-  # for reasons unknown, the Makefile with the install info is written to bin with the binary artifacts
-  preInstall = ''
-    cd bin
-  '';
+  # # for reasons unknown, the Makefile with the install info is written to bin with the binary artifacts
+  # preInstall = ''
+  #   cd bin
+  #   cat Makefile
+  # '';
 
   meta = with lib; {
     description = "A new p7zip fork with additional codecs and improvements (forked from https://sourceforge.net/projects/p7zip/)";
