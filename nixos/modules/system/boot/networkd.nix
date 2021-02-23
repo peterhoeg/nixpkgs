@@ -1536,10 +1536,10 @@ in
       users.users.systemd-network.group = "systemd-network";
 
       systemd.additionalUpstreamSystemUnits = [
-        "systemd-networkd-wait-online.service"
         "systemd-networkd.service"
         "systemd-networkd.socket"
-      ];
+      ]
+      ++ optional config.networking.waitForOnline "systemd-networkd-wait-online.service";
 
       systemd.network.units = mapAttrs' (n: v: nameValuePair "${n}.netdev" (netdevToUnit n v)) cfg.netdevs
         // mapAttrs' (n: v: nameValuePair "${n}.network" (networkToUnit n v)) cfg.networks;
@@ -1556,7 +1556,7 @@ in
       };
 
       systemd.services.systemd-networkd-wait-online = {
-        wantedBy = [ "network-online.target" ];
+        wantedBy = optional config.networking.waitForOnline "network-online.target";
       };
 
       systemd.services."systemd-network-wait-online@" = {
