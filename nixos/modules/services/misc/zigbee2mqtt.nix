@@ -1,55 +1,72 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
   cfg = config.services.zigbee2mqtt;
 
-  configJSON = pkgs.writeText "configuration.json"
-    (builtins.toJSON (recursiveUpdate defaultConfig cfg.config));
-  configFile = pkgs.runCommand "configuration.yaml" { preferLocalBuild = true; } ''
-    ${pkgs.remarshal}/bin/json2yaml -i ${configJSON} -o $out
-  '';
+  dataDir = "/var/lib/zigbee2mqtt";
+
+  inherit (lib)
+    literalExample mkEnableOption mkIf mkOption types
+    mkRemovedOptionModule mkRenamedOptionModule
+    recursiveUpdate;
+
+  yml = pkgs.formats.yaml { };
+
+  configFile =
+    yml.generate "configuration.yaml" finalConfig;
 
   # the default config contains all required settings,
   # so the service starts up without crashing.
-  defaultConfig = {
-    homeassistant = false;
-    permit_join = false;
-    mqtt = {
-      base_topic = "zigbee2mqtt";
-      server = "mqtt://localhost:1883";
-    };
-    serial.port = "/dev/ttyACM0";
-    # put device configuration into separate file because configuration.yaml
-    # is copied from the store on startup
-    devices = "devices.yaml";
-  };
+  finalConfig = recursiveUpdate
+    {
+      homeassistant = false;
+      permit_join = false;
+      advanced = {
+        # Not logging to a file by default but set up sane defaults in case it is enabled
+        log_directory = "/var/log/${builtins.baseNameOf dataDir}";
+        log_file = "server_%TIMESTAMP%.log";
+        log_output = [ "console" ];
+        # Logging to journald, so there is not point adding an additional timestamp.
+        # If you set this to "", zigbee2mqtt will use its default
+        timestamp_format = " ";
+      };
+      mqtt = {
+        base_topic = "zigbee2mqtt";
+        server = "mqtt://localhost:1883";
+      };
+      serial.port = "/dev/ttyACM0";
+      # put device configuration into separate file because configuration.yaml
+      # is copied from the store on startup
+      devices = "devices.yaml";
+    }
+    cfg.settings;
+
 in
 {
-  meta.maintainers = with maintainers; [ sweber ];
+  meta.maintainers = with lib.maintainers; [ sweber ];
+
+  imports = [
+    (mkRenamedOptionModule [ "services" "zigbee2mqtt" "config" ] [ "services" "zigbee2mqtt" "settings" ])
+    (mkRemovedOptionModule [ "services" "zigbee2mqtt" "dataDir" ] ''
+      zigbee2mqtt now runs with DynamicUser=true.
+      Move your data into /var/lib/zigbee2mqtt if you were using a custom dataDir.
+    '')
+  ];
 
   options.services.zigbee2mqtt = {
-    enable = mkEnableOption "enable zigbee2mqtt service";
+    enable = mkEnableOption "zigbee2mqtt service";
 
     package = mkOption {
       description = "Zigbee2mqtt package to use";
-      default = pkgs.zigbee2mqtt.override {
-        dataDir = cfg.dataDir;
-      };
-      defaultText = "pkgs.zigbee2mqtt";
       type = types.package;
+      default = pkgs.zigbee2mqtt;
+      defaultText = "pkgs.zigbee2mqtt";
     };
 
-    dataDir = mkOption {
-      description = "Zigbee2mqtt data directory";
-      default = "/var/lib/zigbee2mqtt";
-      type = types.path;
-    };
-
-    config = mkOption {
-      default = {};
-      type = with types; nullOr attrs;
+    settings = mkOption {
+      description = "Your <filename>configuration.yaml</filename> as a Nix attribute set.";
+      type = yml.type;
+      default = { };
       example = literalExample ''
         {
           homeassistant = config.services.home-assistant.enable;
@@ -59,9 +76,6 @@ in
           };
         }
       '';
-      description = ''
-        Your <filename>configuration.yaml</filename> as a Nix attribute set.
-      '';
     };
   };
 
@@ -70,30 +84,20 @@ in
       description = "Zigbee2mqtt Service";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      environment.ZIGBEE2MQTT_DATA = cfg.dataDir;
+      unitConfig.ConditionPathExists = finalConfig.serial.port;
+      environment.ZIGBEE2MQTT_DATA = dataDir;
       serviceConfig = {
+        DynamicUser = true;
+        ExecStartPre = "${pkgs.coreutils}/bin/ln -sf ${configFile} ${dataDir}/${configFile.name}";
         ExecStart = "${cfg.package}/bin/zigbee2mqtt";
-        User = "zigbee2mqtt";
-        WorkingDirectory = cfg.dataDir;
+        WorkingDirectory = dataDir;
         Restart = "on-failure";
+        ProtectHome = "tmpfs";
         ProtectSystem = "strict";
-        ReadWritePaths = cfg.dataDir;
-        PrivateTmp = true;
-        RemoveIPC = true;
+        LogsDirectory = builtins.baseNameOf dataDir;
+        StateDirectory = builtins.baseNameOf dataDir;
+        SupplementaryGroups = [ "dialout" ];
       };
-      preStart = ''
-        cp --no-preserve=mode ${configFile} "${cfg.dataDir}/configuration.yaml"
-      '';
     };
-
-    users.users.zigbee2mqtt = {
-      home = cfg.dataDir;
-      createHome = true;
-      group = "zigbee2mqtt";
-      extraGroups = [ "dialout" ];
-      uid = config.ids.uids.zigbee2mqtt;
-    };
-
-    users.groups.zigbee2mqtt.gid = config.ids.gids.zigbee2mqtt;
   };
 }
