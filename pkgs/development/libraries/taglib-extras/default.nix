@@ -1,13 +1,17 @@
-{lib, stdenv, fetchurl, cmake, taglib, zlib}:
+{ lib, stdenv, fetchurl, cmake, taglib, zlib }:
 
 stdenv.mkDerivation rec {
-  name = "taglib-extras-1.0.1";
+  pname = "taglib-extras";
+  version = "1.0.1";
+
   src = fetchurl {
-    url = "http://ftp.rz.uni-wuerzburg.de/pub/unix/kde/taglib-extras/1.0.1/src/${name}.tar.gz";
-    sha256 = "0cln49ws9svvvals5fzxjxlzqm0fzjfymn7yfp4jfcjz655nnm7y";
+    url = "https://download.kde.org/stable/taglib-extras/1.0.1/src/${pname}-${version}.tar.gz";
+    sha256 = "sha256-/lRrSzFfMifJdf7Y6p38DlT8aZf9u6Kp2nvrpHkiljI=";
   };
-  buildInputs = [ taglib ];
-  nativeBuildInputs = [ cmake zlib ];
+
+  buildInputs = [ taglib zlib ];
+
+  nativeBuildInputs = [ cmake ];
 
   # Workaround for upstream bug https://bugs.kde.org/show_bug.cgi?id=357181
   preConfigure = ''
@@ -16,7 +20,7 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "Additional taglib plugins";
-    platforms = platforms.unix;
     license = licenses.lgpl2;
+    platforms = platforms.unix;
   };
 }
