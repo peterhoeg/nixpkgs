@@ -118,6 +118,7 @@ in
       uid = config.ids.uids.unifi;
       description = "UniFi controller daemon user";
       home = "${stateDir}";
+      isSystemUser = true;
     };
 
     networking.firewall = mkIf cfg.openPorts {
