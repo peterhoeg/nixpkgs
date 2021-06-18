@@ -1,28 +1,28 @@
-{ lib, stdenv, fetchurl }:
+{ lib, stdenv, fetchFromGitHub, installShellFiles }:
 
 stdenv.mkDerivation rec {
   pname = "p910nd";
   version = "0.97";
 
-  src = fetchurl {
-    sha256 = "0vy2qf386dif1nqznmy3j953mq7c4lk6j2hgyzkbmfi4msiq1jaa";
-    url = "mirror://sourceforge/p910nd/${pname}-${version}.tar.bz2";
+  src = fetchFromGitHub {
+    owner = "kenyapcomau";
+    repo = "p910nd";
+    # no tagged releases
+    rev = "ac43ddcd89fa32d909627e13044b0c459f8e729e";
+    sha256 = "sha256-L2+dFg1aNgnQZ8vfWuZ7izkAVXGCBlCyxzjiFb77DAY=";
   };
 
-  postPatch = ''
-    substituteInPlace Makefile --replace "/usr" ""
-    substituteInPlace Makefile --replace "gcc" "${stdenv.cc.targetPrefix}cc"
-  '';
+  nativeBuildInputs = [ installShellFiles ];
 
-  makeFlags = [ "DESTDIR=$(out)" "BINDIR=/bin" ];
+  # instead of mucking around with the Makefile, just install the bits we need
+  installPhase = ''
+    runHook preInstall
 
-  postInstall = ''
-    # Match the man page:
-    mv $out/etc/init.d/p910nd{,.sh}
+    install -Dm555 -t $out/bin p910nd
+    install -Dm444 -t $out/share/doc/p910nd *.md
+    installManPage p910nd.8
 
-    # The legacy init script is useful only (and even then...) as an example:
-    mkdir -p $out/share/doc/examples
-    mv $out/etc $out/share/doc/examples
+    runHook postInstall
   '';
 
   meta = with lib; {
@@ -37,9 +37,9 @@ stdenv.mkDerivation rec {
       the AppSocket protocol and has the scheme socket://. LPRng also supports
       this protocol and the syntax is lp=remotehost%9100 in /etc/printcap.
     '';
-    homepage = "http://p910nd.sourceforge.net/";
-    downloadPage = "https://sourceforge.net/projects/p910nd/";
-    license = licenses.gpl2;
+    homepage = "https://github.com/kenyapcomau/p910nd";
+    license = licenses.gpl2Only;
+    maintainers = with maintainers; [ peterhoeg ];
     platforms = platforms.unix;
   };
 }
