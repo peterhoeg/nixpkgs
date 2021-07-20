@@ -1,6 +1,6 @@
-{ lib, stdenv, fetchurl, makeWrapper, perl, perlPackages }:
+{ lib, stdenv, fetchurl, makeWrapper, perlPackages }:
 
-stdenv.mkDerivation rec {
+perlPackages.buildPerlPackage rec {
   version = "3.6";
   pname = "kpcli";
 
@@ -9,22 +9,38 @@ stdenv.mkDerivation rec {
     sha256 = "1srd6vrqgjlf906zdyxp4bg6gihkxn62cpzyfv0zzpsqsj13iwh1";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
-  buildInputs = [ perl ];
+  postPatch = ''
+    echo -e "install:\n\t@install -Dm555 ${src} $out/libexec/kpcli.pl" > Makefile.PL
 
-  phases = [ "installPhase" "fixupPhase" ];
-
-  installPhase = ''
-    mkdir -p $out/{bin,share}
-    cp ${src} $out/share/kpcli.pl
-    chmod +x $out/share/kpcli.pl
-
-    makeWrapper $out/share/kpcli.pl $out/bin/kpcli --set PERL5LIB \
-      "${with perlPackages; makePerlPath ([
-         CaptureTiny Clipboard Clone CryptRijndael SortNaturally TermReadKey TermShellUI FileKeePass TermReadLineGnu XMLParser
-      ] ++ lib.optional stdenv.isDarwin MacPasteboard)}"
+    ln -s Makefile.PL Makefile
   '';
 
+  dontUnpack = true;
+  dontConfigure = true;
+  dontBuild = true;
+  doCheck = false;
+
+  outputs = [ "out" ];
+
+  buildInputs = with perlPackages; ([
+    CaptureTiny
+    Clipboard
+    Clone
+    CryptRijndael
+    FileKeePass
+    SortNaturally
+    TermReadKey
+    TermReadLineGnu
+    TermShellUI
+    XMLParser
+  ] ++ lib.optional stdenv.isDarwin MacPasteboard);
+
+  nativeBuildInputs = [ makeWrapper ];
+
+  postInstall = ''
+    makeWrapper $out/libexec/kpcli.pl $out/bin/kpcli \
+      --prefix PERL5LIB : $PERL5LIB
+  '';
 
   meta = with lib; {
     description = "KeePass Command Line Interface";
@@ -34,7 +50,7 @@ stdenv.mkDerivation rec {
     '';
     license = licenses.artistic1;
     homepage = "http://kpcli.sourceforge.net";
+    maintainers = with maintainers; [ j-keck ];
     platforms = platforms.all;
-    maintainers = [ maintainers.j-keck ];
   };
 }
