@@ -7793,6 +7793,8 @@ in
 
   oxidized = callPackage ../tools/admin/oxidized { };
 
+  oxidized-cli = callPackage ../tools/admin/oxidized-cli { };
+
   oxipng = callPackage ../tools/graphics/oxipng { };
 
   p2pvc = callPackage ../applications/video/p2pvc {};
