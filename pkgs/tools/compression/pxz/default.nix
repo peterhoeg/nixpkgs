@@ -11,21 +11,17 @@ stdenv.mkDerivation rec {
     sha256 = "15mmv832iqsqwigidvwnf0nyivxf0y8m22j2szy4h0xr76x4z21m";
   };
 
+  postPatch = ''
+    substituteInPlace Makefile \
+      --replace '`date +%Y%m%d`' '1970-01-01'
+  '';
+
   buildInputs = [ xz ];
 
-  buildPhase = ''
-    gcc -o pxz pxz.c -llzma \
-        -fopenmp -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -O2 \
-        -DPXZ_BUILD_DATE=\"nixpkgs\" \
-        -DXZ_BINARY=\"${xz.bin}/bin/xz\" \
-        -DPXZ_VERSION=\"${version}\"
-  '';
-
-  installPhase = ''
-    mkdir -p $out/bin $out/share/man/man1
-    cp pxz $out/bin
-    cp pxz.1 $out/share/man/man1
-  '';
+  makeFlags = [
+    "BINDIR=${placeholder "out"}/bin"
+    "MANDIR=${placeholder "out"}/share/man"
+  ];
 
   meta = with lib; {
     homepage = "https://jnovy.fedorapeople.org/pxz/";
