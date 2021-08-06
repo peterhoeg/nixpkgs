@@ -103,8 +103,6 @@ stdenv.mkDerivation rec {
 
     # Miscellaneous
     "-Ddocs=true"
-    # We don't use firewalld in NixOS
-    "-Dfirewalld_zone=false"
     "-Dtests=no"
     "-Dcrypto=gnutls"
   ];
