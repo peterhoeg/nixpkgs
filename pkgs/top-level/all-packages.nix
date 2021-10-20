@@ -27791,6 +27791,8 @@ with pkgs;
 
   skanlite = libsForQt5.callPackage ../applications/office/skanlite { };
 
+  skanpage = libsForQt5.callPackage ../applications/office/skanpage { };
+
   soci = callPackage ../development/libraries/soci { };
 
   sonic-lineup = libsForQt5.callPackage ../applications/audio/sonic-lineup { };
