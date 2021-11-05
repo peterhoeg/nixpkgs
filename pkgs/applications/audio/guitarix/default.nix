@@ -1,4 +1,5 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchurl
 , fetchpatch
 , avahi
@@ -6,6 +7,7 @@
 , boost
 , curl
 , eigen
+, faust2
 , fftw
 , gettext
 , glib
@@ -30,6 +32,7 @@
 , sord
 , sratom
 , wafHook
+, which
 , wrapGAppsHook
 , zita-convolver
 , zita-resampler
@@ -58,6 +61,10 @@ stdenv.mkDerivation rec {
     })
   ];
 
+  postPatch = ''
+    patchShebangs tools
+  '';
+
   nativeBuildInputs = [
     gettext
     hicolor-icon-theme
@@ -65,6 +72,7 @@ stdenv.mkDerivation rec {
     pkg-config
     python3
     wafHook
+    which
     wrapGAppsHook
   ];
 
@@ -74,6 +82,7 @@ stdenv.mkDerivation rec {
     boost
     curl
     eigen
+    faust2
     fftw
     glib
     glib-networking.out
@@ -96,11 +105,8 @@ stdenv.mkDerivation rec {
     zita-resampler
   ];
 
-  # this doesnt build, probably because we have the wrong faust version:
-  #       "--faust"
-  # aproved versions are 2.20.2 and 2.15.11
   wafConfigureFlags = [
-    "--no-faust"
+    "--faust"
     "--no-font-cache-update"
     "--shared-lib"
     "--no-desktop-update"
