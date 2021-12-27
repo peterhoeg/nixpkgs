@@ -366,7 +366,7 @@
         The default version of Apache httpd is now 2.4. If you use the
         <literal>extraConfig</literal> option to pass literal Apache
         configuration text, you may need to update it — see
-        <link xlink:href="http://httpd.apache.org/docs/2.4/upgrading.html">Apache’s
+        <link xlink:href="https://httpd.apache.org/docs/2.4/upgrading.html">Apache’s
         documentation</link> for details. If you wish to continue to use
         httpd 2.2, add the following line to your NixOS configuration:
       </para>
