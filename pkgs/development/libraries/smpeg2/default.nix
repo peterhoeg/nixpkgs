@@ -1,9 +1,9 @@
-{ lib, stdenv
-, autoconf
-, automake
+{ lib
+, stdenv
+, autoreconfHook
+, libtool
 , darwin
 , fetchsvn
-, makeWrapper
 , pkg-config
 , SDL2
 }:
@@ -22,28 +22,36 @@ stdenv.mkDerivation rec {
     ./hufftable-uint_max.patch
   ];
 
-  nativeBuildInputs = [ autoconf automake makeWrapper pkg-config ];
+  postPatch = ''
+    mv configure.in configure.ac
+
+    sed -i configure.ac \
+      -e '/AC_TYPE_SOCKLEN_T/d'
+
+    touch AUTHORS ChangeLog NEWS
+
+    substituteInPlace smpeg2-config.in \
+      --replace @SDL_CONFIG@ ${lib.getDev SDL2}/bin/sdl2-config
+  '';
+
+  nativeBuildInputs = [ autoreconfHook libtool pkg-config ];
 
   buildInputs = [ SDL2 ]
     ++ lib.optional stdenv.isDarwin darwin.libobjc;
 
-  preConfigure = ''
-    sh autogen.sh
-  '';
+  doInstallCheck = true;
 
-  postInstall = ''
-    wrapProgram $out/bin/smpeg2-config \
-      --prefix PATH ":" "${pkg-config}/bin" \
-      --prefix PKG_CONFIG_PATH ":" "${SDL2.dev}/lib/pkgconfig"
+  installCheckPhase = ''
+    $out/bin/smpeg2-config --libs
   '';
 
   enableParallelBuilding = true;
 
   meta = with lib; {
-    homepage = "http://icculus.org/smpeg/";
     description = "SDL2 MPEG Player Library";
+    homepage = "http://icculus.org/smpeg/";
     license = licenses.lgpl2;
-    platforms = platforms.unix;
     maintainers = with maintainers; [ orivej ];
+    platforms = platforms.unix;
   };
 }
