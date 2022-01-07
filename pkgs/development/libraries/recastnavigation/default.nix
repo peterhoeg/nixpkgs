@@ -17,6 +17,8 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ libGL SDL2 libGLU ];
 
+  cmakeFlags = [ "-DOpenGL_GL_PREFERENCE=GLVND" ];
+
   meta = with lib; {
     homepage = "https://github.com/recastnavigation/recastnavigation";
     description = "Navigation-mesh Toolset for Games";
