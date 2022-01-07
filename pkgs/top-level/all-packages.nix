@@ -19657,12 +19657,16 @@ with pkgs;
     autoreconfHook = buildPackages.autoreconfHook269;
   };
 
-  SDL = callPackage ../development/libraries/SDL ({
+  SDL12 = callPackage ../development/libraries/SDL ({
     inherit (darwin.apple_sdk.frameworks) OpenGL CoreAudio CoreServices AudioUnit Kernel Cocoa GLUT;
   } // lib.optionalAttrs stdenv.hostPlatform.isAndroid {
     # libGLU doesn’t work with Android’s SDL
     libGLU = null;
   });
+
+  SDL-compat = callPackage ../development/libraries/SDL-compat { };
+
+  SDL = SDL12;
 
   SDL_sixel = callPackage ../development/libraries/SDL_sixel { };
 
