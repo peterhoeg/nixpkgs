@@ -1,47 +1,67 @@
-{ stdenv, lib, config, fetchFromGitHub, autoconf, automake, pcre
-, libtool, pkg-config, openssl
-, confFile ? config.watchman.confFile or null
-, withApple ? stdenv.isDarwin, CoreServices
+{ stdenv
+, lib
+, fetchFromGitHub
+, cmake
+, glog
+, gtest
+, pkg-config
+, python3
+, boost
+, fmt
+, folly
+, libevent
+, openssl
+, pcre
+, withApple ? stdenv.isDarwin
+, CoreServices
+
+, cargo
 }:
 
 stdenv.mkDerivation rec {
   pname = "watchman";
-  version = "4.9.0";
+  version = "2022.03.07.00";
 
   src = fetchFromGitHub {
     owner = "facebook";
     repo = "watchman";
     rev = "v${version}";
-    sha256 = "0fdaj5pmicm6j17d5q7px800m5rmam1a400x3hv1iiifnmhgnkal";
+    hash = "sha256-0a3tWCNTIhGKgv47gwTlR2bsn0qusbiiHX8tmKRkzgQ=";
   };
 
-  nativeBuildInputs = [ autoconf automake pkg-config libtool ];
-  buildInputs = [ pcre openssl ]
-    ++ lib.optionals withApple [ CoreServices ];
-
-  configureFlags = [
-    "--enable-lenient"
-    "--enable-conffile=${if confFile == null then "no" else confFile}"
-    "--with-pcre=yes"
-
-    # For security considerations re: --disable-statedir, see:
-    # https://github.com/facebook/watchman/issues/178
-    "--disable-statedir"
+  nativeBuildInputs = [
+    cargo
+    cmake
+    glog
+    gtest
+    pkg-config
+    python3
   ];
 
-  prePatch = ''
-    patchShebangs .
-  '';
+  buildInputs = [
+    boost
+    fmt
+    folly
+    libevent
+    pcre
+    openssl
+  ]
+  ++ lib.optionals withApple [ CoreServices ];
 
-  preConfigure = ''
-    ./autogen.sh
-  '';
+  cmakeFlags = [
+    "-Wno-dev"
+    "-DENABLE_EDEN_SUPPORT=OFF"
+    "-DWATCHMAN_STATE_DIR=/run/watchman"
+    "-DINSTALL_WATCHMAN_STATE_DIR=OFF"
+  ];
+
+  WATCHMAN_VERSION_OVERRIDE = version;
 
   meta = with lib; {
     description = "Watches files and takes action when they change";
-    homepage    = "https://facebook.github.io/watchman";
+    homepage = "https://facebook.github.io/watchman";
+    license = licenses.asl20;
     maintainers = with maintainers; [ cstrahan ];
-    platforms   = with platforms; linux ++ darwin;
-    license     = licenses.asl20;
+    platforms = with platforms; linux ++ darwin;
   };
 }

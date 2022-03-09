@@ -10915,7 +10915,6 @@ with pkgs;
 
   watchman = callPackage ../development/tools/watchman {
     inherit (darwin.apple_sdk.frameworks) CoreServices;
-    autoconf = buildPackages.autoconf269;
   };
 
   wavefunctioncollapse = callPackage ../tools/graphics/wavefunctioncollapse {};
