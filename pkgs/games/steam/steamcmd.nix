@@ -8,32 +8,29 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz";
-    sha256 = "0z0y0zqvhydmfc9y9vg5am0vz7m3gbj4l2dwlrfz936hpx301gyf";
+    hash = "sha256-zr8ARr/QjPRdprwJSuR6o56/QVXl7eQTc7V5uPEHHnw=";
   };
 
-  # The source tarball does not have a single top-level directory.
-  preUnpack = ''
-    mkdir $name
-    cd $name
-    sourceRoot=.
-  '';
+  sourceRoot = ".";
 
   buildInputs = [ bash steam-run ];
 
   dontBuild = true;
 
   installPhase = ''
-    mkdir -p $out/share/steamcmd/linux32
-    install -Dm755 steamcmd.sh $out/share/steamcmd/steamcmd.sh
-    install -Dm755 linux32/* $out/share/steamcmd/linux32
+    runHook preInstall
 
-    mkdir -p $out/bin
-    substitute ${./steamcmd.sh} $out/bin/steamcmd \
+    install -Dm555 -t $out/share/steamcmd         steamcmd.sh
+    install -Dm555 -t $out/share/steamcmd/linux32 linux32/*
+    install -Dm555 ${./steamcmd.sh} $out/bin/steamcmd
+
+    substituteInPlace $out/bin/steamcmd \
       --subst-var out \
       --subst-var-by coreutils ${coreutils} \
       --subst-var-by steamRoot "${steamRoot}" \
       --subst-var-by steamRun ${steam-run}
-    chmod 0755 $out/bin/steamcmd
+
+    runHook postInstall
   '';
 
   meta = with lib; {
