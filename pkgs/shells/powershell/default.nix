@@ -1,71 +1,120 @@
-{ stdenv, lib, autoPatchelfHook, fetchzip, libunwind, libuuid, icu, curl
-, darwin, makeWrapper, less, openssl_1_1, pam, lttng-ust }:
+{ stdenv
+, clangStdenv
+, cmake
+, gtest
+, dotnetCorePackages
+, buildDotnetModule
+, writeShellScriptBin
+, lib
+, autoPatchelfHook
+, fetchFromGitHub
+, fetchzip
+, git
+, libunwind
+, libuuid
+, icu
+, curl
+, darwin
+, makeWrapper
+, less
+, openssl_1_1
+, pam
+, lttng-ust
+, zlib
+}:
 
-let archString = if stdenv.isAarch64 then "arm64"
-                 else if stdenv.isx86_64 then "x64"
-                 else throw "unsupported platform";
-    platformString = if stdenv.isDarwin then "osx"
-                     else if stdenv.isLinux then "linux"
-                     else throw "unsupported platform";
-    platformSha = if (stdenv.isDarwin && stdenv.isx86_64) then "sha256-h5zjn8wtgHmsJFiGq1rja6kZTZj3Q72W2kH3AexRDQs="
-                     else if (stdenv.isDarwin && stdenv.isAarch64) then "sha256-NHM9ZUpBJb59Oq0Ke7DcvaN+bZ9MjSpXBRu5Ng9OVZ0="
-                     else if (stdenv.isLinux && stdenv.isx86_64) then "sha256-kidPtDMkEZ/1r4WIApPZ/BsdJkolpSZ3f72JyDv3798="
-                     else if (stdenv.isLinux && stdenv.isAarch64) then "sha256-bUacA4DwjDNlIG7yooXxUGL9AysAogNWuQDvcTqo1sE="
-                     else throw "unsupported platform";
-    platformLdLibraryPath = if stdenv.isDarwin then "DYLD_FALLBACK_LIBRARY_PATH"
-                     else if stdenv.isLinux then "LD_LIBRARY_PATH"
-                     else throw "unsupported platform";
-                     libraries = [ libunwind libuuid icu curl openssl_1_1 ] ++
-                       (if stdenv.isLinux then [ pam lttng-ust ] else [ darwin.Libsystem ]);
-in
-stdenv.mkDerivation rec {
-  pname = "powershell";
+let
   version = "7.2.1";
 
-  src = fetchzip {
-    url = "https://github.com/PowerShell/PowerShell/releases/download/v${version}/powershell-${version}-${platformString}-${archString}.tar.gz";
-    sha256 = platformSha;
-    stripRoot = false;
-  };
+  stdenv' = stdenv;
+  # stdenv' = clangStdenv;
 
-  buildInputs = [ less ] ++ libraries;
-  nativeBuildInputs = [ autoPatchelfHook makeWrapper ];
+  sdk = dotnetCorePackages.sdk_6_0;
+  runtime = dotnetCorePackages.runtime_6_0;
 
-  installPhase =
-  let
-    ext = stdenv.hostPlatform.extensions.sharedLibrary;
-  in ''
-    pslibs=$out/share/powershell
-    mkdir -p $pslibs
-
-    cp -r * $pslibs
-
-    rm -f $pslibs/libcrypto${ext}.1.0.0
-    rm -f $pslibs/libssl${ext}.1.0.0
-
-    # At least the 7.1.4-osx package does not have the executable bit set.
-    chmod a+x $pslibs/pwsh
-
-    ls $pslibs
-  '' + lib.optionalString (!stdenv.isDarwin && !stdenv.isAarch64) ''
-    patchelf --replace-needed libcrypto${ext}.1.0.0 libcrypto${ext}.1.1 $pslibs/libmi.so
-    patchelf --replace-needed libssl${ext}.1.0.0 libssl${ext}.1.1 $pslibs/libmi.so
-  '' + lib.optionalString (!stdenv.isDarwin) ''
-    patchelf --replace-needed liblttng-ust${ext}.0 liblttng-ust${ext}.1 $pslibs/libcoreclrtraceptprovider.so
-  '' + ''
-
-    mkdir -p $out/bin
-
-    makeWrapper $pslibs/pwsh $out/bin/pwsh \
-      --prefix ${platformLdLibraryPath} : "${lib.makeLibraryPath libraries}" \
-      --set TERM xterm --set POWERSHELL_TELEMETRY_OPTOUT 1 --set DOTNET_CLI_TELEMETRY_OPTOUT 1
+  git' = writeShellScriptBin "git" ''
+    echo v${version}
   '';
 
-  dontStrip = true;
+  native = stdenv'.mkDerivation rec {
+    pname = "powershell-native";
+    version = "7.2.0";
+
+    src = fetchFromGitHub {
+      owner = "PowerShell";
+      repo = "PowerShell-native";
+      rev = "v${version}";
+      sha256 = "sha256-BSpZ+yIlyMFdobFBM7miXLiRWFj6miCcXUHfXcpOK9I=";
+      fetchSubmodules = true;
+    };
+
+    sourceRoot = "source/src/libpsl-native";
+
+    enableParallelBuilding = false;
+
+    buildInputs = [ zlib ];
+
+    nativeBuildInputs = [ cmake gtest ];
+
+    # cmakeFlags = [
+    #   "-DBUILD_TARGET_ARCH=x64"
+    # ];
+  };
+
+in
+buildDotnetModule rec {
+  pname = "powershell";
+  inherit version;
+
+  src = fetchFromGitHub {
+    owner = "PowerShell";
+    repo = "PowerShell";
+    rev = "v${version}";
+    sha256 = "sha256-8I+viIJA8NgCNf9j79OogoEX3vNMBGNRXyNi8orHqiU=";
+    fetchSubmodules = true;
+    leaveDotGit = true;
+  };
+
+  postPatch = ''
+    echo "v${version}" > powershell.version
+    # substituteInPlace tools/releaseTools.psm1 \
+      # --replace 'NuGetVersion = $newVersionString' 'NuGetVersion = "${version}"'
+  '';
+
+  buildInputs = [
+    native
+
+    less
+    libunwind
+    libuuid
+    icu
+    curl
+    openssl_1_1
+  ]
+  ++ lib.optionals stdenv'.isLinux [ pam lttng-ust ]
+  ++ lib.optionals stdenv'.isDarwin [ darwin.Libsystem ];
+
+  nativeBuildInputs = [ git' makeWrapper ];
+
+  dotnet-sdk = sdk;
+
+  dotnet-runtime = runtime;
+
+  projectFile = "PowerShell.sln";
+  nugetDeps = ./deps.nix;
+
+  preBuild = ''
+    set -x
+  '';
+
+  makeWrapperArgs = [
+    "--set TERM xterm"
+    "--set POWERSHELL_TELEMETRY_OPTOUT 1 --set DOTNET_CLI_TELEMETRY_OPTOUT 1"
+  ];
 
   doInstallCheck = true;
+  # May need a writable home, seen on Darwin.
   installCheckPhase = ''
-    # May need a writable home, seen on Darwin.
     HOME=$TMP $out/bin/pwsh --help > /dev/null
   '';
 
@@ -75,10 +124,10 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ yrashk srgom p3psi ];
     platforms = [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
     license = with licenses; [ mit ];
+    mainProgram = "bin/pwsh";
   };
 
   passthru = {
     shellPath = "/bin/pwsh";
   };
-
 }
