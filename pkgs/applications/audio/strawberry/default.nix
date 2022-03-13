@@ -19,7 +19,6 @@
 , protobuf
 , sqlite
 , taglib
-, libgpod
 , libpulseaudio
 , libselinux
 , libsepol
@@ -31,10 +30,16 @@
 , withGstreamer ? true
 , glib-networking
 , gst_all_1
+, withIpod ? false # adds about 200MB
+, libgpod
 , withVlc ? true
 , libvlc
 }:
 
+let
+  inherit (lib) optional optionals optionalString;
+
+in
 mkDerivation rec {
   pname = "strawberry";
   version = "1.0.2";
@@ -61,22 +66,22 @@ mkDerivation rec {
     protobuf
     sqlite
     taglib
-    qtbase
     qtx11extras
-  ] ++ lib.optionals stdenv.isLinux [
-    libgpod
+  ] ++ optionals stdenv.isLinux [
     libpulseaudio
     libselinux
     libsepol
     p11-kit
-  ] ++ lib.optionals withGstreamer (with gst_all_1; [
+  ] ++ optionals withGstreamer (with gst_all_1; [
     glib-networking
     gstreamer
     gst-plugins-base
     gst-plugins-good
     gst-plugins-bad
     gst-plugins-ugly
-  ]) ++ lib.optional withVlc libvlc;
+  ])
+  ++ optional withIpod libgpod
+  ++ optional withVlc libvlc;
 
   nativeBuildInputs = [
     cmake
@@ -87,7 +92,7 @@ mkDerivation rec {
     util-linux
   ];
 
-  postInstall = lib.optionalString withGstreamer ''
+  postInstall = optionalString withGstreamer ''
     qtWrapperArgs+=(
       --prefix GST_PLUGIN_SYSTEM_PATH_1_0 : "$GST_PLUGIN_SYSTEM_PATH_1_0"
       --prefix GIO_EXTRA_MODULES : "${glib-networking.out}/lib/gio/modules"
