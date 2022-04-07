@@ -1,25 +1,25 @@
-{ lib, stdenv, fetchFromGitHub }:
+{ lib, stdenvNoCC, fetchFromGitHub }:
 
 ## Usage
 # In NixOS, simply add this package to services.udev.packages:
 #   services.udev.packages = [ pkgs.qmk-udev-rules ];
 
-stdenv.mkDerivation rec {
+stdenvNoCC.mkDerivation rec {
   pname = "qmk-udev-rules";
-  version = "0.15.25";
+  version = "0.16.8";
 
   src = fetchFromGitHub {
     owner = "qmk";
     repo = "qmk_firmware";
     rev = version;
-    sha256 = "4U1/9DgoKZ1Al76lZ2P8x4LIvtqaJPLq81cCSCy+9iE=";
+    hash = "sha256-/GI131pvZVyRWJjn3e31l8+m/PjiyKtFzlP5K6xevnw=";
   };
 
   dontBuild = true;
 
   installPhase = ''
     runHook preInstall
-    install -D util/udev/50-qmk.rules $out/lib/udev/rules.d/50-qmk.rules
+    install -Dm444 -t $out/lib/udev/rules.d util/udev/50-qmk.rules
     runHook postInstall
   '';
 
