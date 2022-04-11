@@ -2,17 +2,21 @@
 , fetchurl
 , python2
 }:
+
 python2.pkgs.buildPythonApplication rec {
   pname = "chirp-daily";
-  version = "20211016";
+  version = "20220408";
 
   src = fetchurl {
     url = "https://trac.chirp.danplanet.com/chirp_daily/daily-${version}/${pname}-${version}.tar.gz";
-    sha256 = "13xzqnhvnw6yipv4izkq0s9ykyl9pc5ifpr1ii8xfp28ch706qyw";
+    hash = "sha256-MTXmXUf7a0QHEeBfPz7dXKQS+Sdb1brPDtduFR85AUU=";
   };
 
   propagatedBuildInputs = with python2.pkgs; [
-    pygtk pyserial libxml2 future
+    future
+    pygtk
+    pyserial
+    libxml2
   ];
 
   meta = with lib; {
