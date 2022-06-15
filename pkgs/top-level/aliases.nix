@@ -666,6 +666,56 @@ mapAliases ({
   php80Packages = php80; # Added 2023-06-21
   php80Extensions = php80; # Added 2023-06-21
 
+  php73 = throw "php73 has been dropped due to the lack of maintanence from upstream for future releases"; # Added 2021-06-03
+  php73Packages = php73; # Added 2021-06-03
+  php73Extensions = php73; # Added 2021-06-03
+
+  php-embed = throw ''
+    php*-embed has been dropped, you can build something similar
+    with the following snippet:
+    php74.override { embedSupport = true; apxs2Support = false; }
+  ''; # Added 2020-04-01
+  php73-embed = php-embed; # Added 2020-04-01
+  php74-embed = php-embed; # Added 2020-04-01
+
+  phpPackages-embed = throw ''
+    php*Packages-embed has been dropped, you can build something
+    similar with the following snippet:
+    (php74.override { embedSupport = true; apxs2Support = false; }).packages
+  ''; # Added 2020-04-01
+  php73Packages-embed = phpPackages-embed;
+  php74Packages-embed = phpPackages-embed;
+
+  php-unit = throw ''
+    php*-unit has been dropped, you can build something similar with
+    the following snippet:
+    php74.override {
+      embedSupport = true;
+      apxs2Support = false;
+      systemdSupport = false;
+      phpdbgSupport = false;
+      cgiSupport = false;
+      fpmSupport = false;
+    }
+  ''; # Added 2020-04-01
+  php73-unit = php-unit; # Added 2020-04-01
+  php74-unit = php-unit; # Added 2020-04-01
+
+  phpPackages-unit = throw ''
+    php*Packages-unit has been dropped, you can build something
+     similar with this following snippet:
+    (php74.override {
+      embedSupport = true;
+      apxs2Support = false;
+      systemdSupport = false;
+      phpdbgSupport = false;
+      cgiSupport = false;
+      fpmSupport = false;
+    }).packages
+  ''; # Added 2020-04-01
+  php73Packages-unit = phpPackages-unit;
+  php74Packages-unit = phpPackages-unit;
+
   pipewire-media-session = throw "pipewire-media-session is no longer maintained and has been removed. Please use Wireplumber instead.";
   pkgconfig = throw "'pkgconfig' has been renamed to/replaced by 'pkg-config'"; # Converted to throw 2023-09-10
   pleroma-otp = pleroma; # Added 2021-07-10
