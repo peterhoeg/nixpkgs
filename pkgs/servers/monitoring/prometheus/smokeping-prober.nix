@@ -1,32 +1,29 @@
 { lib, buildGoModule, fetchFromGitHub, nixosTests }:
 
-let
-  baseVersion = "0.4.2";
-  commit = "722200c4adbd6d1e5d847dfbbd9dec07aa4ca38d";
-in
 buildGoModule rec {
   pname = "smokeping_prober";
-  version = "${baseVersion}-g${commit}";
+  version = "0.6.1";
 
-  ldflags = let
-    setVars = {
-      Version = baseVersion;
-      Revision = commit;
-      Branch = commit;
-      BuildUser = "nix";
-    };
-    varFlags = lib.concatStringsSep " " (lib.mapAttrsToList (name: value: "-X github.com/prometheus/common/version.${name}=${value}") setVars);
-  in [
-    "${varFlags}" "-s" "-w"
-  ];
+  ldflags =
+    let
+      setVars = {
+        Version = version;
+        BuildUser = "nix";
+        Branch = version;
+        Revision = version;
+      };
+      varFlags = lib.concatStringsSep " " (lib.mapAttrsToList (name: value: "-X github.com/prometheus/common/version.${name}=${value}") setVars);
+    in
+    [ "${varFlags}" "-s" "-w" ];
 
   src = fetchFromGitHub {
-    rev = commit;
     owner = "SuperQ";
     repo = "smokeping_prober";
-    sha256 = "1lpcjip6qxhalldgm6i2kgbajfqy3vwfyv9jy0jdpii13lv6mzlz";
+    rev = "v" + version;
+    hash = "sha256-tph9TZwMWKlJC/YweO9BU3+QRIugqc3ob5rqXThyR1c=";
   };
-  vendorSha256 = "0p2jmlxpvpaqc445j39b4z4i3mnjrm25khv3sq6ylldcgfd31vz8";
+
+  vendorSha256 = "sha256-emabuOm5tuPNZWmPHJWUWzFVjuLrY7biv8V/3ru73aU=";
 
   doCheck = true;
 
