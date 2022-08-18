@@ -29,8 +29,9 @@ perlPackages.buildPerlPackage rec {
   installPhase = ''
     runHook preInstall
 
-    install -Dm755 ddclient $out/bin/ddclient
-    install -Dm644 -t $out/share/doc/ddclient COP* ChangeLog README.* RELEASENOTE
+    install -Dm555 -t $out/bin ddclient
+    install -Dm444 -t $out/share/doc/ddclient COP* ChangeLog README.* RELEASENOTE
+    install -Dm444 -t $out/share/doc/ddclient/examples sample*
 
     runHook postInstall
   '';
