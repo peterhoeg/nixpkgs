@@ -1,5 +1,17 @@
-{ lib, stdenv, resholve, binlore, writeTextFile }:
+{ lib, stdenv, resholve, binlore, writeTextFile, shfmt }:
 
+let
+  runShfmt = ''
+    ${shfmt}/bin/shfmt \
+      --case-indent \
+      --indent 2 \
+      --simplify \
+      --space-redirects \
+      --write \
+      $out
+  '';
+
+in
 rec {
   /* These functions break up the work of partially validating the
     'solutions' attrset and massaging it into env/cli args.
@@ -54,8 +66,8 @@ rec {
     "RESHOLVE_${lib.toUpper env}=${shellEnv solution env value}";
 
   /* Discard attrs:
-  - claimed by phraseArgs
-  - only needed for binlore.collect
+    - claimed by phraseArgs
+    - only needed for binlore.collect
   */
   removeUnneededArgs = value:
     removeAttrs value [ "scripts" "flags" "unresholved" ];
@@ -74,7 +86,8 @@ rec {
   phraseBinloreArgs = value:
     let
       hasUnresholved = builtins.hasAttr "unresholved" value;
-    in {
+    in
+    {
       drvs = value.inputs ++
         lib.optionals hasUnresholved [ value.unresholved ];
       strip = if hasUnresholved then [ value.unresholved ] else [ ];
@@ -87,7 +100,7 @@ rec {
       "RESHOLVE_LORE=${binlore.collect (phraseBinloreArgs value) } ${phraseEnvs solution value} ${resholve}/bin/resholve --overwrite ${phraseArgs value}"
     else throw "invalid solution"; # shouldn't trigger for now
 
-  injectUnresholved = solutions: unresholved: (builtins.mapAttrs (name: value: value // { inherit unresholved; } ) solutions);
+  injectUnresholved = solutions: unresholved: (builtins.mapAttrs (name: value: value // { inherit unresholved; }) solutions);
 
   /* Build resholve invocation for each solution. */
   phraseCommands = solutions: unresholved:
@@ -130,6 +143,7 @@ rec {
            )
          )}
         ${partialSolution.interpreter} -n $out
+        ${runShfmt}
       '';
     };
   writeScriptBin = name: partialSolution: text:
@@ -147,9 +161,11 @@ rec {
           )
         }
         ${partialSolution.interpreter} -n $out/bin/${name}
+        ${runShfmt}
       '';
     };
-  mkDerivation = { pname
+  mkDerivation =
+    { pname
     , src
     , version
     , passthru ? { }
@@ -170,12 +186,12 @@ rec {
         inherit pname version src;
       }));
     in
-    /*
-    resholve in a separate derivation; some concerns:
-    - we aren't keeping many of the user's args, so they
+      /*
+        resholve in a separate derivation; some concerns:
+        - we aren't keeping many of the user's args, so they
       can't readily set LOGLEVEL and such...
-    - not sure how this affects multiple outputs
-    */
+        - not sure how this affects multiple outputs
+      */
     lib.extendDerivation true passthru (stdenv.mkDerivation {
       src = unresholved;
       version = unresholved.version;
@@ -193,6 +209,7 @@ rec {
 
       installPhase = ''
         cp -R $src $out
+        ${runShfmt}
       '';
 
       # enable below for verbose debug info if needed
