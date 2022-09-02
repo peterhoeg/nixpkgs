@@ -1,28 +1,35 @@
-{ lib, stdenv, fetchFromGitHub }:
+{ lib, resholve, fetchFromGitHub, bash, coreutils }:
 
-stdenv.mkDerivation rec {
+resholve.mkDerivation rec {
   pname = "dynamic-colors";
-  version = "0.2.2.2";
+  version = "0.2.5";
 
   src = fetchFromGitHub {
-    owner  = "peterhoeg";
-    repo   = "dynamic-colors";
-    rev    = "v${version}";
-    sha256 = "0i63570z9aqbxa8ixh4ayb3akgjdnlqyl2sbf9d7x8f1pxhk5kd5";
+    owner = "peterhoeg";
+    repo = "dynamic-colors";
+    rev = "v${version}";
+    hash = "sha256-jSdwq9WwYZP8MK6z7zJa0q93xfanr6iuvAt8YQkQxxE=";
   };
 
   PREFIX = placeholder "out";
 
   postPatch = ''
     substituteInPlace bin/dynamic-colors \
-      --replace /usr/share/dynamic-colors $out/share/dynamic-colors
+      --replace /usr/share $out/share
   '';
+
+  solutions.default = {
+    interpreter = lib.getExe bash;
+    inputs = [ coreutils ];
+    scripts = [ "bin/dynamic-colors" ];
+    keep."$EDITOR" = true;
+  };
 
   meta = with lib; {
     description = "Change terminal colors on the fly";
-    homepage    = "https://github.com/peterhoeg/dynamic-colors";
-    license     = licenses.mit;
+    homepage = "https://github.com/peterhoeg/dynamic-colors";
+    license = licenses.mit;
     maintainers = with maintainers; [ peterhoeg ];
-    platforms   = platforms.unix;
+    platforms = platforms.unix;
   };
 }
