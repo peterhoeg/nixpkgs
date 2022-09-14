@@ -1,5 +1,16 @@
-{ lib, stdenv, fetchFromGitHub, python3, pass }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, python3
+, preferPass ? true
+, pass
+, passage
+}:
 
+let
+  bin = lib.getExe (if preferPass then pass else passage);
+
+in
 stdenv.mkDerivation rec {
   pname = "passff-host";
   version = "1.2.3";
@@ -15,7 +26,8 @@ stdenv.mkDerivation rec {
   makeFlags = [ "VERSION=${version}" ];
 
   patchPhase = ''
-    sed -i 's#COMMAND = "pass"#COMMAND = "${pass}/bin/pass"#' src/passff.py
+    substituteInPlace src/passff.py \
+      --replace 'COMMAND = "pass"' 'COMMAND = "${bin}"'
   '';
 
   installPhase = ''
@@ -43,6 +55,6 @@ stdenv.mkDerivation rec {
     description = "Host app for the WebExtension PassFF";
     homepage = "https://github.com/passff/passff-host";
     license = licenses.gpl2;
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [ peterhoeg ];
   };
 }
