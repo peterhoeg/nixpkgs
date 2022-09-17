@@ -1,7 +1,14 @@
-{ lib, callPackage, CoreFoundation, fetchFromGitHub, pkgs, wrapCDDA, attachPkgs
-, tiles ? true, Cocoa
+{ lib
+, callPackage
+, CoreFoundation
+, fetchFromGitHub
+, pkgs
+, wrapCDDA
+, attachPkgs
+, tiles ? true
+, Cocoa
 , debug ? false
-, useXdgDir ? false
+, useXdgDir ? true
 }:
 
 let
@@ -30,8 +37,7 @@ let
     ];
 
     meta = common.meta // {
-      maintainers = with lib.maintainers;
-      common.meta.maintainers ++ [ skeidel ];
+      maintainers = with lib.maintainers; common.meta.maintainers ++ [ skeidel ];
     };
   });
 in
