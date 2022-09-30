@@ -1,15 +1,36 @@
-{ lib, stdenv, fetchurl, nasm
-, alsa-lib, curl, flac, fluidsynth, freetype, libjpeg, libmad, libmpeg2, libogg, libvorbis, libGLU, libGL, SDL2, zlib
-, Cocoa, AudioToolbox, Carbon, CoreMIDI, AudioUnit, cctools
+{ lib
+, stdenv
+, fetchurl
+, nasm
+, alsa-lib
+, curl
+, flac
+, fluidsynth
+, freetype
+, libjpeg
+, libmad
+, libmpeg2
+, libogg
+, libvorbis
+, libGLU
+, libGL
+, SDL2
+, zlib
+, Cocoa
+, AudioToolbox
+, Carbon
+, CoreMIDI
+, AudioUnit
+, cctools
 }:
 
 stdenv.mkDerivation rec {
   pname = "scummvm";
-  version = "2.5.1";
+  version = "2.6.0";
 
   src = fetchurl {
     url = "http://scummvm.org/frs/scummvm/${version}/${pname}-${version}.tar.xz";
-    sha256 = "sha256-n9jbOORFYUS/jDTazffyBOdfGOjkSOwBzgjOgmoDXwE=";
+    hash = "sha256-HBQ46NDJ2eFf0Sni6eLSIncVvXVZ+Dsucgj12HBP/Bc=";
   };
 
   nativeBuildInputs = [ nasm ];
@@ -17,9 +38,25 @@ stdenv.mkDerivation rec {
   buildInputs = lib.optionals stdenv.isLinux [
     alsa-lib
   ] ++ lib.optionals stdenv.isDarwin [
-    Cocoa AudioToolbox Carbon CoreMIDI AudioUnit
+    Cocoa
+    AudioToolbox
+    Carbon
+    CoreMIDI
+    AudioUnit
   ] ++ [
-    curl freetype flac fluidsynth libjpeg libmad libmpeg2 libogg libvorbis libGLU libGL SDL2 zlib
+    curl
+    freetype
+    flac
+    fluidsynth
+    libjpeg
+    libmad
+    libmpeg2
+    libogg
+    libvorbis
+    libGLU
+    libGL
+    SDL2
+    zlib
   ];
 
   dontDisableStatic = true;
@@ -27,8 +64,8 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   configurePlatforms = [ "host" ];
+
   configureFlags = [
-    "--enable-c++11"
     "--enable-release"
   ];
 
@@ -42,8 +79,8 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "Program to run certain classic graphical point-and-click adventure games (such as Monkey Island)";
     homepage = "https://www.scummvm.org/";
-    license = licenses.gpl2;
-    maintainers = [ maintainers.peterhoeg ];
+    license = licenses.gpl3Only;
+    maintainers = with maintainers; [ peterhoeg ];
     platforms = platforms.unix;
   };
 }
