@@ -18,6 +18,7 @@
 , requests
 , requests-mock
 , rich
+, setuptools
 , timeout-decorator
 , ujson
 , urllib3
@@ -40,6 +41,7 @@ buildPythonPackage rec {
 
   nativeBuildInputs = [
     poetry-core
+    setuptools
   ];
 
   propagatedBuildInputs = [
