@@ -1,9 +1,16 @@
 { config, lib, pkgs, ...}:
 
-with lib;
-
 let
   cfg = config.services.mosquitto;
+
+  dataDir = "/var/lib/mosquitto";
+
+  inherit (lib)
+
+    count filter flatten imap0 length escapeShellArg isBool boolToString
+    concatLists concatMap concatMapStringsSep concatStringsSep optional
+    filterAttrs mapAttrsToList mkEnableOption mkRemovedOptionModule mkIf
+    mkOption types;
 
   # note that mosquitto config parsing is very simplistic as of may 2021.
   # often times they'll e.g. strtok() a line, check the first two tokens, and ignore the rest.
@@ -97,10 +104,14 @@ let
     ++ mapAttrsToList
       (n: u: {
         assertion = count (s: s != null) [
-          u.password u.passwordFile u.hashedPassword u.hashedPasswordFile
+          u.password
+          u.passwordFile
+          u.hashedPassword
+          u.hashedPasswordFile
         ] <= 1;
         message = "Cannot set more than one password option for user ${n} in ${prefix}";
-      }) users;
+      })
+      users;
 
   makePasswordFile = users: path:
     let
@@ -310,7 +321,7 @@ let
       "listener ${toString listener.port} ${toString listener.address}"
       "acl_file ${makeACLFile idx listener.users listener.acl}"
     ]
-    ++ optional (! listener.omitPasswordAuth) "password_file ${cfg.dataDir}/passwd-${toString idx}"
+    ++ optional (! listener.omitPasswordAuth) "password_file ${dataDir}/passwd-${toString idx}"
     ++ formatFreeform {} listener.settings
     ++ concatMap formatAuthPlugin listener.authPlugins;
 
@@ -493,8 +504,18 @@ let
     };
 
     logType = mkOption {
-      type = listOf (enum [ "debug" "error" "warning" "notice" "information"
-                            "subscribe" "unsubscribe" "websockets" "none" "all" ]);
+      type = listOf (enum [
+        "debug"
+        "error"
+        "warning"
+        "notice"
+        "information"
+        "subscribe"
+        "unsubscribe"
+        "websockets"
+        "none"
+        "all"
+      ]);
       description = lib.mdDoc ''
         Types of messages to log.
       '';
@@ -507,14 +528,6 @@ let
         Enable persistent storage of subscriptions and messages.
       '';
       default = true;
-    };
-
-    dataDir = mkOption {
-      default = "/var/lib/mosquitto";
-      type = types.path;
-      description = lib.mdDoc ''
-        The data directory.
-      '';
     };
 
     settings = mkOption {
@@ -555,6 +568,9 @@ let
 in
 
 {
+  imports = [
+    (mkRemovedOptionModule [ "services" "mosquitto" "dataDir" ] "dataDir has been removed as mosquitto now runs with DynamicUser=true")
+  ];
 
   ###### Interface
 
@@ -573,10 +589,10 @@ in
       serviceConfig = {
         Type = "notify";
         NotifyAccess = "main";
-        User = "mosquitto";
-        Group = "mosquitto";
+        DynamicUser = true;
+        StateDirectory = builtins.baseNameOf dataDir;
         RuntimeDirectory = "mosquitto";
-        WorkingDirectory = cfg.dataDir;
+        WorkingDirectory = dataDir;
         Restart = "on-failure";
         ExecStart = "${cfg.package}/bin/mosquitto -c ${configFile}";
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
@@ -600,10 +616,7 @@ in
         ProtectProc = "invisible";
         ProcSubset = "pid";
         ProtectSystem = "strict";
-        ReadWritePaths = [
-          cfg.dataDir
-          "/tmp"  # mosquitto_passwd creates files in /tmp before moving them
-        ] ++ filter path.check cfg.logDest;
+        ReadWritePaths = filter path.check cfg.logDest;
         ReadOnlyPaths =
           map (p: "${p}")
             (cfg.includeDirs
@@ -653,20 +666,9 @@ in
         concatStringsSep
           "\n"
           (imap0
-            (idx: listener: makePasswordFile listener.users "${cfg.dataDir}/passwd-${toString idx}")
+            (idx: listener: makePasswordFile listener.users "${dataDir}/passwd-${toString idx}")
             cfg.listeners);
     };
-
-    users.users.mosquitto = {
-      description = "Mosquitto MQTT Broker Daemon owner";
-      group = "mosquitto";
-      uid = config.ids.uids.mosquitto;
-      home = cfg.dataDir;
-      createHome = true;
-    };
-
-    users.groups.mosquitto.gid = config.ids.gids.mosquitto;
-
   };
 
   meta = {

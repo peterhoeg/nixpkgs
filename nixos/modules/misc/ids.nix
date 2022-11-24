@@ -275,7 +275,7 @@ in
       #graylog = 243;# dynamically allocated as of 2021-09-03
       sniproxy = 244;
       nzbget = 245;
-      mosquitto = 246;
+      #mosquitto = 246; # dynamically allocated as of 2021-12-01
       #toxvpn = 247; # dynamically allocated as of 2021-09-18
       # squeezelite = 248; # DynamicUser = true
       turnserver = 249;
@@ -586,7 +586,7 @@ in
       # emby = 242; # unused, removed 2019-05-01
       sniproxy = 244;
       nzbget = 245;
-      mosquitto = 246;
+      #mosquitto = 246; # dynamically allocated as of 2021-12-01
       #toxvpn = 247; # unused
       #squeezelite = 248; #unused
       turnserver = 249;
