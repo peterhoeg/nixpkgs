@@ -1,75 +1,90 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
   cfg = config.services.flexget;
-  pkg = cfg.package;
-  ymlFile = pkgs.writeText "flexget.yml" ''
-    ${cfg.config}
+  fmt = pkgs.formats.yaml { };
 
-    ${optionalString cfg.systemScheduler "schedules: no"}
-'';
-  configFile = "${toString cfg.homeDir}/flexget.yml";
-in {
-  options = {
-    services.flexget = {
-      enable = mkEnableOption (lib.mdDoc "Run FlexGet Daemon");
+  fileName = "flexget.yml";
+  configFile =
+    let
+      t = fmt.generate "flexget-unchecked.yml"
+        # use // instead of recursiveUpdate as we *want* to override schedules fully
+        (cfg.settings // optionalAttrs (cfg.systemScheduler) { schedules = false; });
+    in
+    pkgs.runCommandLocal
+      fileName
+      { buildInputs = [ cfg.package ]; }
+      ''
+        install -Dm644 ${t} $out
+        flexget -L DEBUG -c $out check
+      '';
 
-      package = mkPackageOptionMD pkgs "flexget" {};
+  inherit (lib)
+    optionalAttrs
+    mkPackageOptionMD mkRemovedOptionModule mkEnableOption mkOption mkIf types;
 
-      user = mkOption {
-        default = "deluge";
-        example = "some_user";
-        type = types.str;
-        description = lib.mdDoc "The user under which to run flexget.";
-      };
+in
+{
+  imports = [
+    (mkRemovedOptionModule [ "services" "flexget" "config" ] "Use services.flexget.settings instead")
+  ];
 
-      homeDir = mkOption {
-        default = "/var/lib/deluge";
-        example = "/home/flexget";
-        type = types.path;
-        description = lib.mdDoc "Where files live.";
-      };
+  options.services.flexget = {
+    enable = mkEnableOption (lib.mdDoc "Run FlexGet Daemon");
 
-      interval = mkOption {
-        default = "10m";
-        example = "1h";
-        type = types.str;
-        description = lib.mdDoc "When to perform a {command}`flexget` run. See {command}`man 7 systemd.time` for the format.";
-      };
+    package = mkPackageOptionMD pkgs "flexget" { };
 
-      systemScheduler = mkOption {
-        default = true;
-        example = false;
-        type = types.bool;
-        description = lib.mdDoc "When true, execute the runs via the flexget-runner.timer. If false, you have to specify the settings yourself in the YML file.";
-      };
+    user = mkOption {
+      default = "deluge";
+      example = "some_user";
+      type = types.str;
+      description = lib.mdDoc "The user under which to run flexget.";
+    };
 
-      config = mkOption {
-        default = "";
-        type = types.lines;
-        description = lib.mdDoc "The YAML configuration for FlexGet.";
-      };
+    homeDir = mkOption {
+      default = "/var/lib/deluge";
+      example = "/home/flexget";
+      type = types.path;
+      description = lib.mdDoc "Where files live.";
+    };
+
+    interval = mkOption {
+      default = "10m";
+      example = "1h";
+      type = types.str;
+      description = lib.mdDoc "When to perform a {command}`flexget` run. See {command}`man 7 systemd.time` for the format.";
+    };
+
+    systemScheduler = mkOption {
+      default = true;
+      example = false;
+      type = types.bool;
+      description = lib.mdDoc "When true, execute the runs via the flexget-runner.timer. If false, you have to specify the settings yourself in the YML file.";
+    };
+
+    settings = mkOption {
+      default = { };
+      type = fmt.type;
+      description = lib.mdDoc "The configuration for FlexGet as an attribute set.";
     };
   };
 
   config = mkIf cfg.enable {
-
-    environment.systemPackages = [ pkg ];
+    environment.systemPackages = [ cfg.package ];
 
     systemd.services = {
       flexget = {
         description = "FlexGet Daemon";
-        path = [ pkg ];
+        path = [ cfg.package ];
         serviceConfig = {
           User = cfg.user;
           Environment = "TZ=${config.time.timeZone}";
-          ExecStartPre = "${pkgs.coreutils}/bin/install -m644 ${ymlFile} ${configFile}";
-          ExecStart = "${pkg}/bin/flexget -c ${configFile} daemon start";
-          ExecStop = "${pkg}/bin/flexget -c ${configFile} daemon stop";
-          ExecReload = "${pkg}/bin/flexget -c ${configFile} daemon reload";
+          ExecStartPre = "${pkgs.coreutils}/bin/install -m644 ${configFile} ${cfg.homeDir}/${fileName}";
+          ExecStart = "${cfg.package}/bin/flexget -c ./${fileName} daemon start";
+          ExecStop = "${cfg.package}/bin/flexget -c ./${fileName} daemon stop";
+          ExecReload = "${cfg.package}/bin/flexget -c ./${fileName} daemon reload";
           Restart = "on-failure";
+          RestartSec = "2s";
           PrivateTmp = true;
           WorkingDirectory = toString cfg.homeDir;
         };
@@ -82,7 +97,7 @@ in {
         wants = [ "flexget.service" ];
         serviceConfig = {
           User = cfg.user;
-          ExecStart = "${pkg}/bin/flexget -c ${configFile} execute";
+          ExecStart = "${cfg.package}/bin/flexget -c ./${fileName} execute";
           PrivateTmp = true;
           WorkingDirectory = toString cfg.homeDir;
         };
@@ -93,7 +108,7 @@ in {
       description = "Run FlexGet every ${cfg.interval}";
       wantedBy = [ "timers.target" ];
       timerConfig = {
-        OnBootSec = "5m";
+        OnBootSec = cfg.interval;
         OnUnitInactiveSec = cfg.interval;
         Unit = "flexget-runner.service";
       };
