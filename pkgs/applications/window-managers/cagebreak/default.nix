@@ -18,19 +18,21 @@
 , systemd
 , wayland
 , wayland-protocols
-, withXwayland ? true , xwayland
+, xorg
+, withXwayland ? true
+, xwayland
 , wlroots
 }:
 
 stdenv.mkDerivation rec {
   pname = "cagebreak";
-  version = "1.9.1";
+  version = "2.0.1";
 
   src = fetchFromGitHub {
     owner = "project-repo";
     repo = pname;
     rev = version;
-    hash = "sha256-pU1QHYOqnkb3L4iSKbZY9Vo60Z6EaX9mp2Nw48NSPic=";
+    hash = "sha256-qZP8shcdgfsA6PC1yHrMoEITOi14oIXpAXSYe2ivrjs=";
   };
 
   nativeBuildInputs = [
@@ -55,6 +57,7 @@ stdenv.mkDerivation rec {
     wayland
     wayland-protocols
     wlroots
+    xorg.xcbutilwm
   ];
 
   mesonFlags = [
