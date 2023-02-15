@@ -32,6 +32,12 @@ in mkDerivation {
       url = "https://github.com/sddm/sddm/commit/e93bf95c54ad8c2a1604f8d7be05339164b19308.patch";
       sha256 = "sha256:1rh6sdvzivjcl5b05fczarvxhgpjhi7019hvf2gadnwgwdg104r4";
     })
+    # prevent portals from loading too early
+    # See: https://github.com/sddm/sddm/pull/1603
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/archlinux/svntogit-packages/packages/sddm/trunk/sddm-no-portal.patch";
+      hash = "sha256-NtZXeTcIqyhLQO5xoVuzKP1oCBS9lLffzhkQQzFxpfo=";
+    })
   ];
 
   postPatch =
