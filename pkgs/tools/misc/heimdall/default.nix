@@ -1,23 +1,35 @@
-{ lib, stdenv, mkDerivation, fetchFromGitHub, cmake, zlib, libusb1
-, enableGUI ? false, qtbase ? null
+{ lib
+, stdenv
+, mkDerivation
+, fetchFromGitHub
+, cmake
+, pkg-config
+, zlib
+, libusb1
+, enableGUI ? false
+, qtbase
 }:
 
 mkDerivation rec {
   pname = "heimdall${lib.optionalString enableGUI "-gui"}";
-  version = "1.4.2";
+  version = "1.4.2.20210314";
 
   src = fetchFromGitHub {
-    owner  = "Benjamin-Dobell";
-    repo   = "Heimdall";
-    rev    = "v${version}";
-    sha256 = "1ygn4snvcmi98rgldgxf5hwm7zzi1zcsihfvm6awf9s6mpcjzbqz";
+    owner = "Benjamin-Dobell";
+    repo = "Heimdall";
+    # rev = "v${version}";
+    rev = "3997d5cc607e6c603c6e7c0d07e42e9868c62af2";
+    sha256 = "sha256-QfFbI/oXWUmqx50skcMG0VcQs6aqjYv0hNkKqIgHIq4=";
   };
 
   buildInputs = [
     zlib
     libusb1
   ] ++ lib.optional enableGUI qtbase;
-  nativeBuildInputs = [ cmake ];
+
+  nativeBuildInputs = [ cmake pkg-config ];
+
+  NIX_LDFLAGS = "-lusb-1.0";
 
   cmakeFlags = [
     "-DDISABLE_FRONTEND=${if enableGUI then "OFF" else "ON"}"
@@ -36,11 +48,10 @@ mkDerivation rec {
     mv bin/heimdall-frontend.app $out/Applications/heimdall-frontend.app
     wrapQtApp $out/Applications/heimdall-frontend.app/Contents/MacOS/heimdall-frontend
   '' + ''
-    mkdir -p $out/{bin,share/doc/heimdall,lib/udev/rules.d}
-    install -m755 -t $out/bin                bin/*
-    install -m644 -t $out/lib/udev/rules.d   ../heimdall/60-heimdall.rules
-    install -m644 ../Linux/README   $out/share/doc/heimdall/README.linux
-    install -m644 ../OSX/README.txt $out/share/doc/heimdall/README.osx
+    install -Dm555 -t $out/bin bin/*
+    install -Dm444 -t $out/lib/udev/rules.d ../heimdall/60-heimdall.rules
+    install -Dm444 ../Linux/README   $out/share/doc/heimdall/README.linux
+    install -Dm444 ../OSX/README.txt $out/share/doc/heimdall/README.osx
   '';
 
   meta = with lib; {
