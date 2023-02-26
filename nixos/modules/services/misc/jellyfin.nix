@@ -59,12 +59,18 @@ in
         StateDirectoryMode = "0700";
         CacheDirectory = "jellyfin";
         CacheDirectoryMode = "0700";
+        LogsDirectory = "jellyfin";
         UMask = "0077";
         WorkingDirectory = "/var/lib/jellyfin";
-        ExecStart = "${cfg.package}/bin/jellyfin --datadir '/var/lib/${StateDirectory}' --cachedir '/var/cache/${CacheDirectory}'";
+        ExecStart = lib.concatStringsSep " " [
+          "${cfg.package}/bin/jellyfin"
+          "--datadir '/var/lib/${StateDirectory}'"
+          "--cachedir '/var/cache/${CacheDirectory}'"
+          "--logdir '/var/log/${LogsDirectory}'"
+        ];
         Restart = "on-failure";
         TimeoutSec = 15;
-        SuccessExitStatus = ["0" "143"];
+        SuccessExitStatus = [ "0" "143" ];
 
         # Security options:
         NoNewPrivileges = true;
@@ -115,7 +121,7 @@ in
     };
 
     users.groups = mkIf (cfg.group == "jellyfin") {
-      jellyfin = {};
+      jellyfin = { };
     };
 
     networking.firewall = mkIf cfg.openFirewall {
@@ -123,7 +129,6 @@ in
       allowedTCPPorts = [ 8096 8920 ];
       allowedUDPPorts = [ 1900 7359 ];
     };
-
   };
 
   meta.maintainers = with lib.maintainers; [ minijackson ];
