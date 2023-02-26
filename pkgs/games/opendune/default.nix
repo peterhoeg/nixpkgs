@@ -26,6 +26,14 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ alsa-lib libpulseaudio SDL2 SDL2_image SDL2_mixer ];
 
+  NIX_CFLAGS_COMPILE = [
+    "-Wno-format-overflow"
+    "-Wno-redundant-decls"
+    "-Wno-stringop-truncation"
+    "-Wno-unused-but-set-variable"
+    "-Wno-unused-function"
+  ];
+
   enableParallelBuilding = true;
 
   installPhase = ''
