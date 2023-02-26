@@ -2,42 +2,44 @@
 , buildPythonPackage
 , fetchFromGitHub
 , pyperclip
+, setuptools
 , urwid
 }:
 
 buildPythonPackage rec {
   pname = "upass";
-  version = "0.2.1";
-  format = "setuptools";
+  version = "0.3.0";
 
   src = fetchFromGitHub {
     owner = "Kwpolska";
     repo = "upass";
     rev = "v${version}";
-    sha256 = "0bgplq07dmlld3lp6jag1w055glqislfgwwq2k7cb2bzjgvysdnj";
+    sha256 = "sha256-IlNqPmDaRZ3yRV8O6YKjQkZ3fKNcFgzJHtIX0ADrOyU=";
   };
 
   propagatedBuildInputs = [
     pyperclip
+    setuptools # needed for pkg_resources at runtime
     urwid
   ];
 
-  # Projec thas no tests
+  # Project has no tests
   doCheck = false;
 
   postInstall = ''
-    export HOME=$(mktemp -d);
+    install -Dm444 -t $out/share/doc/${pname} *.rst
+
+    # we need the .config directory to exist for the import check to work
+    export HOME=$(mktemp -d)
     mkdir $HOME/.config
   '';
 
-  pythonImportsCheck = [
-    "upass"
-  ];
+  pythonImportsCheck = [ "upass" ];
 
   meta = with lib; {
     description = "Console UI for pass";
     homepage = "https://github.com/Kwpolska/upass";
     license = licenses.bsd3;
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [ peterhoeg ];
   };
 }
