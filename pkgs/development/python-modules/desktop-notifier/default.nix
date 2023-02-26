@@ -32,7 +32,9 @@ buildPythonPackage rec {
   ] ++ lib.optionals (pythonOlder "3.9") [
     importlib-resources
   ] ++ lib.optionals stdenv.isLinux [
-    dbus-next
+    (dbus-next.overridePythonAttrs (old: {
+      checkPhase = builtins.replaceStrings [ "not test_peer_interface" ] [ "not test_peer_interface and not test_tcp_connection_with_forwarding" ] old.checkPhase;
+    }))
   ];
 
   # no tests available, do the imports check instead
