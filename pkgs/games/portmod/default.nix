@@ -18,20 +18,20 @@
 }:
 
 let
-  version = "2.1.0";
+  version = "2.4.2";
 
   src = fetchFromGitLab {
     owner = "portmod";
     repo = "Portmod";
     rev = "v${version}";
-    hash = "sha256-b/ENApFovMPNUMbJhwY+TZCnSzpr1e/IKJ/5XAGTQjE=";
+    hash = "sha256-zD2DfuHu0tRzO0fYKiB8MOQvxJWDfpXFTwvidx6LOC8=";
   };
 
   portmod-rust = rustPlatform.buildRustPackage rec {
     inherit src version;
     pname = "portmod-rust";
 
-    cargoHash = "sha256-3EfMMpSWSYsB3nXaoGGDuKQ9duyCKzbrT6oeATnzqLE=";
+    cargoHash = "sha256-fVazs5+/d9b90FOh45lPQdCCRnR3Co9KfaOllSk8WJw=";
 
     nativeBuildInputs = [
       python3Packages.python
@@ -93,14 +93,17 @@ python3Packages.buildPythonApplication rec {
 
   # some test require network access
   disabledTests = [
-    "test_masters_esp"
-    "test_logging"
+    "test_add_repo"
     "test_execute_network_permissions"
     "test_execute_permissions_bleed"
     "test_git"
-    "test_sync"
+    "test_logging"
     "test_manifest"
-    "test_add_repo"
+    "test_masters_esp"
+    "test_scan_sources"
+    "test_sync"
+    "test_unpack"
+    "test_winreg"
   ];
 
   # for some reason, installPhase doesn't copy the compiled binary
