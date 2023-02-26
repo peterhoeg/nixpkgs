@@ -16,6 +16,7 @@ let
     ''--no-first-run''
     ''--new-window''
     ''--incognito''
+    ''--enable-features=UseOzonePlatform''
     ''-no-default-browser-check''
     ''http://cache.nixos.org/''
   ];
