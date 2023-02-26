@@ -35,7 +35,12 @@ mkDerivation {
 
   postPatch = ''
     substituteInPlace bin/plasma-bigscreen-wayland.in \
-      --replace @KDE_INSTALL_FULL_LIBEXECDIR@ "${plasma-workspace}/libexec"
+      --replace @KDE_INSTALL_FULL_LIBEXECDIR@ "${plasma-workspace}/libexec" \
+
+    for f in bin/plasma-bigscreen-*.desktop.cmake; do
+      substituteInPlace $f \
+        --replace dbus-run-session ${plasma-workspace}/libexec/plasma-dbus-run-session-if-needed
+    done
   '';
 
   preFixup = ''
