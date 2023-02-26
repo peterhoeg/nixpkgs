@@ -54,7 +54,7 @@ let
       hashedPassword = mkOption {
         type = uniq (nullOr str);
         default = null;
-        description = mdDoc ''
+        description = ''
           Specifies the hashed password for the MQTT User.
           To generate hashed password install the `mosquitto`
           package and use `mosquitto_passwd`, then extract
@@ -67,7 +67,7 @@ let
         type = uniq (nullOr types.path);
         example = "/path/to/file";
         default = null;
-        description = mdDoc ''
+        description = ''
           Specifies the path to a file containing the
           hashed password for the MQTT user.
           To generate hashed password install the `mosquitto`
@@ -158,14 +158,14 @@ let
     options = {
       plugin = mkOption {
         type = path;
-        description = mdDoc ''
+        description = ''
           Plugin path to load, should be a `.so` file.
         '';
       };
 
       denySpecialChars = mkOption {
         type = bool;
-        description = mdDoc ''
+        description = ''
           Automatically disallow all clients using `#`
           or `+` in their name/id.
         '';
@@ -174,7 +174,7 @@ let
 
       options = mkOption {
         type = attrsOf optionType;
-        description = mdDoc ''
+        description = ''
           Options for the auth plugin. Each key turns into a `auth_opt_*`
            line in the config.
         '';
@@ -242,7 +242,7 @@ let
 
       address = mkOption {
         type = nullOr str;
-        description = mdDoc ''
+        description = ''
           Address to listen on. Listen on `0.0.0.0`/`::`
           when unset.
         '';
@@ -251,7 +251,7 @@ let
 
       authPlugins = mkOption {
         type = listOf authPluginOptions;
-        description = mdDoc ''
+        description = ''
           Authentication plugin to attach to this listener.
           Refer to the [mosquitto.conf documentation](https://mosquitto.org/man/mosquitto-conf-5.html)
           for details on authentication plugins.
@@ -475,7 +475,7 @@ let
 
     includeDirs = mkOption {
       type = listOf path;
-      description = mdDoc ''
+      description = ''
         Directories to be scanned for further config files to include.
         Directories will processed in the order given,
         `*.conf` files in the directory will be
