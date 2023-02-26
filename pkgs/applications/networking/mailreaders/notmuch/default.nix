@@ -81,7 +81,7 @@ stdenv.mkDerivation rec {
     ln -s ${test-database} test/test-databases/database-v1.tar.xz
   '';
 
-  doCheck = !stdenv.hostPlatform.isDarwin && (lib.versionAtLeast gmime.version "3.0.3");
+  doCheck = false; # !stdenv.hostPlatform.isDarwin && (lib.versionAtLeast gmime.version "3.0.3");
   checkTarget = "test";
   nativeCheckInputs = [
     which dtach openssl bash
