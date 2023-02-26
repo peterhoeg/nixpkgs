@@ -1,5 +1,13 @@
-{ lib, stdenv, fetchFromGitHub, pkg-config, ncurses, readline, pcsclite, qt5
-, gcc-arm-embedded }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, pkg-config
+, ncurses
+, readline
+, pcsclite
+, qt5
+, gcc-arm-embedded
+}:
 
 let
   generic = { pname, version, rev, sha256 }:
@@ -14,6 +22,7 @@ let
 
       nativeBuildInputs = [ pkg-config gcc-arm-embedded ];
       buildInputs = [ ncurses readline pcsclite qt5.qtbase ];
+      enableParallelBuilding = true;
 
       dontWrapQtApps = true;
 
@@ -25,9 +34,11 @@ let
                     '${placeholder "out"}/firmware/fullimage.elf'
       '';
 
-      buildPhase = ''
-        make bootrom/obj/bootrom.elf armsrc/obj/fullimage.elf client
-      '';
+      buildFlags = [
+        "bootrom/obj/bootrom.elf"
+        "armsrc/obj/fullimage.elf"
+        "client"
+      ];
 
       installPhase = ''
         install -Dt $out/bin client/proxmark3
