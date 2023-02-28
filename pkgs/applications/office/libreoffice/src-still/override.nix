@@ -1,4 +1,4 @@
-{ lib, kdeIntegration, commonsLogging, ... }:
+{ lib, kdeIntegration, ... }:
 attrs:
 {
   postConfigure = attrs.postConfigure + ''
@@ -15,7 +15,8 @@ attrs:
     sed -e '/CPPUNIT_ASSERT_EQUAL(17, nEndRunPos);/d' -i './vcl/qa/cppunit/text.cxx'
     sed -e '/CPPUNIT_ASSERT_EQUAL(22, nEndRunPos);/d' -i './vcl/qa/cppunit/text.cxx'
   '';
-  configureFlags = attrs.configureFlags;
-
-  patches = attrs.patches or [];
+  configureFlags = attrs.configureFlags ++ [
+    "--without-system-dragonbox"
+    "--without-system-libfixmath"
+  ];
 }
