@@ -7,6 +7,7 @@
 , perl
 , ArchiveZip
 , box2d
+, bzip2
 , gettext
 , IOCompress
 , zlib
@@ -396,6 +397,7 @@ in
     "--enable-release-build"
     "--enable-epm"
     "--with-ant-home=${getLib ant}/lib/ant"
+    "--with-system-bzip2"
     "--with-system-cairo"
     "--with-system-libs"
     "--with-system-headers"
@@ -476,6 +478,7 @@ in
     bluez5
     boost
     box2d
+    bzip2
     cairo
     clucene_core
     cppunit
