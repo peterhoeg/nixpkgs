@@ -65,7 +65,10 @@ stdenv.mkDerivation rec {
       --replace 'm4_esyscmd_s([git describe --tags --always --dirty])' '${version}'
   '';
 
-  configureFlags = lib.optionals (stdenv.buildPlatform == stdenv.hostPlatform) [
+  configureFlags = [
+    "--localstatedir=/var"
+    "--with-runstatedir=/run"
+  ] ++ lib.optionals (stdenv.buildPlatform == stdenv.hostPlatform) [
     "--enable-unit"
     "--enable-integration"
   ];
