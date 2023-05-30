@@ -21,12 +21,7 @@ stdenv.mkDerivation rec {
       VERSION = version;
     });
 
-  # The preConfigure phase doesn't seem to be working here
-  # ./bootstrap MUST be executed as the first step, before all
-  # of the autoreconfHook stuff
-  postPatch = ''
-    ./bootstrap
-  '';
+  preAutoreconf = "./bootstrap";
 
   nativeBuildInputs = [
     pkg-config autoreconfHook autoconf-archive makeWrapper patchelf
