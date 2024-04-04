@@ -1,12 +1,17 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
+  inherit (lib)
+    optionalString
+    mkEnableOption mkOption mkIf mkRenamedOptionModule types;
 
   cfg = config.services.nfs.server;
 
   exports = pkgs.writeText "exports" cfg.exports;
+
+  format = pkgs.formats.ini { };
+
+  libDir = "/var/lib/nfs";
 
 in
 
@@ -18,94 +23,87 @@ in
 
   ###### interface
 
-  options = {
+  options.services.nfs.server = {
+    enable = mkEnableOption "the kernel's NFS server";
 
-    services.nfs = {
-
-      server = {
-        enable = mkOption {
-          type = types.bool;
-          default = false;
-          description = ''
-            Whether to enable the kernel's NFS server.
-          '';
-        };
-
-        extraNfsdConfig = mkOption {
-          type = types.str;
-          default = "";
-          description = ''
-            Extra configuration options for the [nfsd] section of /etc/nfs.conf.
-          '';
-        };
-
-        exports = mkOption {
-          type = types.lines;
-          default = "";
-          description = ''
-            Contents of the /etc/exports file.  See
-            {manpage}`exports(5)` for the format.
-          '';
-        };
-
-        hostName = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = ''
-            Hostname or address on which NFS requests will be accepted.
-            Default is all.  See the {option}`-H` option in
-            {manpage}`nfsd(8)`.
-          '';
-        };
-
-        nproc = mkOption {
-          type = types.int;
-          default = 8;
-          description = ''
-            Number of NFS server threads.  Defaults to the recommended value of 8.
-          '';
-        };
-
-        createMountPoints = mkOption {
-          type = types.bool;
-          default = false;
-          description = "Whether to create the mount points in the exports file at startup time.";
-        };
-
-        mountdPort = mkOption {
-          type = types.nullOr types.int;
-          default = null;
-          example = 4002;
-          description = ''
-            Use fixed port for rpc.mountd, useful if server is behind firewall.
-          '';
-        };
-
-        lockdPort = mkOption {
-          type = types.nullOr types.int;
-          default = null;
-          example = 4001;
-          description = ''
-            Use a fixed port for the NFS lock manager kernel module
-            (`lockd/nlockmgr`).  This is useful if the
-            NFS server is behind a firewall.
-          '';
-        };
-
-        statdPort = mkOption {
-          type = types.nullOr types.int;
-          default = null;
-          example = 4000;
-          description = ''
-            Use a fixed port for {command}`rpc.statd`. This is
-            useful if the NFS server is behind a firewall.
-          '';
-        };
-
-      };
-
+    settings = mkOption rec {
+      type = format.type;
+      default = { };
+      description = ''
+        Extra configuration options for /etc/nfs.conf.
+      '';
     };
 
+    extraNfsdConfig = mkOption {
+      type = types.str;
+      default = "";
+      description = ''
+        Extra configuration options for the [nfsd] section of /etc/nfs.conf.
+      '';
+    };
+
+    exports = mkOption {
+      type = types.lines;
+      default = "";
+      description = ''
+        Contents of the /etc/exports file.  See
+        {manpage}`exports(5)` for the format.
+      '';
+    };
+
+    hostName = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        Hostname or address on which NFS requests will be accepted.
+        Default is all.  See the {option}`-H` option in
+        {manpage}`nfsd(8)`.
+      '';
+    };
+
+    nproc = mkOption {
+      type = types.int;
+      default = 8;
+      description = ''
+        Number of NFS server threads.  Defaults to the recommended value of 8.
+      '';
+    };
+
+    createMountPoints = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether to create the mount points in the exports file at startup time.";
+    };
+
+    mountdPort = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      example = 4002;
+      description = ''
+        Use fixed port for rpc.mountd, useful if server is behind firewall.
+      '';
+    };
+
+    lockdPort = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      example = 4001;
+      description = ''
+        Use a fixed port for the NFS lock manager kernel module
+        (`lockd/nlockmgr`).  This is useful if the
+        NFS server is behind a firewall.
+      '';
+    };
+
+    statdPort = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      example = 4000;
+      description = ''
+        Use a fixed port for {command}`rpc.statd`. This is
+        useful if the NFS server is behind a firewall.
+      '';
+    };
   };
 
 
@@ -119,36 +117,37 @@ in
 
     environment.etc.exports.source = exports;
 
-    systemd.services.nfs-server =
-      { enable = true;
-        wantedBy = [ "multi-user.target" ];
+    systemd = {
+      services = {
+        nfs-server = {
+          enable = true;
+          wantedBy = [ "multi-user.target" ];
+        };
 
-        preStart =
-          ''
-            mkdir -p /var/lib/nfs/v4recovery
+        nfs-mountd = {
+          enable = true;
+          restartTriggers = [ exports ];
+
+          preStart = optionalString cfg.createMountPoints ''
+            # create export directories:
+            # skip comments, take first col which may either be a quoted
+            # "foo bar" or just foo (-> man export)
+            sed '/^#.*/d;s/^"\([^"]*\)".*/\1/;t;s/[ ].*//' ${exports} \
+            | xargs -d '\n' mkdir -p
           '';
+        };
+
+        nfsdcld.serviceConfig = {
+          Type = "exec";
+          ExecStart = [ "" "${pkgs.nfs-utils}/bin/nfsdcld --foreground" ];
+        };
       };
 
-    systemd.services.nfs-mountd =
-      { enable = true;
-        restartTriggers = [ exports ];
-
-        preStart =
-          ''
-            mkdir -p /var/lib/nfs
-
-            ${optionalString cfg.createMountPoints
-              ''
-                # create export directories:
-                # skip comments, take first col which may either be a quoted
-                # "foo bar" or just foo (-> man export)
-                sed '/^#.*/d;s/^"\([^"]*\)".*/\1/;t;s/[ ].*//' ${exports} \
-                | xargs -d '\n' mkdir -p
-              ''
-            }
-          '';
-      };
-
+      tmpfiles.rules = [
+        "d ${libDir}            0755 - - - -"
+        "d ${libDir}/nfsdcld    0775 root nogroup - -"
+        "d ${libDir}/v4recovery 0755 - - - -"
+      ];
+    };
   };
-
 }
