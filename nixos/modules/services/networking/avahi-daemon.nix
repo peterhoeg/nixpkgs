@@ -1,48 +1,70 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
   cfg = config.services.avahi;
 
+  inherit (lib)
+    concatStringsSep recursiveUpdate
+    mapAttrs' nameValuePair optional optionals optionalAttrs
+    literalExpression
+    mkAfter mkBefore mkIf mkMerge mkOption mkPackageOption mkRenamedOptionModule types;
+
   yesNo = yes: if yes then "yes" else "no";
 
-  avahiDaemonConf = with cfg; pkgs.writeText "avahi-daemon.conf" ''
-    [server]
-    ${# Users can set `networking.hostName' to the empty string, when getting
+  format = pkgs.formats.ini { };
+
+  avahiDaemonConf = with cfg; format.generate "avahi-daemon.conf" (recursiveUpdate
+    {
+      server = {
+        allow-point-to-point = yesNo allowPointToPoint;
+        browse-domains = concatStringsSep ", " browseDomains;
+        use-ipv4 = yesNo ipv4;
+        use-ipv6 = yesNo ipv6;
+      }
+      # Users can set `networking.hostName' to the empty string, when getting
       # a host name from DHCP.  In that case, let Avahi take whatever the
       # current host name is; setting `host-name' to the empty string in
       # `avahi-daemon.conf' would be invalid.
-      optionalString (hostName != "") "host-name=${hostName}"}
-    browse-domains=${concatStringsSep ", " browseDomains}
-    use-ipv4=${yesNo ipv4}
-    use-ipv6=${yesNo ipv6}
-    ${optionalString (allowInterfaces!=null) "allow-interfaces=${concatStringsSep "," allowInterfaces}"}
-    ${optionalString (denyInterfaces!=null) "deny-interfaces=${concatStringsSep "," denyInterfaces}"}
-    ${optionalString (domainName!=null) "domain-name=${domainName}"}
-    allow-point-to-point=${yesNo allowPointToPoint}
-    ${optionalString (cacheEntriesMax!=null) "cache-entries-max=${toString cacheEntriesMax}"}
+      // optionalAttrs (hostName != "") {
+        host-name = hostName;
+      }
+      // optionalAttrs (allowInterfaces != null) {
+        allow-interfaces = concatStringsSep "," allowIinterfaces;
+      }
+      // optionalAttrs (denyInterfaces != null) {
+        deny-interfaces = concatStringsSep "," denyIinterfaces;
+      }
+      // optionalAttrs (domainName != null) {
+        domain-name = domainName;
+      } // optionalAttrs (cacheEntriesMax != null) {
+        cache-entries-max = cacheEntriesMax;
+      };
 
-    [wide-area]
-    enable-wide-area=${yesNo wideArea}
+      publish = {
+        disable-publishing = yesNo (!publish.enable);
+        disable-user-service-publishing = yesNo (!publish.userServices);
+        publish-addresses = yesNo (publish.userServices || publish.addresses);
+        publish-hinfo = yesNo publish.hinfo;
+        publish-workstation = yesNo publish.workstation;
+        publish-domain = yesNo publish.domain;
+      };
 
-    [publish]
-    disable-publishing=${yesNo (!publish.enable)}
-    disable-user-service-publishing=${yesNo (!publish.userServices)}
-    publish-addresses=${yesNo (publish.userServices || publish.addresses)}
-    publish-hinfo=${yesNo publish.hinfo}
-    publish-workstation=${yesNo publish.workstation}
-    publish-domain=${yesNo publish.domain}
+      reflector = {
+        enable-reflector = yesNo reflector;
+      };
 
-    [reflector]
-    enable-reflector=${yesNo reflector}
-    ${extraConfig}
-  '';
+      wide-area = {
+        enable-wide-area = yesNo wideArea;
+      };
+    }
+    cfg.settings);
+
 in
 {
   imports = [
-    (lib.mkRenamedOptionModule [ "services" "avahi" "interfaces" ] [ "services" "avahi" "allowInterfaces" ])
-    (lib.mkRenamedOptionModule [ "services" "avahi" "nssmdns" ] [ "services" "avahi" "nssmdns4" ])
+    (mkRenamedOptionModule [ "services" "avahi" "extraOptions" ] [ "services" "avahi" "settings" ])
+    (mkRenamedOptionModule [ "services" "avahi" "interfaces" ] [ "services" "avahi" "allowInterfaces" ])
+    (mkRenamedOptionModule [ "services" "avahi" "nssmdns" ] [ "services" "avahi" "nssmdns4" ])
   ];
 
   options.services.avahi = {
@@ -252,11 +274,11 @@ in
       '';
     };
 
-    extraConfig = mkOption {
-      type = types.lines;
-      default = "";
+    settings = mkOption {
+      type = format.type;
+      default = {};
       description = ''
-        Extra config to append to avahi-daemon.conf.
+        Extra config to merge into avahi-daemon.conf.
       '';
     };
   };
@@ -288,20 +310,18 @@ in
 
     environment.systemPackages = [ cfg.package ];
 
-    environment.etc = (mapAttrs'
+    environment.etc = mapAttrs'
       (n: v: nameValuePair
         "avahi/services/${n}.service"
         { ${if types.path.check v then "source" else "text"} = v; }
       )
-      cfg.extraServiceFiles);
+      cfg.extraServiceFiles;
 
     systemd.sockets.avahi-daemon = {
       description = "Avahi mDNS/DNS-SD Stack Activation Socket";
       listenStreams = [ "/run/avahi-daemon/socket" ];
       wantedBy = [ "sockets.target" ];
     };
-
-    systemd.tmpfiles.rules = [ "d /run/avahi-daemon - avahi avahi -" ];
 
     systemd.services.avahi-daemon = {
       description = "Avahi mDNS/DNS-SD Stack";
