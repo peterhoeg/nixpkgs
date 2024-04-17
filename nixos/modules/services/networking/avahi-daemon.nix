@@ -1,43 +1,62 @@
 { config, lib, pkgs, ... }:
+
 let
   cfg = config.services.avahi;
 
   yesNo = yes: if yes then "yes" else "no";
 
-  avahiDaemonConf = with cfg; pkgs.writeText "avahi-daemon.conf" ''
-    [server]
-    ${# Users can set `networking.hostName' to the empty string, when getting
+  format = pkgs.formats.ini { };
+
+  avahiDaemonConf = format.generate "avahi-daemon.conf" (lib.recursiveUpdate
+    {
+      server = {
+        allow-point-to-point = yesNo cfg.allowPointToPoint;
+        browse-domains = lib.concatStringsSep ", " cfg.browseDomains;
+        use-ipv4 = yesNo cfg.ipv4;
+        use-ipv6 = yesNo cfg.ipv6;
+      }
+      # Users can set `networking.hostName' to the empty string, when getting
       # a host name from DHCP.  In that case, let Avahi take whatever the
       # current host name is; setting `host-name' to the empty string in
       # `avahi-daemon.conf' would be invalid.
-      lib.optionalString (hostName != "") "host-name=${hostName}"}
-    browse-domains=${lib.concatStringsSep ", " browseDomains}
-    use-ipv4=${yesNo ipv4}
-    use-ipv6=${yesNo ipv6}
-    ${lib.optionalString (allowInterfaces!=null) "allow-interfaces=${lib.concatStringsSep "," allowInterfaces}"}
-    ${lib.optionalString (denyInterfaces!=null) "deny-interfaces=${lib.concatStringsSep "," denyInterfaces}"}
-    ${lib.optionalString (domainName!=null) "domain-name=${domainName}"}
-    allow-point-to-point=${yesNo allowPointToPoint}
-    ${lib.optionalString (cacheEntriesMax!=null) "cache-entries-max=${toString cacheEntriesMax}"}
+      // lib.optionalAttrs (cfg.hostName != "") {
+        host-name = cfg.hostName;
+      }
+      // lib.optionalAttrs (cfg.allowInterfaces != null) {
+        allow-interfaces = lib.concatStringsSep "," cfg.allowIinterfaces;
+      }
+      // lib.optionalAttrs (cfg.denyInterfaces != null) {
+        deny-interfaces = lib.concatStringsSep "," cfg.denyIinterfaces;
+      }
+      // lib.optionalAttrs (cfg.domainName != null) {
+        domain-name = cfg.domainName;
+      } // lib.optionalAttrs (cfg.cacheEntriesMax != null) {
+        cache-entries-max = cfg.cacheEntriesMax;
+      };
 
-    [wide-area]
-    enable-wide-area=${yesNo wideArea}
+      publish = {
+        disable-publishing = yesNo (!cfg.publish.enable);
+        disable-user-service-publishing = yesNo (!cfg.publish.userServices);
+        publish-addresses = yesNo (cfg.publish.userServices || cfg.publish.addresses);
+        publish-hinfo = yesNo cfg.publish.hinfo;
+        publish-workstation = yesNo cfg.publish.workstation;
+        publish-domain = yesNo cfg.publish.domain;
+      };
 
-    [publish]
-    disable-publishing=${yesNo (!publish.enable)}
-    disable-user-service-publishing=${yesNo (!publish.userServices)}
-    publish-addresses=${yesNo (publish.userServices || publish.addresses)}
-    publish-hinfo=${yesNo publish.hinfo}
-    publish-workstation=${yesNo publish.workstation}
-    publish-domain=${yesNo publish.domain}
+      reflector = {
+        enable-reflector = yesNo cfg.reflector;
+      };
 
-    [reflector]
-    enable-reflector=${yesNo reflector}
-    ${extraConfig}
-  '';
+      wide-area = {
+        enable-wide-area = yesNo cfg.wideArea;
+      };
+    }
+    cfg.settings);
+
 in
 {
   imports = [
+    (lib.mkRenamedOptionModule [ "services" "avahi" "extraOptions" ] [ "services" "avahi" "settings" ])
     (lib.mkRenamedOptionModule [ "services" "avahi" "interfaces" ] [ "services" "avahi" "allowInterfaces" ])
     (lib.mkRenamedOptionModule [ "services" "avahi" "nssmdns" ] [ "services" "avahi" "nssmdns4" ])
   ];
@@ -249,11 +268,11 @@ in
       '';
     };
 
-    extraConfig = lib.mkOption {
-      type = lib.types.lines;
-      default = "";
+    settings = lib.mkOption {
+      type = format.type;
+      default = { };
       description = ''
-        Extra config to append to avahi-daemon.conf.
+        Extra config to merge into avahi-daemon.conf.
       '';
     };
   };
@@ -269,36 +288,37 @@ in
     users.groups.avahi = { };
 
     system.nssModules = lib.optional (cfg.nssmdns4 || cfg.nssmdns6) pkgs.nssmdns;
-    system.nssDatabases.hosts = let
-      mdns = if (cfg.nssmdns4 && cfg.nssmdns6) then
-        "mdns"
-      else if (!cfg.nssmdns4 && cfg.nssmdns6) then
-        "mdns6"
-      else if (cfg.nssmdns4 && !cfg.nssmdns6) then
-        "mdns4"
-      else
-        "";
-    in lib.optionals (cfg.nssmdns4 || cfg.nssmdns6) (lib.mkMerge [
-      (lib.mkBefore [ "${mdns}_minimal [NOTFOUND=return]" ]) # before resolve
-      (lib.mkAfter [ "${mdns}" ]) # after dns
-    ]);
+    system.nssDatabases.hosts =
+      let
+        mdns =
+          if (cfg.nssmdns4 && cfg.nssmdns6) then
+            "mdns"
+          else if (!cfg.nssmdns4 && cfg.nssmdns6) then
+            "mdns6"
+          else if (cfg.nssmdns4 && !cfg.nssmdns6) then
+            "mdns4"
+          else
+            "";
+      in
+      lib.optionals (cfg.nssmdns4 || cfg.nssmdns6) (lib.mkMerge [
+        (lib.mkBefore [ "${mdns}_minimal [NOTFOUND=return]" ]) # before resolve
+        (lib.mkAfter [ "${mdns}" ]) # after dns
+      ]);
 
     environment.systemPackages = [ cfg.package ];
 
-    environment.etc = (lib.mapAttrs'
+    environment.etc = lib.mapAttrs'
       (n: v: lib.nameValuePair
         "avahi/services/${n}.service"
         { ${if lib.types.path.check v then "source" else "text"} = v; }
       )
-      cfg.extraServiceFiles);
+      cfg.extraServiceFiles;
 
     systemd.sockets.avahi-daemon = {
       description = "Avahi mDNS/DNS-SD Stack Activation Socket";
       listenStreams = [ "/run/avahi-daemon/socket" ];
       wantedBy = [ "sockets.target" ];
     };
-
-    systemd.tmpfiles.rules = [ "d /run/avahi-daemon - avahi avahi -" ];
 
     systemd.services.avahi-daemon = {
       description = "Avahi mDNS/DNS-SD Stack";
