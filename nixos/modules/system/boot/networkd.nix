@@ -6,6 +6,7 @@ with utils.systemdUtils.network.units;
 with lib;
 
 let
+  waitOnline = config.networking.waitForOnline;
 
   check = {
 
@@ -2965,6 +2966,10 @@ let
           config.environment.etc."systemd/networkd.conf".source
         ];
         aliases = [ "dbus-org.freedesktop.network1.service" ];
+      };
+
+      systemd.services.systemd-networkd-wait-online = {
+        enable = waitOnline;
       };
 
       networking.iproute2 = mkIf (cfg.config.addRouteTablesToIPRoute2 && cfg.config.routeTables != { }) {
