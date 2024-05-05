@@ -1,29 +1,41 @@
-{ lib, stdenv, fetchFromGitHub, python3, pass }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, python3
+, preferPass ? true
+, pass
+, passage
+}:
 
-stdenv.mkDerivation rec {
+let
+  bin = lib.getExe (if preferPass then pass else passage);
+
+in
+stdenv.mkDerivation (finalAttrs: {
   pname = "passff-host";
   version = "1.2.4";
 
   src = fetchFromGitHub {
     owner = "passff";
-    repo = pname;
-    rev = version;
-    sha256 = "sha256-P5h0B5ilwp3OVyDHIOQ23Zv4eLjN4jFkdZF293FQnNE=";
+    repo = "passff-host";
+    rev = finalAttrs.version;
+    hash = "sha256-P5h0B5ilwp3OVyDHIOQ23Zv4eLjN4jFkdZF293FQnNE=";
   };
 
   buildInputs = [ python3 ];
-  makeFlags = [ "VERSION=${version}" ];
+  makeFlags = [ "VERSION=${finalAttrs.version}" ];
 
   patchPhase = ''
-    sed -i 's#COMMAND = "pass"#COMMAND = "${pass}/bin/pass"#' src/passff.py
+    substituteInPlace src/passff.py \
+      --replace-fail 'COMMAND = "pass"' 'COMMAND = "${bin}"'
   '';
 
   installPhase = ''
-    substituteInPlace bin/${version}/passff.json \
-      --replace PLACEHOLDER $out/share/passff-host/passff.py
+    substituteInPlace bin/${finalAttrs.version}/passff.json \
+      --replace-fail PLACEHOLDER $out/share/passff-host/passff.py
 
     install -Dt $out/share/passff-host \
-      bin/${version}/passff.{py,json}
+      bin/${finalAttrs.version}/passff.{py,json}
 
     nativeMessagingPaths=(
       /lib/mozilla/native-messaging-hosts
@@ -43,6 +55,6 @@ stdenv.mkDerivation rec {
     description = "Host app for the WebExtension PassFF";
     homepage = "https://github.com/passff/passff-host";
     license = licenses.gpl2Only;
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [ peterhoeg ];
   };
-}
+})
