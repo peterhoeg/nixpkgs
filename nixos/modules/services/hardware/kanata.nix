@@ -1,9 +1,12 @@
 { config, lib, pkgs, utils, ... }:
 
-with lib;
-
 let
   cfg = config.services.kanata;
+
+  inherit (lib)
+    attrNames concatStringsSep filterAttrs mapAttrs' optional optionalString
+    getExe head length nameValuePair pipe
+    mkEnableOption mkIf mkOption mkPackageOption types;
 
   upstreamDoc = "See [the upstream documentation](https://github.com/jtroo/kanata/blob/main/docs/config.adoc) and [example config files](https://github.com/jtroo/kanata/tree/main/cfg_samples) for more information.";
 
@@ -81,6 +84,9 @@ let
 
   mkName = name: "kanata-${name}";
 
+  mkFileName = name:
+    "kanata/${mkName name}.kbd";
+
   mkDevices = devices:
     let
       devicesString = pipe devices [
@@ -115,7 +121,7 @@ let
       Type = "notify";
       ExecStart = ''
         ${getExe cfg.package} \
-          --cfg ${keyboard.configFile} \
+          --cfg ${if cfg.liveReload then "/etc/${mkFileName name}" else mkConfig name keyboard} \
           --symlink-path ''${RUNTIME_DIRECTORY}/${name} \
           ${optionalString (keyboard.port != null) "--port ${toString keyboard.port}"} \
           ${utils.escapeSystemdExecArgs keyboard.extraArgs}
@@ -166,6 +172,7 @@ in
 {
   options.services.kanata = {
     enable = mkEnableOption "kanata, a tool to improve keyboard comfort and usability with advanced customization";
+
     package = mkPackageOption pkgs "kanata" {
       example = [ "kanata-with-cmd" ];
       extraDescription = ''
@@ -175,10 +182,17 @@ in
         :::
       '';
     };
+
     keyboards = mkOption {
       type = types.attrsOf (types.submodule keyboard);
       default = { };
       description = "Keyboard configurations.";
+    };
+
+    liveReload = mkOption {
+      description = "Enable livereload";
+      type = types.bool;
+      default = false;
     };
   };
 
@@ -191,10 +205,18 @@ in
       in
       optional (existEmptyDevices && moreThanOneKeyboard) "One device can only be intercepted by one kanata instance.  Setting services.kanata.keyboards.${head (attrNames keyboardsWithEmptyDevices)}.devices = [ ] and using more than one services.kanata.keyboards may cause a race condition.";
 
+    environment.etc = mkIf cfg.liveReload (mapAttrs'
+      (name: keyboard:
+        lib.nameValuePair (mkFileName name) {
+          source = mkConfig name keyboard;
+        }
+      )
+      cfg.keyboards);
+
     hardware.uinput.enable = true;
 
     systemd.services = mapAttrs' mkService cfg.keyboards;
   };
 
-  meta.maintainers = with maintainers; [ linj ];
+  meta.maintainers = with lib.maintainers; [ linj ];
 }
