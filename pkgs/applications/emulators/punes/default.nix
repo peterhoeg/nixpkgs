@@ -17,6 +17,10 @@
 , wrapQtAppsHook
 }:
 
+let
+  inherit (lib) cmakeBool optionals;
+
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "punes";
   version = "0.111";
@@ -50,20 +54,20 @@ stdenv.mkDerivation (finalAttrs: {
     libGLU
     qtbase
     qtsvg
-  ] ++ lib.optionals stdenv.hostPlatform.isLinux [
+  ] ++ optionals stdenv.hostPlatform.isLinux [
     alsa-lib
     libX11
     libXrandr
-  ] ++ lib.optionals stdenv.hostPlatform.isBSD [
+  ] ++ optionals stdenv.hostPlatform.isBSD [
     sndio
   ];
 
   cmakeFlags = [
-    "-DENABLE_GIT_INFO=OFF"
-    "-DENABLE_RELEASE=ON"
-    "-DENABLE_FFMPEG=ON"
-    "-DENABLE_OPENGL=ON"
-    "-DENABLE_QT6_LIBS=${if lib.versionAtLeast qtbase.version "6.0" then "ON" else "OFF"}"
+    (cmakeBool "ENABLE_GIT_INFO" false)
+    (cmakeBool "ENABLE_RELEASE" true)
+    (cmakeBool "ENABLE_FFMPEG" true)
+    (cmakeBool "ENABLE_OPENGL" true)
+    (cmakeBool "ENABLE_QT6_LIBS" (lib.versionAtLeast qtbase.version "6.0"))
   ];
 
   passthru.updateScript = gitUpdater {
