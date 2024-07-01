@@ -1,0 +1,12 @@
+diff --git a/lib/bundix/source.rb b/lib/bundix/source.rb
+index 34d7ca2..f4b70bb 100644
+--- a/lib/bundix/source.rb
++++ b/lib/bundix/source.rb
+@@ -80,6 +80,7 @@ class Bundix
+       args << '--url' << uri
+       args << '--rev' << revision
+       args << '--hash' << 'sha256'
++      args << '--leave-dotGit'
+       args << '--fetch-submodules' if submodules
+ 
+       sh(NIX_PREFETCH_GIT, *args)
