@@ -21,6 +21,7 @@
 , pulseaudio-qt
 , qca-qt5
 , qqc2-desktop-style
+, qtconnectivity
 , qtgraphicaleffects
 , qtmultimedia
 , qtquickcontrols2
@@ -55,6 +56,7 @@ mkDerivation {
     pulseaudio-qt
     qca-qt5
     qqc2-desktop-style
+    qtconnectivity
     qtgraphicaleffects
     qtmultimedia
     qtquickcontrols2
@@ -68,6 +70,11 @@ mkDerivation {
   ];
 
   nativeBuildInputs = [ extra-cmake-modules kdoctools makeWrapper ];
+
+  cmakeFlags = [
+    "-Wno-dev" # silence warnings that do not matter unless you're developing kdeconnect
+    "-DBLUETOOTH_ENABLED=ON"
+  ];
 
   qtWrapperArgs = [
     "--prefix PATH : ${lib.makeBinPath [ sshfs ]}"
