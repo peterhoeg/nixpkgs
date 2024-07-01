@@ -2,6 +2,7 @@
 , fetchFromGitHub
 , buildGoModule
 , nixosTests
+, smartmontools
 }:
 
 buildGoModule rec {
@@ -14,6 +15,13 @@ buildGoModule rec {
     rev = "refs/tags/v${version}";
     hash = "sha256-QQoWAsnE/7ifvgEfQJ6cbzmwOrE7oe2zalTbu/P7r18=";
   };
+
+  postPatch = ''
+    for f in main.go README.md; do
+      substituteInPlace $f \
+        --replace-fail /usr/sbin/smartctl ${lib.getBin smartmontools}/bin/smartctl
+    done
+  '';
 
   vendorHash = "sha256-WUB2FgBl4Tybz7T0yvcSYIlG75NEhXpn1F0yuB9F21g=";
 
