@@ -1,9 +1,9 @@
-
 { config, lib, pkgs, ... }:
 
-with lib;
-
 let
+  inherit (lib)
+    getBin
+    literalExpression mkIf mkOption types;
 
   cfg = config.services.uvcvideo;
 
@@ -13,40 +13,36 @@ let
   };
 
 in
-
 {
+  options.services.uvcvideo.dynctrl = {
+    enable = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Whether to enable {command}`uvcvideo` dynamic controls.
 
-  options = {
-    services.uvcvideo.dynctrl = {
+        Note that enabling this brings the {command}`uvcdynctrl` tool
+        into your environment and register all dynamic controls from
+        specified {command}`packages` to the {command}`uvcvideo` driver.
+      '';
+    };
 
-      enable = mkOption {
-        type = types.bool;
-        default = false;
-        description = ''
-          Whether to enable {command}`uvcvideo` dynamic controls.
+    packages = mkOption {
+      type = types.listOf types.path;
+      default = [ ];
+      example = literalExpression "[ pkgs.tiscamera ]";
+      description = ''
+        List of packages containing {command}`uvcvideo` dynamic controls
+        rules. All files found in
+        {file}`«pkg»/share/uvcdynctrl/data`
+        will be included.
 
-          Note that enabling this brings the {command}`uvcdynctrl` tool
-          into your environment and register all dynamic controls from
-          specified {command}`packages` to the {command}`uvcvideo` driver.
-        '';
-      };
-
-      packages = mkOption {
-        type = types.listOf types.path;
-        example = literalExpression "[ pkgs.tiscamera ]";
-        description = ''
-          List of packages containing {command}`uvcvideo` dynamic controls
-          rules. All files found in
-          {file}`«pkg»/share/uvcdynctrl/data`
-          will be included.
-
-          Note that these will serve as input to the {command}`libwebcam`
-          package which through its own {command}`udev` rule will register
-          the dynamic controls from specified packages to the {command}`uvcvideo`
-          driver.
-        '';
-        apply = map getBin;
-      };
+        Note that these will serve as input to the {command}`libwebcam`
+        package which through its own {command}`udev` rule will register
+        the dynamic controls from specified packages to the {command}`uvcvideo`
+        driver.
+      '';
+      apply = map getBin;
     };
   };
 
