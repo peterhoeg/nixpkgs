@@ -256,5 +256,6 @@ in stdenv.mkDerivation (finalAttrs: {
       license     = licenses.gpl2Plus;
       platforms   = platforms.linux;
       maintainers = teams.kodi.members;
+      mainProgram = "kodi";
     };
 })
