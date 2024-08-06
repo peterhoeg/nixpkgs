@@ -11,6 +11,15 @@
 , copyDesktopItems
 }:
 
+let
+  runtimes = [ "*musl*" "win*" ]
+    ++ lib.optionals stdenv.isDarwin [ "linux*" ]
+    ++ lib.optionals stdenv.isLinux [ "osx" ]
+    ++ lib.optionals stdenv.targetPlatform.isAarch [ "*x64" ]
+    ++ lib.optionals stdenv.targetPlatform.isx86 [ "*arm" "*arm64" ]
+  ;
+
+in
 buildDotnetModule rec {
   pname = "mqttmultimeter";
   version = "1.8.2.272";
@@ -30,14 +39,21 @@ buildDotnetModule rec {
   dotnet-runtime = dotnet-runtime_8;
   executables = [ "mqttMultimeter" ];
 
-  nativeBuildInputs = [
-    copyDesktopItems
-  ];
+  nativeBuildInputs = [ copyDesktopItems ];
 
   buildInputs = [ stdenv.cc.cc.lib fontconfig ];
 
   postInstall = ''
-    rm -rf $out/lib/${lib.toLower pname}/runtimes/{*musl*,win*}
+    rm -rf $out/lib/mqttmultimeter/runtimes/{${lib.concatStringsSep "," runtimes}}
+
+    for size in 16 24 32 48 64 128 256; do
+      for f in icon_$size icon_det_$size; do
+        file="../Images/Icons/$f.png"
+        if [ -e "$file" ]; then
+          install -Dm444 "$file" "$out/share/icons/hicolor/''${size}x''${size}/apps/${meta.mainProgram}.png"
+        fi
+      done
+    done
   '';
 
   runtimeDeps = [
@@ -64,6 +80,6 @@ buildDotnetModule rec {
     description = "MQTT traffic monitor";
     license = licenses.free;
     maintainers = with maintainers; [ peterhoeg ];
-    platforms = platforms.linux;
+    platforms = platforms.unix;
   };
 }
