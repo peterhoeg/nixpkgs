@@ -9,7 +9,7 @@
 # Systemd can also change ownership of service directories using the
 # RuntimeDirectory/StateDirectory options.
 
-{ lib, ... }:
+{ config, lib, ... }:
 
 let
   inherit (lib) types;
@@ -111,7 +111,7 @@ in
       postgres = 71;
       #vboxusers = 72; # unused
       #vboxsf = 73; # unused
-      smbguest = 74;  # unused
+      smbguest = 74; # unused
       varnish = 75;
       datadog = 76;
       lighttpd = 77;
@@ -290,7 +290,7 @@ in
       postgrey = 258;
       # hound = 259; # unused, removed 2023-11-21
       leaps = 260;
-      ipfs  = 261;
+      ipfs = 261;
       # stanchion = 262; # unused, removed 2020-10-14
       # riak-cs = 263; # unused, removed 2020-10-14
       infinoted = 264;
@@ -436,7 +436,7 @@ in
       postgres = 71;
       vboxusers = 72;
       vboxsf = 73;
-      smbguest = 74;  # unused
+      smbguest = 74; # unused
       varnish = 75;
       datadog = 76;
       lighttpd = 77;
@@ -697,6 +697,18 @@ in
       nogroup = 65534;
     };
 
+    warnings =
+      let
+        check = attr: collection:
+          lib.filter (e: e != "") (lib.mapAttrsToList
+            (file: e:
+              if lib.hasPrefix "+" e.${attr} || builtins.elem e.${attr} (builtins.attrNames config.ids.${collection})
+              then ""
+              else "Nonexistent ${attr} ${e.${attr}} defined for /etc/${file}"
+            )
+            (lib.filterAttrs (_: v: v.mode != "symlink") config.environment.etc));
+      in
+      lib.optionals (! config.users.mutableUsers)
+        (check "user" "uids") ++ (check "group" "gids");
   };
-
 }
