@@ -1,44 +1,60 @@
 { config, pkgs, lib, ... }:
 
-with lib;
-
 let
   cfg = config.services.cage;
-in {
-  options.services.cage.enable = mkEnableOption "cage kiosk service";
 
-  options.services.cage.user = mkOption {
-    type = types.str;
-    default = "demo";
-    description = ''
-      User to log-in as.
-    '';
-  };
+  inherit (lib)
+    concatStringsSep escapeShellArgs getExe
+    literalExpression mkDefault mkEnableOption mkOption mkIf types;
 
-  options.services.cage.extraArguments = mkOption {
-    type = types.listOf types.str;
-    default = [];
-    defaultText = literalExpression "[]";
-    description = "Additional command line arguments to pass to Cage.";
-    example = ["-d"];
-  };
+in
+{
+  meta.maintainers = with lib.maintainers; [ matthewbauer peterhoeg ];
 
-  options.services.cage.environment = mkOption {
-    type = types.attrsOf types.str;
-    default = {};
-    example = {
-      WLR_LIBINPUT_NO_DEVICES = "1";
+  options.services.cage = {
+    enable = mkEnableOption "cage kiosk service";
+
+    tty = mkOption {
+      type = types.str;
+      default = "tty1";
+      description = ''
+        The TTY on which to run.
+      '';
     };
-    description = "Additional environment variables to pass to Cage.";
-  };
 
-  options.services.cage.program = mkOption {
-    type = types.path;
-    default = "${pkgs.xterm}/bin/xterm";
-    defaultText = literalExpression ''"''${pkgs.xterm}/bin/xterm"'';
-    description = ''
-      Program to run in cage.
-    '';
+    user = mkOption {
+      type = types.str;
+      default = "demo";
+      description = ''
+        User to log-in as.
+      '';
+    };
+
+    extraArguments = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      defaultText = literalExpression "[]";
+      description = "Additional command line arguments to pass to Cage.";
+      example = [ "-d" ];
+    };
+
+    environment = mkOption {
+      type = types.attrsOf types.str;
+      default = { };
+      example = {
+        WLR_LIBINPUT_NO_DEVICES = "1";
+      };
+      description = "Additional environment variables to pass to Cage.";
+    };
+
+    program = mkOption {
+      type = types.path;
+      default = "${pkgs.xterm}/bin/xterm";
+      defaultText = literalExpression ''"''${pkgs.xterm}/bin/xterm"'';
+      description = ''
+        Program to run in cage.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -46,28 +62,29 @@ in {
     # The service is partially based off of the one provided in the
     # cage wiki at
     # https://github.com/Hjdskes/cage/wiki/Starting-Cage-on-boot-with-systemd.
-    systemd.services."cage-tty1" = {
+    systemd.services."cage-${cfg.tty}" = {
       enable = true;
       after = [
         "systemd-user-sessions.service"
         "plymouth-start.service"
         "plymouth-quit.service"
         "systemd-logind.service"
-        "getty@tty1.service"
+        "getty@${cfg.tty}.service"
       ];
       before = [ "graphical.target" ];
-      wants = [ "dbus.socket" "systemd-logind.service" "plymouth-quit.service"];
+      wants = [ "dbus.socket" "systemd-logind.service" "plymouth-quit.service" ];
       wantedBy = [ "graphical.target" ];
-      conflicts = [ "getty@tty1.service" ];
+      conflicts = [ "getty@${cfg.tty}.service" ];
 
       restartIfChanged = false;
-      unitConfig.ConditionPathExists = "/dev/tty1";
+      unitConfig.ConditionPathExists = "/dev/${cfg.tty}";
       serviceConfig = {
-        ExecStart = ''
-          ${pkgs.cage}/bin/cage \
-            ${escapeShellArgs cfg.extraArguments} \
-            -- ${cfg.program}
-        '';
+        ExecStart = concatStringsSep " " [
+          (getExe pkgs.cage)
+          (escapeShellArgs cfg.extraArguments)
+          "--"
+          cfg.program
+        ];
         User = cfg.user;
 
         IgnoreSIGPIPE = "no";
@@ -77,7 +94,7 @@ in {
         UtmpIdentifier = "%n";
         UtmpMode = "user";
         # A virtual terminal is needed.
-        TTYPath = "/dev/tty1";
+        TTYPath = "/dev/${cfg.tty}";
         TTYReset = "yes";
         TTYVHangup = "yes";
         TTYVTDisallocate = "yes";
@@ -103,11 +120,8 @@ in {
 
     hardware.graphics.enable = mkDefault true;
 
-    systemd.targets.graphical.wants = [ "cage-tty1.service" ];
+    systemd.targets.graphical.wants = [ "cage-${cfg.tty}.service" ];
 
     systemd.defaultUnit = "graphical.target";
   };
-
-  meta.maintainers = with lib.maintainers; [ matthewbauer ];
-
 }
