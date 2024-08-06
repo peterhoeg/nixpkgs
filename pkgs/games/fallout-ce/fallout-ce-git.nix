@@ -8,7 +8,7 @@
 }:
 
 let
-  version = "1.1.0";
+  version = "1.0.0.20231031";
 
 in
 callPackage ./build.nix {
@@ -21,8 +21,8 @@ callPackage ./build.nix {
   src = fetchFromGitHub {
     owner = "alexbatalov";
     repo = "fallout1-ce";
-    rev = "v${version}";
-    hash = "sha256-ZiBoF3SL00sN0QrD3fkWG9SAknumOvzRB1oQJff6ITA=";
+    rev = "f33143d0db9066d4c654464f66aba58871e4c81e";
+    hash = "sha256-5gRuUrO5/5pKor3fuKY/cXMkkbPvkhICrR2fPKRTaTU=";
   };
 
   icon = fetchurl {
@@ -31,5 +31,8 @@ callPackage ./build.nix {
     name = "fallout-ce.png";
   };
 
-  meta.homepage = "https://github.com/alexbatalov/fallout1-ce";
+  meta = {
+    homepage = "https://github.com/alexbatalov/fallout1-ce";
+    broken = true; # segfault on start
+  };
 }

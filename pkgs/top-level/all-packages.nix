@@ -35916,6 +35916,7 @@ with pkgs;
   exult = callPackage ../games/exult { };
 
   fallout-ce = callPackage ../games/fallout-ce/fallout-ce.nix { };
+  fallout-ce-git = callPackage ../games/fallout-ce/fallout-ce-git.nix { };
   fallout2-ce = callPackage ../games/fallout-ce/fallout2-ce.nix { };
 
   flare = callPackage ../games/flare {
