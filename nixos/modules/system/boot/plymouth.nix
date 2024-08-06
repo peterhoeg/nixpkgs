@@ -11,7 +11,7 @@ let
   cfg = config.boot.plymouth;
   opt = options.boot.plymouth;
 
-  nixosBreezePlymouth = pkgs.plasma5Packages.breeze-plymouth.override {
+  nixosBreezePlymouth = (if config.services.desktopManager.plasma6.enable then pkgs.kdePackages else pkgs.plasma5Packages).breeze-plymouth.override {
     logoFile = cfg.logo;
     logoName = "nixos";
     osName = "NixOS";
