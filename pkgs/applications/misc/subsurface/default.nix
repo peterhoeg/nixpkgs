@@ -23,6 +23,7 @@
 , qtsvg
 , qttools
 , qtwebengine
+, qt5compat ? null
 , libXcomposite
 , bluez
 }:
@@ -30,13 +31,18 @@
 let
   version = "5.0.10";
 
-  subsurfaceSrc = (fetchFromGitHub {
+  isQt5 = (lib.versions.major qtbase.version) == "5";
+  isQt6 = !isQt5;
+
+  inherit (lib) cmakeBool optionals;
+
+  subsurfaceSrc = fetchFromGitHub {
     owner = "Subsurface";
     repo = "subsurface";
     rev = "v${version}";
     hash = "sha256-KzUBhFGvocaS1VrVT2stvKrj3uVxYka+dyYZUfkIoNs=";
     fetchSubmodules = true;
-  });
+  };
 
   libdc = stdenv.mkDerivation {
     pname = "libdivecomputer-ssrf";
@@ -78,7 +84,7 @@ let
 
     dontWrapQtApps = true;
 
-    pluginsSubdir = "lib/qt-${qtbase.qtCompatVersion}/plugins";
+    pluginsSubdir = "lib/qt-${qtbase.qtPluginPrefix}/plugins";
 
     installPhase = ''
       mkdir -p $out $(dirname ${pluginsSubdir}/geoservices)
@@ -114,7 +120,6 @@ stdenv.mkDerivation {
   buildInputs = [
     bluez
     curl
-    googlemaps
     grantlee
     libdc
     libgit2
@@ -124,17 +129,26 @@ stdenv.mkDerivation {
     libzip
     qtbase
     qtconnectivity
+    qtlocation
     qtsvg
     qttools
     qtwebengine
+  ] ++ optionals isQt5 [
+    googlemaps
+  ] ++ optionals isQt6 [
+    qt5compat
   ];
 
   nativeBuildInputs = [ cmake wrapQtAppsHook pkg-config ];
 
   cmakeFlags = [
-    "-DLIBDC_FROM_PKGCONFIG=ON"
-    "-DNO_PRINTING=OFF"
+    (cmakeBool "LIBDC_FROM_PKGCONFIG" true)
+    (cmakeBool "LIBGIT2_FROM_PKGCONFIG" true)
+    (cmakeBool "NO_PRINTING" false)
+    (cmakeBool "BUILD_WITH_QT6" isQt6)
   ];
+
+  env.LANG = "C.UTF-8";
 
   passthru = { inherit version libdc googlemaps; };
 
