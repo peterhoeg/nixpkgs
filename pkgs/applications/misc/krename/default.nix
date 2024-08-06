@@ -1,20 +1,27 @@
-{
-  mkDerivation, fetchurl, fetchpatch, lib,
-  extra-cmake-modules, kdoctools, wrapGAppsHook3,
-  kconfig, kinit, kjsembed, taglib, exiv2, podofo,
-  kcrash
+{ stdenv
+, fetchurl
+, fetchpatch
+, lib
+, extra-cmake-modules
+, kdoctools
+, wrapQtAppsHook
+, kconfig
+, kinit
+, kio
+, kjsembed
+, taglib
+, exiv2
+, podofo
+, kcrash
 }:
 
-let
+stdenv.mkDerivation (finalAttrs: {
   pname = "krename";
   version = "5.0.2";
 
-in mkDerivation rec {
-  name = "${pname}-${version}";
-
   src = fetchurl {
-    url = "mirror://kde/stable/${pname}/${version}/src/${name}.tar.xz";
-    sha256 = "sha256-sjxgp93Z9ttN1/VaxV/MqKVY+miq+PpcuJ4er2kvI+0=";
+    url = "mirror://kde/stable/krename/${finalAttrs.version}/src/krename-${finalAttrs.version}.tar.xz";
+    hash = "sha256-sjxgp93Z9ttN1/VaxV/MqKVY+miq+PpcuJ4er2kvI+0=";
   };
 
   patches = [
@@ -27,9 +34,9 @@ in mkDerivation rec {
 
   buildInputs = [ taglib exiv2 podofo ];
 
-  nativeBuildInputs = [ extra-cmake-modules kdoctools wrapGAppsHook3 ];
+  nativeBuildInputs = [ extra-cmake-modules kdoctools wrapQtAppsHook ];
 
-  propagatedBuildInputs = [ kconfig kcrash kinit kjsembed ];
+  propagatedBuildInputs = [ kconfig kcrash kinit kio kjsembed ];
 
   NIX_LDFLAGS = "-ltag";
 
@@ -37,8 +44,8 @@ in mkDerivation rec {
     description = "Powerful batch renamer for KDE";
     mainProgram = "krename";
     homepage = "https://kde.org/applications/utilities/krename/";
-    license = licenses.gpl2;
+    license = licenses.gpl2Only;
     maintainers = with maintainers; [ peterhoeg ];
     inherit (kconfig.meta) platforms;
   };
-}
+})
