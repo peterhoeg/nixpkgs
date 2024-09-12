@@ -155,6 +155,16 @@ in
         '';
       };
     };
+
+    networking.waitForOnline = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        When bringing up the network, always wait for it to be online before continuing.
+
+        This is currently only implemented for networkd.
+      '';
+    };
   };
 
   config = {
