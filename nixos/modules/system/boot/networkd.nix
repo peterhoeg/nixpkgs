@@ -14,6 +14,7 @@ with lib;
 # in the man pages / documentation. This makes future updates easier.
 
 let
+  waitOnline = config.networking.waitForOnline;
 
   check = {
 
@@ -4250,6 +4251,10 @@ let
             notSocketActivated = true;
             stopIfChanged = false;
           };
+
+        systemd.services.systemd-networkd-wait-online = {
+          enable = waitOnline;
+        };
 
         networking.iproute2 = mkIf (cfg.config.addRouteTablesToIPRoute2 && cfg.config.routeTables != { }) {
           enable = mkDefault true;
