@@ -34,13 +34,13 @@ let
 in
 pypkgs.buildPythonApplication rec {
   pname = "pykms";
-  version = "unstable-2021-01-25";
+  version = "unstable-2023-07-30";
 
   src = fetchFromGitHub {
     owner = "Py-KMS-Organization";
     repo = "py-kms";
-    rev = "1435c86fe4f11aa7fd42d77fa61715ca3015eeab";
-    hash = "sha256-9KiMbS0uKTbWSZVIv5ziIeR9c8+EKfKd20yPmjCX7GQ=";
+    rev = "599574bb607dfc7a9293987dd67d3a7550b28c1c";
+    hash = "sha256-TQ6KA7+C4/wGWwL0Mt8TZWkCR6zyK60kJV4OwueUnGA=";
   };
 
   sourceRoot = "${src.name}/py-kms";
