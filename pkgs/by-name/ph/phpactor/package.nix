@@ -16,7 +16,11 @@ php.buildComposerProject2 (finalAttrs: {
     hash = "sha256-QcKkkgpWWypapQPawK1hu+6tkF9c5ICPeEPWqCwrUBM=";
   };
 
-  vendorHash = "sha256-Q72EeGeVqjaOZeW8VAB59OY0E/wvL8Ljq/9XC4iK/rg=";
+  patches = [
+    ./php-83-class-constants.patch
+  ];
+
+  vendorHash = "sha256-woTeQw1w7Po12WQVq54fE8fQLA3+ql6iufplukOrSIQ=";
 
   nativeBuildInputs = [ installShellFiles ];
 
