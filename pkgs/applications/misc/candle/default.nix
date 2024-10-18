@@ -1,23 +1,25 @@
-{ mkDerivation, lib, fetchFromGitHub, qtbase, qtserialport, qmake }:
+{ mkDerivation, lib, fetchFromGitHub, qtbase, qtserialport, cmake }:
 
 mkDerivation rec {
   pname = "candle";
-  version = "1.1";
+  version = "1.2b.20220306";
 
   src = fetchFromGitHub {
-    owner  = "Denvi";
-    repo   = "Candle";
-    rev    = "v${version}";
-    sha256 = "1gpx08gdz8awbsj6lsczwgffp19z3q0r2fvm72a73qd9az29pmm0";
+    owner = "Denvi";
+    repo = "Candle";
+    rev = "3f763bcde1195e23ba119a5b3c70d7c889881019";
+    hash = "sha256-A53rHlabcuw/nWS7jsCyVrP3CUkmUI/UMRqpogyFOCM=";
   };
 
-  nativeBuildInputs = [ qmake ];
+  nativeBuildInputs = [ cmake ];
 
   sourceRoot = "${src.name}/src";
 
   installPhase = ''
     runHook preInstall
+
     install -Dm755 Candle $out/bin/candle
+
     runHook postInstall
   '';
 
