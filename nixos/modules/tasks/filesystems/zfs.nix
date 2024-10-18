@@ -863,21 +863,56 @@ in
     })
 
     (mkIf (cfgZfs.enabled && cfgScrub.enable) {
-      systemd.services.zfs-scrub = {
-        description = "ZFS pools scrubbing";
-        after = [ "zfs-import.target" ];
-        serviceConfig = {
-          Type = "simple";
-        };
-        script = ''
-          ${cfgZfs.package}/bin/zpool scrub -w ${
-            if cfgScrub.pools != [] then
+      systemd.services.zfs-scrub =
+        let
+          pools =
+            if cfgScrub.pools != [ ] then
               (concatStringsSep " " cfgScrub.pools)
             else
-              "$(${cfgZfs.package}/bin/zpool list -H -o name)"
+              "$(zpool list -H -o name)";
+
+          script = lib.getExe (pkgs.resholve.writeScriptBin "zfs-scrub"
+            {
+              interpreter = pkgs.runtimeShell;
+              inputs = with pkgs; [ coreutils cfgZfs.package ];
+              execer = with pkgs; [ "cannot:${lib.getBin cfgZfs.package}/bin/zpool" ];
             }
-        '';
-      };
+            ''
+              set -eEuo pipefail
+
+              _scrub() {
+                zpool scrub "$1" ${pools}
+              }
+
+              case "$1" in
+                start)
+                  _scrub -w
+                  ;;
+                stop)
+                  _scrub -s
+                  ;;
+                *)
+                  echo "Unknown command: $1"
+                  exit 1
+                  ;;
+              esac
+            '');
+
+        in
+        {
+          description = "ZFS pools scrubbing";
+          after = [ "zfs-import.target" ];
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStart = "${script} start";
+            ExecStop = "${script} stop";
+            TimeoutStartSec = "infinity";
+            PrivateTmp = true;
+            PrivateNetwork = true;
+            ProtectHome = "tmpfs";
+            ProtectSystem = "strict";
+          };
+        };
 
       systemd.timers.zfs-scrub = {
         wantedBy = [ "timers.target" ];
