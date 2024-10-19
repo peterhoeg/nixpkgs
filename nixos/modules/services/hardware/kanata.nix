@@ -1,4 +1,5 @@
 { config, lib, pkgs, utils, ... }:
+
 let
   cfg = config.services.kanata;
 
@@ -78,6 +79,9 @@ let
 
   mkName = name: "kanata-${name}";
 
+  mkFileName = name:
+    "kanata/${mkName name}.kbd";
+
   mkDevices = devices:
     let
       devicesString = lib.pipe devices [
@@ -112,7 +116,7 @@ let
       Type = "notify";
       ExecStart = ''
         ${lib.getExe cfg.package} \
-          --cfg ${keyboard.configFile} \
+          --cfg ${if cfg.liveReload then "/etc/${mkFileName name}" else mkConfig name keyboard} \
           --symlink-path ''${RUNTIME_DIRECTORY}/${name} \
           ${lib.optionalString (keyboard.port != null) "--port ${toString keyboard.port}"} \
           ${utils.escapeSystemdExecArgs keyboard.extraArgs}
@@ -163,6 +167,7 @@ in
 {
   options.services.kanata = {
     enable = lib.mkEnableOption "kanata, a tool to improve keyboard comfort and usability with advanced customization";
+
     package = lib.mkPackageOption pkgs "kanata" {
       example = [ "kanata-with-cmd" ];
       extraDescription = ''
@@ -172,11 +177,19 @@ in
         :::
       '';
     };
+
     keyboards = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule keyboard);
       default = { };
       description = "Keyboard configurations.";
     };
+
+    liveReload = lib.mkOption {
+      description = "Enable livereload";
+      type = lib.types.bool;
+      default = false;
+    };
+
   };
 
   config = lib.mkIf cfg.enable {
@@ -187,6 +200,14 @@ in
         moreThanOneKeyboard = lib.length (lib.attrNames cfg.keyboards) > 1;
       in
       lib.optional (existEmptyDevices && moreThanOneKeyboard) "One device can only be intercepted by one kanata instance.  Setting services.kanata.keyboards.${lib.head (lib.attrNames keyboardsWithEmptyDevices)}.devices = [ ] and using more than one services.kanata.keyboards may cause a race condition.";
+
+    environment.etc = lib.mkIf cfg.liveReload (lib.mapAttrs'
+      (name: keyboard:
+        lib.nameValuePair (mkFileName name) {
+          source = mkConfig name keyboard;
+        }
+      )
+      cfg.keyboards);
 
     hardware.uinput.enable = true;
 
