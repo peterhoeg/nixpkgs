@@ -35,6 +35,10 @@
 , zlib
 }:
 
+let
+  bins = lib.makeBinPath [ autopanosiftc enblend-enfuse gnumake perlPackages.ImageExifTool ];
+
+in
 stdenv.mkDerivation rec {
   pname = "hugin";
   version = "2023.0.0";
@@ -80,16 +84,12 @@ stdenv.mkDerivation rec {
 
   postInstall = ''
     for p in $out/bin/*; do
-      wrapProgram "$p" \
-        --suffix PATH : ${autopanosiftc}/bin \
-        --suffix PATH : ${enblend-enfuse}/bin \
-        --suffix PATH : ${gnumake}/bin \
-        --suffix PATH : ${perlPackages.ImageExifTool}/bin
+      wrapProgram "$p" --suffix PATH : ${bins}
     done
   '';
 
   meta = with lib; {
-    homepage = "http://hugin.sourceforge.net/";
+    homepage = "https://hugin.sourceforge.io/";
     description = "Toolkit for stitching photographs and assembling panoramas, together with an easy to use graphical front end";
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [ hrdinka ];
