@@ -40,6 +40,11 @@
 , useSDL2 ? false
 }:
 
+let
+  inherit (lib)
+    cmakeBool cmakeFeature optionals optionalString;
+
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "minetest";
   version = "5.9.0";
@@ -52,24 +57,25 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   cmakeFlags = [
-    (lib.cmakeBool "BUILD_CLIENT" buildClient)
-    (lib.cmakeBool "BUILD_SERVER" buildServer)
-    (lib.cmakeBool "ENABLE_PROMETHEUS" buildServer)
-    (lib.cmakeBool "USE_SDL2" useSDL2)
+    (cmakeBool "BUILD_CLIENT" buildClient)
+    (cmakeBool "BUILD_SERVER" buildServer)
+    (cmakeBool "BUILD_UNITTESTS" (finalAttrs.doCheck or false))
+    (cmakeBool "ENABLE_PROMETHEUS" buildServer)
+    (cmakeBool "USE_SDL2" useSDL2)
     # Ensure we use system libraries
-    (lib.cmakeBool "ENABLE_SYSTEM_GMP" true)
-    (lib.cmakeBool "ENABLE_SYSTEM_JSONCPP" true)
+    (cmakeBool "ENABLE_SYSTEM_GMP" true)
+    (cmakeBool "ENABLE_SYSTEM_JSONCPP" true)
     # Updates are handled by nix anyway
-    (lib.cmakeBool "ENABLE_UPDATE_CHECKER" false)
+    (cmakeBool "ENABLE_UPDATE_CHECKER" false)
     # ...but make it clear that this is a nix package
-    (lib.cmakeFeature "VERSION_EXTRA" "NixOS")
+    (cmakeFeature "VERSION_EXTRA" "NixOS")
 
     # Remove when https://github.com/NixOS/nixpkgs/issues/144170 is fixed
-    (lib.cmakeFeature "CMAKE_INSTALL_BINDIR" "bin")
-    (lib.cmakeFeature "CMAKE_INSTALL_DATADIR" "share")
-    (lib.cmakeFeature "CMAKE_INSTALL_DOCDIR" "share/doc/minetest")
-    (lib.cmakeFeature "CMAKE_INSTALL_MANDIR" "share/man")
-    (lib.cmakeFeature "CMAKE_INSTALL_LOCALEDIR" "share/locale")
+    (cmakeFeature "CMAKE_INSTALL_BINDIR" "bin")
+    (cmakeFeature "CMAKE_INSTALL_DATADIR" "share")
+    (cmakeFeature "CMAKE_INSTALL_DOCDIR" "share/doc/minetest")
+    (cmakeFeature "CMAKE_INSTALL_MANDIR" "share/man")
+    (cmakeFeature "CMAKE_INSTALL_LOCALEDIR" "share/locale")
 
   ];
 
@@ -81,54 +87,57 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildInputs = [
-    jsoncpp
-    gettext
-    freetype
-    sqlite
-    curl
     bzip2
-    ncurses
+    curl
+    freetype
+    gettext
     gmp
+    jsoncpp
     libspatialindex
-  ] ++ lib.optional (lib.meta.availableOn stdenv.hostPlatform luajit) luajit
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-    libiconv
-    OpenGL
-    OpenAL
+    ncurses
+    sqlite
+  ] ++ optionals (lib.meta.availableOn stdenv.hostPlatform luajit) [ luajit ]
+  ++ optionals stdenv.hostPlatform.isDarwin [
     Carbon
     Cocoa
     Kernel
-  ] ++ lib.optionals buildClient [
-    libpng
-    libjpeg
+    OpenAL
+    OpenGL
+    libiconv
+  ] ++ optionals buildClient [
     libGLU
-    openal
+    libjpeg
     libogg
+    libpng
     libvorbis
-  ] ++ lib.optionals (buildClient && useSDL2) [
+    openal
+  ] ++ optionals (buildClient && useSDL2) [
     SDL2
-  ] ++ lib.optionals (buildClient && !stdenv.hostPlatform.isDarwin && !useSDL2) [
+  ] ++ optionals (buildClient && !stdenv.hostPlatform.isDarwin && !useSDL2) [
     xorg.libX11
     xorg.libXi
-  ] ++ lib.optionals buildServer [
+  ] ++ optionals buildServer [
+    hiredis
     leveldb
     postgresql
-    hiredis
     prometheus-cpp
   ];
 
   postPatch = ''
-    substituteInPlace src/filesys.cpp --replace "/bin/rm" "${coreutils}/bin/rm"
-  '' + lib.optionalString stdenv.isDarwin ''
+    substituteInPlace src/filesys.cpp \
+      --replace-fail "/bin/rm" "${coreutils}/bin/rm"
+  '' + optionalString stdenv.isDarwin ''
     sed -i '/pagezero_size/d;/fixup_bundle/d' src/CMakeLists.txt
   '';
 
-  postInstall = lib.optionalString stdenv.isLinux ''
+  postInstall = optionalString stdenv.isLinux ''
     patchShebangs $out
-  '' + lib.optionalString stdenv.isDarwin ''
+  '' + optionalString stdenv.isDarwin ''
     mkdir -p $out/Applications
     mv $out/minetest.app $out/Applications
   '';
+
+  doCheck = true;
 
   passthru.updateScript = gitUpdater {
     allowedVersions = "\\.";
@@ -141,5 +150,6 @@ stdenv.mkDerivation (finalAttrs: {
     license = licenses.lgpl21Plus;
     platforms = platforms.linux ++ platforms.darwin;
     maintainers = with maintainers; [ pyrolagus fpletz fgaz ];
+    mainProgram = if buildClient then "minetest" else "minetestserver";
   };
 })
