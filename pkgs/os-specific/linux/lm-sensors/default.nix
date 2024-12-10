@@ -24,9 +24,15 @@ stdenv.mkDerivation rec {
     hash = "sha256-9lfHCcODlS7sZMjQhK0yQcCBEoGyZOChx/oM0CU37sY=";
   };
 
-  # Upstream build system have knob to enable and disable building of static
+  # 1. fancontrol insists on writing to /run which is problematic when run with
+  # `ProtectSystem=strict` so give it its own path
+  #
+  # 2. Upstream build system have knob to enable and disable building of static
   # library, shared library is built unconditionally.
-  postPatch = lib.optionalString stdenv.hostPlatform.isStatic ''
+  postPatch = ''
+    substituteInPlace prog/pwm/fancontrol \
+      --replace-fail '/var/run/fancontrol' '/run/fancontrol/fancontrol'
+  '' + lib.optionalString stdenv.hostPlatform.isStatic ''
     sed -i 'lib/Module.mk' -e '/LIBTARGETS :=/,+1d; /-m 755/ d'
     substituteInPlace prog/sensors/Module.mk --replace 'lib/$(LIBSHBASENAME)' ""
   '';
