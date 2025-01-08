@@ -3919,8 +3919,6 @@ with pkgs;
 
   kphotoalbum = libsForQt5.callPackage ../applications/graphics/kphotoalbum { };
 
-  krename = libsForQt5.callPackage ../applications/misc/krename { };
-
   krunner-pass = libsForQt5.callPackage ../tools/security/krunner-pass { };
 
   krunner-translator = libsForQt5.callPackage ../tools/misc/krunner-translator { };
