@@ -664,10 +664,10 @@ in
         networkmanager.plugins = with pkgs; [
           networkmanager-fortisslvpn
           networkmanager-iodine
-          networkmanager-l2tp
-          networkmanager-openconnect
+          # networkmanager-l2tp
+          # networkmanager-openconnect
           networkmanager-openvpn
-          networkmanager-vpnc
+          # networkmanager-vpnc
           networkmanager-sstp
         ];
       }
