@@ -1,13 +1,15 @@
 {
-  mkDerivation,
+  stdenv,
   fetchurl,
   fetchpatch,
   lib,
   extra-cmake-modules,
+  qtbase,
   kdoctools,
-  wrapGAppsHook3,
+  wrapQtAppsHook,
   kconfig,
   kinit,
+  kio,
   kjsembed,
   taglib,
   exiv2,
@@ -15,17 +17,13 @@
   kcrash,
 }:
 
-let
+stdenv.mkDerivation (finalAttrs: {
   pname = "krename";
   version = "5.0.2";
 
-in
-mkDerivation rec {
-  name = "${pname}-${version}";
-
   src = fetchurl {
-    url = "mirror://kde/stable/${pname}/${version}/src/${name}.tar.xz";
-    sha256 = "sha256-sjxgp93Z9ttN1/VaxV/MqKVY+miq+PpcuJ4er2kvI+0=";
+    url = "mirror://kde/stable/krename/${finalAttrs.version}/src/krename-${finalAttrs.version}.tar.xz";
+    hash = "sha256-sjxgp93Z9ttN1/VaxV/MqKVY+miq+PpcuJ4er2kvI+0=";
   };
 
   patches = [
@@ -37,21 +35,23 @@ mkDerivation rec {
   ];
 
   buildInputs = [
-    taglib
+    qtbase
     exiv2
     podofo
+    taglib
   ];
 
   nativeBuildInputs = [
     extra-cmake-modules
     kdoctools
-    wrapGAppsHook3
+    wrapQtAppsHook
   ];
 
   propagatedBuildInputs = [
     kconfig
     kcrash
     kinit
+    kio
     kjsembed
   ];
 
@@ -61,8 +61,8 @@ mkDerivation rec {
     description = "Powerful batch renamer for KDE";
     mainProgram = "krename";
     homepage = "https://kde.org/applications/utilities/krename/";
-    license = licenses.gpl2;
+    license = licenses.gpl2Only;
     maintainers = with maintainers; [ peterhoeg ];
     inherit (kconfig.meta) platforms;
   };
-}
+})
