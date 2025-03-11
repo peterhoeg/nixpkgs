@@ -8,7 +8,7 @@ let
   package = pkgs.openntpd_nixos;
 
   configFile = ''
-    ${concatStringsSep "\n" (map (s: "server ${s}") cfg.servers)}
+    ${concatStringsSep "\n" (map (s: "servers ${s}") cfg.servers)}
     ${cfg.extraConfig}
   '';
 
