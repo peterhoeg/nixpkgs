@@ -1,87 +1,174 @@
 {
   cmake,
+  coreutils,
+  findutils,
   fpattern,
   lib,
-  SDL2,
+  makeDesktopItem,
+  sdl2-compat,
+  sdl3,
+  resholve,
+  runtimeShell,
   stdenv,
-  writeShellScript,
+  symlinkJoin,
+  xorg,
 
-  extraBuildInputs ? [ ],
-  extraMeta,
-  patches,
   pname,
   version,
+  gameVersion ? 1,
+  icon ? null,
   src,
+  patches ? [ ],
+  buildInputs ? [ ],
+  meta,
+  assets ? [ ], # you might want to provide additional assets
 }:
 
 let
-  launcher = writeShellScript "${pname}" ''
-    set -eu
-    assetDir="''${XDG_DATA_HOME:-$HOME/.local/share}/${pname}"
-    [ -d "$assetDir" ] || mkdir -p "$assetDir"
-    cd "$assetDir"
+  hasAssets = assets != [ ];
 
-    notice=0 fault=0
-    requiredFiles=(master.dat critter.dat)
-    for f in "''${requiredFiles[@]}"; do
-      if [ ! -f "$f" ]; then
-        echo "Required file $f not found in $PWD, note the files are case-sensitive"
-        notice=1 fault=1
-      fi
-    done
+  script =
+    resholve.writeScriptBin pname
+      {
+        scripts = [ "bin/${pname}" ];
+        interpreter = runtimeShell;
+        inputs = [
+          "${binary}/libexec"
+          coreutils
+          findutils
+          xorg.lndir
+        ];
+        execer = [ "cannot:${binary}/libexec/${pname}" ];
+      }
 
-    if [ ! -d "data/sound/music" ]; then
-      echo "data/sound/music directory not found in $PWD. This may prevent in-game music from functioning."
-      notice=1
-    fi
+      ''
+          set -eEuo pipefail
 
-    if [ $notice -ne 0 ]; then
-      echo "Please reference the installation instructions at https://github.com/alexbatalov/fallout2-ce"
-    fi
+          assetDir="''${XDG_DATA_HOME:-$HOME/.local/share}/${pname}"
+          [ -d "$assetDir" ] || mkdir -p "$assetDir"
+          pushd "$assetDir" >/dev/null
 
-    if [ $fault -ne 0 ]; then
-      exit $fault;
-    fi
+          ${lib.optionalString hasAssets ''
+            link_assets() {
+              local asset; asset="$1"
 
-    exec @out@/libexec/${pname} "$@"
-  '';
-in
-stdenv.mkDerivation {
-  inherit
-    pname
-    version
-    src
-    patches
-    ;
+              lndir -silent "$asset" "$assetDir"
 
-  nativeBuildInputs = [ cmake ];
-  buildInputs = [ SDL2 ] ++ extraBuildInputs;
-  hardeningDisable = [ "format" ];
-  cmakeBuildType = "RelWithDebInfo";
+              for cfgFile in $asset/etc/*; do
+                test -e "$cfgFile" || continue
 
-  postPatch = ''
-    substituteInPlace third_party/fpattern/CMakeLists.txt \
-      --replace "FetchContent_Populate" "#FetchContent_Populate" \
-      --replace "{fpattern_SOURCE_DIR}" "${fpattern}/include" \
-      --replace "$/nix/" "/nix/"
-  '';
+                name="$(basename "$cfgFile")"
+                test -f "$name" && continue
+                install -Dm644 "$cfgFile" "$name"
+              done
+            }
 
-  installPhase = ''
-    runHook preInstall
+            find "$assetDir" -lname '/nix/store/*' -type l -delete
 
-    install -D ${pname} $out/libexec/${pname}
-    install -D ${launcher} $out/bin/${pname}
-    substituteInPlace $out/bin/${pname} --subst-var out
+            ${lib.concatMapStringsSep "\n" (e: ''
+              link_assets "${e}/${e.baseDir}"
+            '') assets}
+          ''}
 
-    runHook postInstall
-  '';
+          notice=0 fault=0
+          requiredFiles=(master.dat critter.dat)
+          for f in "''${requiredFiles[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "Required file $f not found in $PWD, note the files are case-sensitive"
+              notice=1 fault=1
+            fi
+          done
 
-  meta =
+          if [ ! -d "data/sound/music" ]; then
+            echo "data/sound/music directory not found in $PWD. This may prevent in-game music from functioning."
+            notice=1
+          fi
+
+          if [ "''${SDL_VIDEODRIVER:-}" = "wayland" ]; then
+            echo "There may be issues running with SDL_VIDEODRIVER=wayland. You may want to unset this."
+            notice=1
+          fi
+
+          if [ $notice -ne 0 ]; then
+            echo "Please reference the installation instructions at ${meta.homepage}"
+          fi
+
+          if [ $fault -ne 0 ]; then
+            exit $fault;
+          fi
+
+        exec ${pname} "$@"
+      '';
+
+  desktopItem = makeDesktopItem {
+    name = pname;
+    desktopName = "Fallout ${toString gameVersion} CE";
+    exec = lib.getExe script;
+    icon = if (icon != null) then icon else pname;
+    categories = [ "Game" ];
+  };
+
+  binary = stdenv.mkDerivation {
+    inherit
+      pname
+      version
+      src
+      patches
+      ;
+
+    nativeBuildInputs = [ cmake ];
+
+    buildInputs = [
+      sdl2-compat
+      sdl3
+      fpattern
+    ] ++ buildInputs;
+
+    hardeningDisable = [ "format" ];
+
+    postPatch = ''
+      substituteInPlace third_party/fpattern/CMakeLists.txt \
+        --replace-fail "FetchContent_Populate" "#FetchContent_Populate" \
+        --replace-fail "{fpattern_SOURCE_DIR}" "${lib.getDev fpattern}/include" \
+        --replace-fail "$/nix/" "/nix/"
+    '';
+
+    installPhase = ''
+      runHook preInstall
+
+      install -Dm555 ${pname} $out/libexec/${pname}
+      install -Dm444 -t $out/share/doc/${pname} ../*.md
+
+      runHook postInstall
+    '';
+
+    meta = meta';
+  };
+
+  meta' =
     with lib;
     {
+      description = "Fully working re-implementation of Fallout ${toString gameVersion}";
+      longDescription = ''
+        It has the same original gameplay, engine bugfixes, and some quality of life improvements
+      '';
       license = licenses.sustainableUse;
-      maintainers = with maintainers; [ hughobrien ];
+      maintainers = with maintainers; [
+        hughobrien
+        peterhoeg
+      ];
       platforms = platforms.linux;
+      mainProgram = pname;
     }
-    // extraMeta;
+    // meta;
+
+in
+symlinkJoin {
+  name = "${pname}-${version}";
+  paths = [
+    binary
+    desktopItem
+    script
+  ];
+  meta = meta';
 }
