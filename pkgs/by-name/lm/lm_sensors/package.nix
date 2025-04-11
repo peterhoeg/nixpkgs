@@ -27,7 +27,10 @@ stdenv.mkDerivation rec {
 
   # Upstream build system have knob to enable and disable building of static
   # library, shared library is built unconditionally.
-  postPatch = lib.optionalString stdenv.hostPlatform.isStatic ''
+  postPatch = ''
+    substituteInPlace prog/pwm/fancontrol \
+      --replace-fail '/var/run/fancontrol' '/run/fancontrol/fancontrol'
+  '' + lib.optionalString stdenv.hostPlatform.isStatic ''
     sed -i 'lib/Module.mk' -e '/LIBTARGETS :=/,+1d; /-m 755/ d'
     substituteInPlace prog/sensors/Module.mk --replace 'lib/$(LIBSHBASENAME)' ""
   '';
