@@ -3,14 +3,13 @@
   callPackage,
   callPackages,
   fetchFromGitHub,
-  fetchpatch2,
   fetchurl,
   assets ? [ ], # see build.nix for details
   withGogAssets ? false,
 }:
 
 let
-  version = "1.1.0";
+  version = "1.0.0.20231031";
 
 in
 callPackage ./build.nix {
@@ -25,17 +24,9 @@ callPackage ./build.nix {
   src = fetchFromGitHub {
     owner = "alexbatalov";
     repo = "fallout1-ce";
-    rev = "v${version}";
-    hash = "sha256-ZiBoF3SL00sN0QrD3fkWG9SAknumOvzRB1oQJff6ITA=";
+    rev = "f33143d0db9066d4c654464f66aba58871e4c81e";
+    hash = "sha256-5gRuUrO5/5pKor3fuKY/cXMkkbPvkhICrR2fPKRTaTU=";
   };
-
-  patches = [
-    # Fix case-sensitive filesystems issue when save/load games
-    (fetchpatch2 {
-      url = "https://github.com/alexbatalov/fallout1-ce/commit/aa3c5c1e3e3f9642d536406b2d8d6b362c9e402f.patch";
-      sha256 = "sha256-quFRbKMS2pNDCNTWc1ZoB3jnB5qzw0b+2OeJUi8IPBc=";
-    })
-  ];
 
   icon = fetchurl {
     url = "https://github.com/alexbatalov/fallout1-ce/blob/f33143d0db9066d4c654464f66aba58871e4c81e/os/ios/AppIcon.xcassets/AppIcon.appiconset/AppIcon.png?raw=true";
@@ -43,5 +34,8 @@ callPackage ./build.nix {
     name = "fallout-ce.png";
   };
 
-  meta.homepage = "https://github.com/alexbatalov/fallout1-ce";
+  meta = {
+    homepage = "https://github.com/alexbatalov/fallout1-ce";
+    broken = true; # segfault on start
+  };
 }
