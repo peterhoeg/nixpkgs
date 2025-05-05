@@ -4,6 +4,7 @@
   pkgs,
   ...
 }:
+
 let
   CONTAINS_NEWLINE_RE = ".*\n.*";
   # The following values are reserved as complete option values:
@@ -14,6 +15,8 @@ let
 
   # There is no way to encode """ on its own line in a Minetest config.
   UNESCAPABLE_RE = ".*\n\"\"\"\n.*";
+
+  dir = "/var/lib/minetest";
 
   toConfMultiline =
     name: value:
@@ -43,43 +46,89 @@ let
     );
 
   cfg = config.services.minetest-server;
-  flag =
-    val: name:
-    lib.optionals (val != null) [
-      "--${name}"
-      "${toString val}"
-    ];
 
   flags =
-    [
-      "--server"
-    ]
-    ++ (
-      if cfg.configPath != null then
-        [
-          "--config"
+    let
+      flag =
+        val: name:
+        lib.optionals (val != null) [
+          "--${name}"
+          "${toString val}"
+        ];
+
+      file =
+        if cfg.configPath != null then
           cfg.configPath
-        ]
-      else
-        [
-          "--config"
-          (builtins.toFile "minetest.conf" (toConf cfg.config))
-        ]
-    )
+        else
+          (builtins.toFile "minetest.conf" (toConf cfg.config));
+    in
+    [
+      "--config"
+      file
+    ]
     ++ (flag cfg.gameId "gameid")
     ++ (flag cfg.world "world")
     ++ (flag cfg.logPath "logfile")
     ++ (flag cfg.port "port")
     ++ cfg.extraArgs;
+
+  addonsSetup =
+    let
+      collection = pkgs.symlinkJoin {
+        name = "luanti-addons";
+        paths = cfg.addons;
+      };
+    in
+    pkgs.resholve.writeScriptBin "minetest-addons-setup"
+      {
+        interpreter = pkgs.runtimeShell;
+        inputs = with pkgs; [
+          coreutils
+          findutils
+        ];
+        execer = map (e: "cannot:${if builtins.isString e then e else lib.getExe e}") [ ];
+      }
+      ''
+        set -eEuo pipefail
+
+        _copy() {
+          local kind; kind="$1"
+          local tgt=${dir}/.minetest/$kind
+
+          test -d $tgt || mkdir -p $tgt
+
+          for d in ${collection}/share/minetest/$kind/*; do
+            base="$(basename "$d")"
+            rm -rf "$tgt/$base"
+            cp -R --dereference --no-preserve=all $d $tgt/
+          done
+        }
+
+        _link() {
+          local kind; kind="$1"
+          local tgt=${dir}/.minetest/$kind
+
+          test -d $tgt || mkdir -p $tgt
+
+          find $tgt -maxdepth 1 -type l -delete
+          ln -s ${collection}/share/minetest/$kind/* -t $tgt
+        }
+
+        for kind in games mods textures; do
+          # we cannot symlink as that runs afoul of minetest's secure environment, but need to copy
+          # the files into place
+
+          _copy $kind
+        done
+      '';
+
 in
 {
   options = {
     services.minetest-server = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "If enabled, starts a Minetest Server.";
-      };
+      enable = lib.mkEnableOption "start a Minetest Server.";
+
+      package = lib.mkPackageOption pkgs "minetestserver" { };
 
       gameId = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -93,7 +142,12 @@ in
       };
 
       world = lib.mkOption {
-        type = lib.types.nullOr lib.types.path;
+        type = lib.types.nullOr (
+          lib.types.oneOf [
+            lib.types.path
+            lib.types.str
+          ]
+        );
         default = null;
         description = ''
           Name of the world to use. To list available worlds run
@@ -136,13 +190,17 @@ in
       };
 
       port = lib.mkOption {
-        type = lib.types.nullOr lib.types.int;
-        default = null;
+        type = lib.types.port;
+        default = 30000;
         description = ''
           Port number to bind to.
-
-          If set to null, the default 30000 will be used.
         '';
+      };
+
+      addons = lib.mkOption {
+        type = lib.types.listOf lib.types.package;
+        description = "Addons";
+        default = [ ];
       };
 
       extraArgs = lib.mkOption {
@@ -156,29 +214,26 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    users.users.minetest = {
-      description = "Minetest Server Service user";
-      home = "/var/lib/minetest";
-      createHome = true;
-      uid = config.ids.uids.minetest;
-      group = "minetest";
-    };
-    users.groups.minetest.gid = config.ids.gids.minetest;
-
     systemd.services.minetest-server = {
       description = "Minetest Server Service";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-
-      serviceConfig.Restart = "always";
-      serviceConfig.User = "minetest";
-      serviceConfig.Group = "minetest";
-
-      script = ''
-        cd /var/lib/minetest
-
-        exec ${pkgs.minetest}/bin/minetest ${lib.escapeShellArgs flags}
-      '';
+      environment.HOME = dir;
+      serviceConfig = {
+        ExecStartPre = lib.getExe addonsSetup;
+        ExecStart = "${lib.getExe cfg.package} ${lib.escapeShellArgs flags}";
+        StateDirectory = builtins.baseNameOf dir;
+        Restart = "always";
+        RestartSec = "5s";
+        DynamicUser = true;
+        User = "minetest";
+        Group = "minetest";
+        PrivateTmp = true;
+        ProtectHome = "tmpfs";
+        ProtectSystem = "strict";
+        SyslogIdentifier = "%N";
+        WorkingDirectory = dir;
+      };
     };
   };
 }
