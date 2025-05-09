@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  fetchpatch,
 
   cmake,
   qttools,
@@ -19,20 +20,29 @@
   qtwayland,
   quazip,
 }:
+
 let
   qtVersion = lib.versions.major qtbase.version;
+
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "mediaelch";
   version = "2.12.0";
 
   src = fetchFromGitHub {
     owner = "Komet";
     repo = "MediaElch";
-    rev = "v${version}";
+    rev = "v${finalAttrs.version}";
     hash = "sha256-m2d4lnyD8HhhqovMdeG36dMK+4kJA7rlPHE2tlhfevo=";
     fetchSubmodules = true;
   };
+
+  patches = lib.optionals (finalAttrs.version == "2.12.0" && qtVersion == "6") [
+    (fetchpatch {
+      url = "https://github.com/Komet/MediaElch/pull/1878/commits/89ebf98dd13c365ce7ffaaece6fdd3329cf62c9f.patch";
+      hash = "sha256-Lv6rvjKbRNr5XrdZhPyw4S4RRCOnfAGhWgcSLo0gqS8=";
+    })
+  ];
 
   nativeBuildInputs = [
     cmake
@@ -58,9 +68,9 @@ stdenv.mkDerivation rec {
     ];
 
   cmakeFlags = [
-    "-DDISABLE_UPDATER=ON"
-    "-DUSE_EXTERN_QUAZIP=ON"
-    "-DMEDIAELCH_FORCE_QT${qtVersion}=ON"
+    (lib.cmakeBool "DISABLE_UPDATER" true)
+    (lib.cmakeBool "USE_EXTERN_QUAZIP" true)
+    (lib.cmakeBool "MEDIAELCH_FORCE_QT${qtVersion}" true)
   ];
 
   # libmediainfo.so.0 is loaded dynamically
@@ -76,4 +86,4 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ stunkymonkey ];
     platforms = platforms.linux;
   };
-}
+})
