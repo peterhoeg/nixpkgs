@@ -6,9 +6,12 @@
   utils,
   ...
 }:
+
 let
   cfg = config.services.unifi;
+
   stateDir = "/var/lib/unifi";
+
   cmd = lib.escapeShellArgs (
     [
       "@${cfg.jrePackage}/bin/java"
@@ -19,41 +22,96 @@ let
       "--add-opens=java.base/java.io=ALL-UNNAMED"
       "--add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
     ]
-    ++ (lib.optional (cfg.initialJavaHeapSize != null) "-Xms${(toString cfg.initialJavaHeapSize)}m")
-    ++ (lib.optional (cfg.maximumJavaHeapSize != null) "-Xmx${(toString cfg.maximumJavaHeapSize)}m")
-    ++ cfg.extraJvmOptions
+    ++ lib.optionals (cfg.java.initialHeapSize != null) [
+      "-Xms${(toString cfg.java.initialHeapSize)}m"
+    ]
+    ++ lib.optionals (cfg.java.maximumHeapSize != null) [
+      "-Xmx${(toString cfg.java.maximumHeapSize)}m"
+    ]
+    ++ cfg.java.extraJvmOptions
     ++ [
       "-jar"
       "${stateDir}/lib/ace.jar"
     ]
   );
+
+  properties = lib.recursiveUpdate {
+    "unifi.http.port" = cfg.httpPort;
+    "unifi.https.port" = cfg.httpsPort;
+    "unifi.stun.port" = cfg.stunPort;
+    "unifi.db.port" = 27117;
+    "unifi.db.nojournal" = !cfg.database.journaling;
+    "unifi.https.hsts" = cfg.enableHsts;
+  } cfg.systemProperties;
+
+  setupScript =
+    let
+      toStr = val: if builtins.isBool val then lib.boolToString val else toString val;
+
+    in
+    pkgs.resholve.writeScriptBin "unifi-setup"
+      {
+        interpreter = pkgs.runtimeShell;
+        inputs = with pkgs; [
+          coreutils
+          crudini
+        ];
+        execer = [ "cannot:${lib.getExe pkgs.crudini}" ];
+      }
+      ''
+        set -Euo pipefail
+
+        props="${stateDir}/data/system.properties"
+
+        rm -f ${stateDir}/webapps/ROOT
+        ln -s ${cfg.unifiPackage}/webapps/ROOT ${stateDir}/webapps/ROOT
+
+        touch $props
+
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: value: ''
+            crudini --set $props "" ${name} ${toStr value}
+          '') properties
+        )}
+      '';
+
 in
 {
+  imports = [
+    (lib.mkRemovedOptionModule [ "services" "unifi" "dataDir" ]
+      "You should move contents of dataDir to /var/lib/unifi/data or to use external storage, configure unifi to use an external Mongo instance and configure that accordingly."
+    )
+    (lib.mkRenamedOptionModule [ "services" "unifi" "openPorts" ] [ "services" "unifi" "openFirewall" ])
+    (lib.mkRenamedOptionModule
+      [ "services" "unifi" "extraJvmOptions" ]
+      [ "services" "unifi" "java" "extraJvmOptions" ]
+    )
+    (lib.mkRenamedOptionModule
+      [ "services" "unifi" "jrePackage" ]
+      [ "services" "unifi" "java" "package" ]
+    )
+    (lib.mkRenamedOptionModule
+      [ "services" "unifi" "initialJavaHeapSize" ]
+      [ "services" "unifi" "java" "initialHeapSize" ]
+    )
+    (lib.mkRenamedOptionModule
+      [ "services" "unifi" "maximumJavaHeapSize" ]
+      [ "services" "unifi" "java" "maximumHeapSize" ]
+    )
+  ];
 
-  options = {
+  options.services.unifi = {
+    enable = lib.mkEnableOption "the unifi controller service.";
 
-    services.unifi.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = ''
-        Whether or not to enable the unifi controller service.
-      '';
+    unifiPackage = lib.mkPackageOption pkgs "unifi" {
+      default = "unifi8";
     };
 
-    services.unifi.jrePackage = lib.mkPackageOption pkgs "jdk" {
-      default = "jdk17_headless";
-      extraDescription = ''
-        Check the UniFi controller release notes to ensure it is supported.
-      '';
-    };
-
-    services.unifi.unifiPackage = lib.mkPackageOption pkgs "unifi" { };
-
-    services.unifi.mongodbPackage = lib.mkPackageOption pkgs "mongodb" {
+    mongodbPackage = lib.mkPackageOption pkgs "mongodb" {
       default = "mongodb-7_0";
     };
 
-    services.unifi.openFirewall = lib.mkOption {
+    openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = false;
       description = ''
@@ -65,39 +123,94 @@ in
       '';
     };
 
-    services.unifi.initialJavaHeapSize = lib.mkOption {
-      type = with lib.types; nullOr int;
-      default = null;
-      example = 1024;
+    java = {
+      package = lib.mkPackageOption pkgs "jdk" {
+        default = "jdk17_headless";
+        extraDescription = ''
+          Check the UniFi controller release notes to ensure it is supported.
+        '';
+      };
+
+      initialHeapSize = lib.mkOption {
+        type = lib.types.nullOr lib.types.int;
+        default = null;
+        example = 1024;
+        description = ''
+          Set the initial heap size for the JVM in MB. If this option isn't set, the
+          JVM will decide this value at runtime.
+        '';
+      };
+
+      maximumHeapSize = lib.mkOption {
+        type = lib.types.nullOr lib.types.int;
+        default = null;
+        example = 4096;
+        description = ''
+          Set the maximimum heap size for the JVM in MB. If this option isn't set, the
+          JVM will decide this value at runtime.
+        '';
+      };
+
+      extraJvmOptions = lib.mkOption {
+        type = with lib.types; listOf str;
+        default = [ ];
+        example = lib.literalExpression ''["-Xlog:gc"]'';
+        description = ''
+          Set extra options to pass to the JVM.
+        '';
+      };
+    };
+
+    httpPort = lib.mkOption {
+      type = lib.types.port;
+      default = 8080;
       description = ''
-        Set the initial heap size for the JVM in MB. If this option isn't set, the
-        JVM will decide this value at runtime.
+        Port for AP inform
       '';
     };
 
-    services.unifi.maximumJavaHeapSize = lib.mkOption {
-      type = with lib.types; nullOr int;
-      default = null;
-      example = 4096;
+    httpsPort = lib.mkOption {
+      type = lib.types.port;
+      default = 8443;
       description = ''
-        Set the maximum heap size for the JVM in MB. If this option isn't set, the
-        JVM will decide this value at runtime.
+        Port for HTTPS traffic to controller UI.
       '';
     };
 
-    services.unifi.extraJvmOptions = lib.mkOption {
-      type = with lib.types; listOf str;
-      default = [ ];
-      example = lib.literalExpression ''["-Xlog:gc"]'';
+    stunPort = lib.mkOption {
+      type = lib.types.port;
+      default = 3478;
       description = ''
-        Set extra options to pass to the JVM.
+        Port for STUN traffic.
       '';
     };
 
+    enableHsts = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Enable HSTS.
+      '';
+    };
+
+    database.journaling = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Use database journaling. Disable this to use less disk space in exchange for a higher risk of file corruption.
+      '';
+    };
+
+    systemProperties = lib.mkOption {
+      type = lib.types.attrs;
+      default = { };
+      description = ''
+        Key-value pairs that will be written to system.properties
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
-
     assertions = [
       {
         assertion =
@@ -122,119 +235,151 @@ in
       }
     ];
 
-    users.users.unifi = {
-      isSystemUser = true;
-      group = "unifi";
-      description = "UniFi controller daemon user";
-      home = "${stateDir}";
+    users = {
+      users.unifi = {
+        isSystemUser = true;
+        group = "unifi";
+        description = "UniFi controller daemon user";
+        home = stateDir;
+      };
+      groups.unifi = { };
     };
-    users.groups.unifi = { };
 
     networking.firewall = lib.mkIf cfg.openFirewall {
       # https://help.ubnt.com/hc/en-us/articles/218506997
       allowedTCPPorts = [
-        8080 # Port for UAP to inform controller.
+        cfg.httpPort # Port for UAP to inform controller.
+        cfg.httpsPort # Port for controller UI/API.
         8880 # Port for HTTP portal redirect, if guest portal is enabled.
         8843 # Port for HTTPS portal redirect, ditto.
         6789 # Port for UniFi mobile speed test.
       ];
       allowedUDPPorts = [
-        3478 # UDP port used for STUN.
+        cfg.stunPort # UDP port used for STUN.
         10001 # UDP port used for device discovery.
       ];
     };
 
-    systemd.services.unifi = {
-      description = "UniFi controller daemon";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ];
+    systemd.services = {
+      unifi-setup = {
+        description = "UniFi controller daemon - setup";
+        wantedBy = [ "unifi.target" ];
+        before = [ "unifi.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          User = "unifi";
+          Group = "unifi";
+          ExecStart = lib.getExe setupScript;
+        };
+      };
 
-      # This a HACK to fix missing dependencies of dynamic libs extracted from jars
-      environment.LD_LIBRARY_PATH = with pkgs.stdenv; "${cc.cc.lib}/lib";
-      # Make sure package upgrades trigger a service restart
-      restartTriggers = [
-        cfg.unifiPackage
-        cfg.mongodbPackage
-      ];
+      unifi = {
+        description = "UniFi controller daemon";
+        wantedBy = [ "unifi.target" ];
+        after = [ "network.target" ];
 
-      serviceConfig = {
-        Type = "notify";
-        ExecStart = "${cmd} start";
-        ExecStop = "${cmd} stop";
-        Restart = "always";
-        TimeoutSec = "5min";
-        User = "unifi";
-        UMask = "0077";
-        WorkingDirectory = "${stateDir}";
-        # the stop command exits while the main process is still running, and unifi
-        # wants to manage its own child processes. this means we have to set KillSignal
-        # to something the main process ignores, otherwise every stop will have unifi.service
-        # fail with SIGTERM status.
-        KillSignal = "SIGCONT";
-
-        # Hardening
-        AmbientCapabilities = "";
-        CapabilityBoundingSet = "";
-        # ProtectClock= adds DeviceAllow=char-rtc r
-        DeviceAllow = "";
-        DevicePolicy = "closed";
-        LockPersonality = true;
-        NoNewPrivileges = true;
-        PrivateDevices = true;
-        PrivateMounts = true;
-        PrivateTmp = true;
-        PrivateUsers = true;
-        ProtectClock = true;
-        ProtectControlGroups = true;
-        ProtectHome = true;
-        ProtectHostname = true;
-        ProtectKernelLogs = true;
-        ProtectKernelModules = true;
-        ProtectKernelTunables = true;
-        ProtectSystem = "strict";
-        RemoveIPC = true;
-        RestrictNamespaces = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
-        SystemCallErrorNumber = "EPERM";
-        SystemCallFilter = [ "@system-service" ];
-
-        StateDirectory = "unifi";
-        RuntimeDirectory = "unifi";
-        LogsDirectory = "unifi";
-        CacheDirectory = "unifi";
-
-        TemporaryFileSystem = [
-          # required as we want to create bind mounts below
-          "${stateDir}/webapps:rw"
+        # This a HACK to fix missing dependencies of dynamic libs extracted from jars
+        environment.LD_LIBRARY_PATH = with pkgs.stdenv; "${cc.cc.lib}/lib";
+        # Make sure package upgrades trigger a service restart
+        restartTriggers = [
+          cfg.unifiPackage
+          cfg.mongodbPackage
         ];
 
-        # We must create the binary directories as bind mounts instead of symlinks
-        # This is because the controller resolves all symlinks to absolute paths
-        # to be used as the working directory.
-        BindPaths = [
-          "/var/log/unifi:${stateDir}/logs"
-          "/run/unifi:${stateDir}/run"
-          "${cfg.unifiPackage}/dl:${stateDir}/dl"
-          "${cfg.unifiPackage}/lib:${stateDir}/lib"
-          "${cfg.mongodbPackage}/bin:${stateDir}/bin"
-          "${cfg.unifiPackage}/webapps/ROOT:${stateDir}/webapps/ROOT"
-        ];
+        serviceConfig = {
+          Type = "exec";
+          ExecStart = "${lib.removeSuffix "\n" cmd} start";
+          ExecStop = "${lib.removeSuffix "\n" cmd} stop";
+          Restart = "on-failure";
+          TimeoutSec = "5min";
+          User = "unifi";
+          UMask = "0077";
+          WorkingDirectory = stateDir;
+          # the stop command exits while the main process is still running, and unifi
+          # wants to manage its own child processes. this means we have to set KillSignal
+          # to something the main process ignores, otherwise every stop will have unifi.service
+          # fail with SIGTERM status.
+          KillSignal = "SIGCONT";
+          # Hardening
+          AmbientCapabilities = "";
+          CapabilityBoundingSet = "";
+          # ProtectClock= adds DeviceAllow=char-rtc r
+          DeviceAllow = "";
+          DevicePolicy = "closed";
+          LockPersonality = true;
+          NoNewPrivileges = true;
+          PrivateDevices = true;
+          PrivateMounts = true;
+          PrivateTmp = true;
+          PrivateUsers = true;
+          ProtectClock = true;
+          ProtectControlGroups = true;
+          ProtectHome = true;
+          ProtectHostname = true;
+          ProtectKernelLogs = true;
+          ProtectKernelModules = true;
+          ProtectKernelTunables = true;
+          ProtectSystem = "strict";
+          RemoveIPC = true;
+          RestrictNamespaces = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
+          SystemCallErrorNumber = "EPERM";
+          SystemCallFilter = [ "@system-service" ];
 
-        # Needs network access
-        PrivateNetwork = false;
-        # Cannot be true due to OpenJDK
-        MemoryDenyWriteExecute = false;
+          StateDirectory = "unifi";
+          RuntimeDirectory = "unifi";
+          LogsDirectory = "unifi";
+          CacheDirectory = "unifi";
+
+          TemporaryFileSystem = [
+            # required as we want to create bind mounts below
+            "${stateDir}/webapps:rw"
+          ];
+
+          # We must create the binary directories as bind mounts instead of symlinks
+          # This is because the controller resolves all symlinks to absolute paths
+          # to be used as the working directory.
+          BindPaths = [
+            "/var/log/unifi:${stateDir}/logs"
+            "/run/unifi:${stateDir}/run"
+            "${cfg.unifiPackage}/dl:${stateDir}/dl"
+            "${cfg.unifiPackage}/lib:${stateDir}/lib"
+            "${cfg.mongodbPackage}/bin:${stateDir}/bin"
+            "${cfg.unifiPackage}/webapps/ROOT:${stateDir}/webapps/ROOT"
+          ];
+
+          # Needs network access
+          PrivateNetwork = false;
+          # Cannot be true due to OpenJDK
+          MemoryDenyWriteExecute = false;
+        };
       };
     };
 
+    systemd = {
+      targets.unifi = {
+        description = "UniFi Controller";
+        wantedBy = [ "multi-user.target" ];
+      };
+
+      tmpfiles.rules =
+        [
+          "d ${stateDir} 0700 unifi unifi - -"
+        ]
+        ++ (map (e: "d ${stateDir}/${e} 0700 unifi unifi - -") [
+          "data"
+          "logs"
+          "run"
+          "webapps"
+        ])
+        ++ [ "Z ${stateDir} - unifi unifi - -" ];
+    };
   };
-  imports = [
-    (lib.mkRemovedOptionModule [
-      "services"
-      "unifi"
-      "dataDir"
-    ] "You should move contents of dataDir to /var/lib/unifi/data")
-    (lib.mkRenamedOptionModule [ "services" "unifi" "openPorts" ] [ "services" "unifi" "openFirewall" ])
+
+  meta.maintainers = with lib.maintainers; [
+    erictapen
+    pennae
+    peterhoeg
   ];
 }
