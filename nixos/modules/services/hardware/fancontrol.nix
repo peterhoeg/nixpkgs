@@ -42,6 +42,11 @@ in
       serviceConfig = {
         Restart = "on-failure";
         ExecStart = "${lib.getExe' pkgs.lm_sensors "fancontrol"} ${configFile}";
+        PrivateTmp = true;
+        PrivateNetwork = true;
+        ProtectHome = "tmpfs";
+        ProtectSystem = "strict";
+        RuntimeDirectory = "fancontrol";
       };
     };
 
