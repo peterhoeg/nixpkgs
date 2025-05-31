@@ -1,0 +1,47 @@
+From a54d84766291ceaec77b46a0a11e7557329b4474 Mon Sep 17 00:00:00 2001
+From: Avi Kivity <avi@scylladb.com>
+Date: Mon, 5 Feb 2024 20:49:03 +0200
+Subject: [PATCH] Remove const specifiers from CyclicDFA members
+
+These const specifiers were ignored by older versions of gcc, likely
+because they are in template members that are not instantiated. gcc 14
+refuses to compile the class.
+
+Fix by removing the const specifiers. This is safe since these members
+are private, so we aren't allowing external users permissions to
+modify them.
+---
+ runtime/Cpp/include/antlr3cyclicdfa.hpp | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/runtime/Cpp/include/antlr3cyclicdfa.hpp b/runtime/Cpp/include/antlr3cyclicdfa.hpp
+index a0d66b925..90f5c6243 100755
+--- a/extlibs/libantlr3cpp-3.5.3/include/antlr3cyclicdfa.hpp
++++ b/extlibs/libantlr3cpp-3.5.3/include/antlr3cyclicdfa.hpp
+@@ -61,18 +61,18 @@ class CyclicDFA : public ImplTraits::AllocPolicyType
+     /// Decision number that a particular static structure
+     ///  represents.
+     ///
+-    const ANTLR_INT32		m_decisionNumber;
++    ANTLR_INT32		m_decisionNumber;
+
+     /// What this decision represents
+     ///
+     const ANTLR_UCHAR*			m_description;
+-	const ANTLR_INT32* const	m_eot;
+-    const ANTLR_INT32* const	m_eof;
+-    const ANTLR_INT32* const	m_min;
+-    const ANTLR_INT32* const	m_max;
+-    const ANTLR_INT32* const	m_accept;
+-    const ANTLR_INT32* const	m_special;
+-    const ANTLR_INT32* const *const	m_transition;
++	const ANTLR_INT32*	m_eot;
++    const ANTLR_INT32*	m_eof;
++    const ANTLR_INT32*	m_min;
++    const ANTLR_INT32*	m_max;
++    const ANTLR_INT32*	m_accept;
++    const ANTLR_INT32*	m_special;
++    const ANTLR_INT32* const *	m_transition;
+
+ public:
+ 	CyclicDFA( ANTLR_INT32	decisionNumber
