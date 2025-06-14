@@ -1,13 +1,27 @@
 {
+  lib,
   callPackage,
+  callPackages,
   fetchFromGitHub,
   fetchpatch2,
+  fetchurl,
   zlib,
+  assets ? [ ], # see build.nix for details
+  withGogAssets ? false,
 }:
 
-callPackage ./build.nix rec {
-  pname = "fallout2-ce";
+let
   version = "1.3.0";
+
+in
+callPackage ./build.nix {
+  pname = "fallout2-ce";
+  gameVersion = 2;
+  inherit version;
+
+  assets =
+    assets
+    ++ lib.optionals withGogAssets [ (callPackages ./assets.nix { }).fallout2-assets-gog ];
 
   src = fetchFromGitHub {
     owner = "alexbatalov";
@@ -24,10 +38,13 @@ callPackage ./build.nix rec {
     })
   ];
 
-  extraBuildInputs = [ zlib ];
+  buildInputs = [ zlib ];
 
-  extraMeta = {
-    description = "Fully working re-implementation of Fallout 2, with the same original gameplay, engine bugfixes, and some quality of life improvements";
-    homepage = "https://github.com/alexbatalov/fallout2-ce";
+  icon = fetchurl {
+    url = "https://github.com/alexbatalov/fallout2-ce/blob/f411d75643211dce56772ff54c7a21494b6a1d9f/os/ios/AppIcon.xcassets/AppIcon.appiconset/AppIcon.png?raw=true";
+    hash = "sha256-i3GuH4537ehujtcJpRev0Dtbmb1245PGd95DwXQl0CI=";
+    name = "fallout2-ce.png";
   };
+
+  meta.homepage = "https://github.com/alexbatalov/fallout2-ce";
 }
