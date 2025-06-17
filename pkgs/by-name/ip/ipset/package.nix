@@ -6,13 +6,13 @@
   libmnl,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "ipset";
   version = "7.23";
 
   src = fetchurl {
-    url = "https://ipset.netfilter.org/${pname}-${version}.tar.bz2";
-    sha256 = "sha256-2zpRqevyfHy9ChSCxGxeDtYwwox5b3MofEszndRghuU=";
+    url = "https://ipset.netfilter.org/ipset-${finalAttrs.version}.tar.bz2";
+    hash = "sha256-2zpRqevyfHy9ChSCxGxeDtYwwox5b3MofEszndRghuU=";
   };
 
   nativeBuildInputs = [ pkg-config ];
@@ -25,5 +25,6 @@ stdenv.mkDerivation rec {
     description = "Administration tool for IP sets";
     license = licenses.gpl2Plus;
     platforms = platforms.linux;
+    mainProgram = "ipset";
   };
-}
+})
