@@ -213,16 +213,7 @@ stdenv.mkDerivation (finalAttrs: {
       800+ image files are tested.  90%+ distros in DistroWatch supported.
     '';
     changelog = "https://www.ventoy.net/doc_news.html";
-    knownVulnerabilities = [
-      ''
-        Ventoy uses binary blobs which can't be trusted to be free of malware or compliant to their licenses.
-        https://github.com/NixOS/nixpkgs/issues/404663
-        See the following Issues for context:
-        https://github.com/ventoy/Ventoy/issues/2795
-        https://github.com/ventoy/Ventoy/issues/3224
-      ''
-    ];
-    license = lib.licenses.unfree;
+    license = lib.licenses.gpl3Plus;
     mainProgram = "ventoy";
     maintainers = with lib.maintainers; [
       johnrtitor
