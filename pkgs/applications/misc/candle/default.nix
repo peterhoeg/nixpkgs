@@ -1,30 +1,34 @@
 {
-  mkDerivation,
+  stdenv,
   lib,
   fetchFromGitHub,
   qtbase,
   qtserialport,
-  qmake,
+  cmake,
+  wrapQtAppsHook,
 }:
 
-mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "candle";
-  version = "1.1";
+
+  version = "1.2b.20220306";
 
   src = fetchFromGitHub {
     owner = "Denvi";
     repo = "Candle";
-    rev = "v${version}";
-    sha256 = "1gpx08gdz8awbsj6lsczwgffp19z3q0r2fvm72a73qd9az29pmm0";
+    rev = "3f763bcde1195e23ba119a5b3c70d7c889881019";
+    hash = "sha256-A53rHlabcuw/nWS7jsCyVrP3CUkmUI/UMRqpogyFOCM=";
   };
 
-  nativeBuildInputs = [ qmake ];
+  nativeBuildInputs = [ cmake wrapQtAppsHook ];
 
-  sourceRoot = "${src.name}/src";
+  sourceRoot = "${finalAttrs.src.name}/src";
 
   installPhase = ''
     runHook preInstall
-    install -Dm755 Candle $out/bin/candle
+
+    install -Dm555 Candle $out/bin/candle
+
     runHook postInstall
   '';
 
@@ -40,4 +44,4 @@ mkDerivation rec {
     license = licenses.gpl3;
     maintainers = with maintainers; [ matti-kariluoma ];
   };
-}
+})
