@@ -13,14 +13,15 @@
   libXdmcp,
   libcdio,
   libebur128,
-  libgpod,
   libidn2,
   libmtp,
   libpthreadstubs,
   libpulseaudio,
   libselinux,
   libsepol,
+  libsysprof-capture,
   libtasn1,
+  libunwind,
   ninja,
   nix-update-script,
   p11-kit,
@@ -79,10 +80,11 @@ stdenv.mkDerivation rec {
       rapidjson
     ]
     ++ optionals stdenv.hostPlatform.isLinux [
-      libgpod
       libpulseaudio
       libselinux
       libsepol
+      libsysprof-capture
+      libunwind
       p11-kit
     ]
     ++ (with gst_all_1; [
@@ -106,6 +108,10 @@ stdenv.mkDerivation rec {
     ++ optionals stdenv.hostPlatform.isLinux [
       util-linux
     ];
+
+  cmakeFlags = [
+    (lib.cmakeBool "ENABLE_GPOD" false)
+  ];
 
   postInstall = ''
     qtWrapperArgs+=(
