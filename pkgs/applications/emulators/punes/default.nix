@@ -70,11 +70,11 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   cmakeFlags = [
-    "-DENABLE_GIT_INFO=OFF"
-    "-DENABLE_RELEASE=ON"
-    "-DENABLE_FFMPEG=ON"
-    "-DENABLE_OPENGL=ON"
-    "-DENABLE_QT6_LIBS=${if lib.versionAtLeast qtbase.version "6.0" then "ON" else "OFF"}"
+    (lib.cmakeBool "ENABLE_GIT_INFO" false)
+    (lib.cmakeBool "ENABLE_RELEASE" true)
+    (lib.cmakeBool "ENABLE_FFMPEG" true)
+    (lib.cmakeBool "ENABLE_OPENGL" true)
+    (lib.cmakeBool "ENABLE_QT6_LIBS" (lib.versionAtLeast qtbase.version "6.0"))
   ];
 
   passthru.updateScript = gitUpdater {
