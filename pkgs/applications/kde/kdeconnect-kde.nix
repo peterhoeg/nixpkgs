@@ -22,6 +22,7 @@
   pulseaudio-qt,
   qca-qt5,
   qqc2-desktop-style,
+  qtconnectivity,
   qtgraphicaleffects,
   qtmultimedia,
   qtquickcontrols2,
@@ -56,6 +57,7 @@ mkDerivation {
     pulseaudio-qt
     qca-qt5
     qqc2-desktop-style
+    qtconnectivity
     qtgraphicaleffects
     qtmultimedia
     qtquickcontrols2
@@ -72,6 +74,11 @@ mkDerivation {
     extra-cmake-modules
     kdoctools
     makeWrapper
+  ];
+
+  cmakeFlags = [
+    "-Wno-dev" # silence warnings that do not matter unless you're developing kdeconnect
+    (lib.cmakeBool "BLUETOOTH_ENABLED" true)
   ];
 
   qtWrapperArgs = [
