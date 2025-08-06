@@ -58,16 +58,18 @@
   withApps ? false,
   withExamples ? false,
   fltk,
+
+  GLPreference ? "LEGACY",
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "openscenegraph";
   version = "3.6.5";
 
   src = fetchFromGitHub {
     owner = "openscenegraph";
     repo = "OpenSceneGraph";
-    rev = "OpenSceneGraph-${version}";
+    rev = "OpenSceneGraph-${finalAttrs.finalPackage.version}";
     sha256 = "00i14h82qg3xzcyd8p02wrarnmby3aiwmz0z43l50byc9f8i05n1";
   };
 
@@ -115,8 +117,6 @@ stdenv.mkDerivation rec {
     ++ lib.optionals withExamples [ fltk ]
     ++ lib.optional (restSupport || colladaSupport) boost;
 
-  env.COLLADA_DIR = if colladaSupport then collada-dom else null;
-
   patches = [
     (fetchpatch {
       name = "opencascade-api-patch";
@@ -135,18 +135,33 @@ stdenv.mkDerivation rec {
     })
   ];
 
-  cmakeFlags =
-    lib.optional (!withApps) "-DBUILD_OSG_APPLICATIONS=OFF"
-    ++ lib.optional withExamples "-DBUILD_OSG_EXAMPLES=ON";
+  cmakeFlags = [
+    "-Wno-dev"
+    (lib.cmakeBool "BUILD_OSG_APPLICATIONS" withApps)
+    (lib.cmakeBool "BUILD_OSG_EXAMPLES" withExamples)
+    (lib.cmakeFeature "OpenGL_GL_PREFERENCE" GLPreference)
+  ];
 
-  meta = with lib; {
+  # the build is otherwise extremely verbose
+  env = {
+    NIX_CFLAGS_COMPILE = lib.concatMapStringsSep " " (e: "-Wno-${e}") [
+      "deprecated-copy"
+      "overloaded-virtual"
+      "shadow"
+    ];
+  }
+  // lib.optionalAttrs colladaSupport {
+    COLLADA_DIR = collada-dom;
+  };
+
+  meta = {
     description = "3D graphics toolkit";
     homepage = "http://www.openscenegraph.org/";
-    maintainers = with maintainers; [
+    maintainers = with lib.maintainers; [
       aanderse
       raskin
     ];
-    platforms = with platforms; linux ++ darwin;
+    platforms = lib.platforms.unix;
     license = "OpenSceneGraph Public License - free LGPL-based license";
   };
-}
+})

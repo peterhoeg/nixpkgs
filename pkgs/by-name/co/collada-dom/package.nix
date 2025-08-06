@@ -4,10 +4,14 @@
   fetchFromGitHub,
   fetchpatch,
   cmake,
+  pkg-config,
   boost,
+  bzip2,
   libxml2,
   minizip,
   readline,
+  uriparser, # https://github.com/rdiankov/collada-dom/issues/39
+  zlib,
 }:
 
 stdenv.mkDerivation {
@@ -31,17 +35,33 @@ stdenv.mkDerivation {
     })
   ];
 
+  cmakeFlags = [ "-Wno-dev" ];
+
+  # the build is otherwise extremely verbose
+  env.NIX_CFLAGS_COMPILE = lib.concatMapStringsSep " " (e: "-Wno-${e}") [
+    "cast-user-defined"
+    "conversion-null"
+    "deprecated-declarations"
+    "overloaded-virtual"
+  ];
+
   postInstall = ''
     ln -s $out/include/*/* $out/include
   '';
 
-  nativeBuildInputs = [ cmake ];
+  nativeBuildInputs = [
+    cmake
+    pkg-config
+  ];
 
   buildInputs = [
     boost
+    bzip2
     libxml2
     minizip
     readline
+    uriparser
+    zlib
   ];
 
   meta = {

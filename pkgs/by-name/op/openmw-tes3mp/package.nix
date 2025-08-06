@@ -2,11 +2,13 @@
   lib,
   stdenv,
   cmake,
+  pkg-config,
   openmw,
   fetchFromGitHub,
   fetchpatch,
   luajit,
   makeWrapper,
+  libsForQt5,
   symlinkJoin,
 }:
 
@@ -24,7 +26,7 @@ let
       # usually fixed:
       # https://github.com/GrimKriegor/TES3MP-deploy/blob/d2a4a5d3acb64b16d9b8ca85906780aeea8d311b/tes3mp-deploy.sh#L589
       rev = "19e66190e83f53bcdcbcd6513238ed2e54878a21";
-      sha256 = "WIaJkSQnoOm9T7GoAwmWl7fNg79coIo/ILUsWcbH+lA=";
+      hash = "sha256-WIaJkSQnoOm9T7GoAwmWl7fNg79coIo/ILUsWcbH+lA=";
     };
 
     patches = [
@@ -38,13 +40,17 @@ let
     ];
 
     cmakeFlags = [
-      "-DCRABNET_ENABLE_DLL=OFF"
+      (lib.cmakeBool "CRABNET_ENABLE_DLL" false)
     ];
 
-    nativeBuildInputs = [ cmake ];
+    nativeBuildInputs = [
+      cmake
+      pkg-config
+    ];
 
     installPhase = ''
-      install -Dm555 lib/libRakNetLibStatic.a $out/lib/libRakNetLibStatic.a
+      cp -r ../include $out/
+      install -Dm555 -t $out/lib lib/libRakNetLibStatic.a
     '';
   };
 
@@ -56,8 +62,8 @@ let
       owner = "TES3MP";
       repo = "CoreScripts";
       # usually latest in stable branch (e.g. 0.7.1)
-      rev = "6ae0a2a5d16171de3764817a7f8b1067ecde3def";
-      sha256 = "8j/Sr9IRMNFPEVfFzdb42PckHS3KW7FH7x7rRxIh5gY=";
+      rev = "d7d71d635cd0aa10dfa6b089a999e4113cd516c3";
+      hash = "sha256-CQieCgNfHl1DbUWpNHPHYOTKwnWGGb7mQz8OxZotkSM=";
     };
 
     buildCommand = ''
@@ -78,7 +84,7 @@ let
       repo = "TES3MP";
       # usually latest in stable branch (e.g. 0.7.1)
       rev = "68954091c54d0596037c4fb54d2812313b7582a1";
-      sha256 = "8/bV4sw7Q8l8bDTHGQ0t4owf6J6h9q468JFx4KegY5o=";
+      hash = "sha256-444444w7Q8l8bDTHGQ0t4owf6J6h9q468JFx4KegY5o=";
     };
 
     nativeBuildInputs = oldAttrs.nativeBuildInputs ++ [ makeWrapper ];
@@ -86,37 +92,37 @@ let
     buildInputs = oldAttrs.buildInputs ++ [ luajit ];
 
     cmakeFlags = oldAttrs.cmakeFlags ++ [
-      "-DBUILD_OPENCS=OFF"
-      "-DRakNet_INCLUDES=${raknet.src}/include"
-      "-DRakNet_LIBRARY_RELEASE=${raknet}/lib/libRakNetLibStatic.a"
-      "-DRakNet_LIBRARY_DEBUG=${raknet}/lib/libRakNetLibStatic.a"
+      (lib.cmakeBool "BUILD_OPENCS" false)
+      (lib.cmakeFeature "RakNet_INCLUDES" "${lib.getDev raknet}/include")
+      (lib.cmakeFeature "RakNet_LIBRARY_RELEASE" "${lib.getLib raknet}/lib/libRakNetLibStatic.a")
+      (lib.cmakeFeature "RakNet_LIBRARY_DEBUG" "${lib.getLib raknet}/lib/libRakNetLibStatic.a")
     ];
 
-    prePatch = ''
+    prePatch = (oldAttrs.prePatch or "") + ''
       substituteInPlace components/process/processinvoker.cpp \
-        --replace "\"./\"" "\"$out/bin/\""
+        --replace-fail "\"./\"" "\"$out/bin/\""
     '';
 
     patches = [
       # glibc-2.34 support
-      (fetchpatch {
-        url = "https://gitlab.com/OpenMW/openmw/-/commit/98a7d90ee258ceef9c70b0b2955d0458ec46f048.patch";
-        hash = "sha256-RhbIGeE6GyqnipisiMTwWjcFnIiR055hUPL8IkjPgZw=";
-      })
+      ##(fetchpatch {
+      ##url = "https://gitlab.com/OpenMW/openmw/-/commit/98a7d90ee258ceef9c70b0b2955d0458ec46f048.patch";
+      ##hash = "sha256-RhbIGeE6GyqnipisiMTwWjcFnIiR055hUPL8IkjPgZw=";
+      ##})
 
       # gcc-13 build fix:
       #   https://github.com/TES3MP/TES3MP/pull/674
-      (fetchpatch {
-        name = "gcc-13.patch";
-        url = "https://github.com/TES3MP/TES3MP/commit/7921f71a79e96f817a2009100e5105a7948b3fe2.patch";
-        hash = "sha256-mpxuOSPA2xixgBeYXsxutEUI7VJL5PxAeZgaNU7YkJQ=";
-      })
+      ##(fetchpatch {
+      ##name = "gcc-13.patch";
+      ##url = "https://github.com/TES3MP/TES3MP/commit/7921f71a79e96f817a2009100e5105a7948b3fe2.patch";
+      ##hash = "sha256-mpxuOSPA2xixgBeYXsxutEUI7VJL5PxAeZgaNU7YkJQ=";
+      ##})
 
       # https://github.com/TES3MP/openmw-tes3mp/issues/552
-      ./tes3mp.patch
+      ##./tes3mp.patch
 
       # https://github.com/TES3MP/TES3MP/pull/691
-      ./tes3mp-gcc14-fix.patch
+      ##./tes3mp-gcc14-fix.patch
     ];
 
     env.NIX_CFLAGS_COMPILE = "-fpermissive";
@@ -132,11 +138,11 @@ let
       mv $out/bin/tes3mp-* $out/libexec
     '';
 
-    meta = with lib; {
+    meta = {
       description = "Multiplayer for TES3:Morrowind based on OpenMW";
       homepage = "https://tes3mp.com/";
-      license = licenses.gpl3Only;
-      maintainers = with maintainers; [ peterhoeg ];
+      license = lib.licenses.gpl3Only;
+      maintainers = with lib.maintainers; [ peterhoeg ];
       platforms = [
         "x86_64-linux"
         "i686-linux"

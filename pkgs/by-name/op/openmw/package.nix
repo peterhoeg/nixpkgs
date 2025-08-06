@@ -30,12 +30,14 @@ assert lib.assertOneOf "GLPreference" GLPreference [
   "LEGACY"
 ];
 
-stdenv.mkDerivation (finalAttrs: {
-  pname = "openmw";
-  version = "0.49.0";
-
-  __structuredAttrs = true;
-  strictDeps = true;
+let
+  bullet' = (bullet.override { inherit GLPreference; }).overrideAttrs (oldAttrs: {
+    cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
+      "-Wno-dev"
+      (lib.cmakeBool "USE_DOUBLE_PRECISION" true)
+      (lib.cmakeBool "BULLET2_MULTITHREADING" true)
+    ];
+  });
 
   osg' = (openscenegraph.override { colladaSupport = true; }).overrideAttrs (oldAttrs: {
     patches = (oldAttrs.patches or [ ]) ++ [
@@ -66,14 +68,13 @@ stdenv.mkDerivation (finalAttrs: {
       ]);
   });
 
-  bullet' = bullet.overrideAttrs (oldAttrs: {
-    cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
-      "-Wno-dev"
-      (lib.cmakeFeature "OpenGL_GL_PREFERENCE" GLPreference)
-      (lib.cmakeBool "USE_DOUBLE_PRECISION" true)
-      (lib.cmakeBool "BULLET2_MULTITHREADING" true)
-    ];
-  });
+in
+stdenv.mkDerivation (finalAttrs: {
+  pname = "openmw";
+  version = "0.49.0";
+
+  __structuredAttrs = true;
+  strictDeps = true;
 
   src = fetchFromGitLab {
     owner = "OpenMW";
@@ -93,15 +94,18 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     cmake
     pkg-config
-  ]
-  ++ (with qt6Packages; [ wrapQtAppsHook ]);
+    qt6Packages.qttools
+    qt6Packages.wrapQtAppsHook
+  ];
 
   # If not set, OSG plugin .so files become shell scripts on Darwin.
   dontWrapQtApps = stdenv.hostPlatform.isDarwin;
 
   buildInputs = [
     SDL2
+    qt6Packages.qtbase
     boost
+    bullet'
     collada-dom
     ffmpeg
     libXt
@@ -109,21 +113,19 @@ stdenv.mkDerivation (finalAttrs: {
     lz4
     mygui
     openal
+    osg'
     recastnavigation
     unshield
     yaml-cpp
-  ]
-  ++ (with qt6Packages; [ qttools ])
-  ++ (with finalAttrs; [
-    bullet'
-    osg'
-  ]);
+  ];
 
   cmakeFlags = [
     (lib.cmakeFeature "OpenGL_GL_PREFERENCE" GLPreference)
     (lib.cmakeBool "OPENMW_USE_SYSTEM_RECASTNAVIGATION" true)
     (lib.cmakeBool "OPENMW_OSX_DEPLOYMENT" stdenv.hostPlatform.isDarwin)
   ];
+
+  env.LANG = "C.UTF-8";
 
   meta = {
     description = "Unofficial open source engine reimplementation of the game Morrowind";
