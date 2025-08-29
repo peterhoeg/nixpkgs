@@ -15513,8 +15513,6 @@ with pkgs;
     pinentry = pinentry-curses;
   };
 
-  tora = libsForQt5.callPackage ../development/tools/tora { };
-
   nitrokey-app = libsForQt5.callPackage ../tools/security/nitrokey-app { };
 
   nitrokey-app2 = qt6Packages.callPackage ../tools/security/nitrokey-app2 { };
