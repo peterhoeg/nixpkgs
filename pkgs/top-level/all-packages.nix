@@ -11889,8 +11889,6 @@ with pkgs;
 
   hachoir = with python3Packages; toPythonApplication hachoir;
 
-  heimer = libsForQt5.callPackage ../applications/misc/heimer { };
-
   hydrogen-web-unwrapped =
     callPackage ../applications/networking/instant-messengers/hydrogen-web/unwrapped.nix
       { };
