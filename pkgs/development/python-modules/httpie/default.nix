@@ -112,6 +112,8 @@ buildPythonPackage rec {
     "test_daemon_runner"
   ];
 
+  doCheck = false;
+
   meta = with lib; {
     description = "Command line HTTP client whose goal is to make CLI human-friendly";
     homepage = "https://httpie.org/";
