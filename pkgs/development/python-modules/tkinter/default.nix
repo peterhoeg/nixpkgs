@@ -10,6 +10,7 @@
   tk,
   tkinter,
   xvfb-run,
+  libtommath,
 }:
 
 buildPythonPackage {
@@ -49,9 +50,11 @@ buildPythonPackage {
   buildInputs = [
     tcl
     tk
+    libtommath
   ];
 
   env = {
+    NIX_CFLAGS_COMPILE = "-Wno-error=incompatible-pointer-types";
     TCLTK_LIBS = toString [
       "-L${lib.getLib tcl}/lib"
       "-L${lib.getLib tk}/lib"
