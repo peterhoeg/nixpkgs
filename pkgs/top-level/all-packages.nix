@@ -5995,11 +5995,6 @@ with pkgs;
 
   jpm = callPackage ../development/interpreters/janet/jpm.nix { };
 
-  davmail = callPackage ../applications/networking/davmail {
-    jre = jdk11.override { enableJavaFX = true; };
-    zulu = zulu11.override { enableJavaFX = true; };
-  };
-
   lambda-lisp-blc = lambda-lisp;
 
   love_0_10 = callPackage ../development/interpreters/love/0.10.nix { };
