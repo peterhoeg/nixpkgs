@@ -9,14 +9,14 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "gcalcli";
-  version = "4.5.1";
+  version = "4.5.1.20250427";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "insanum";
     repo = "gcalcli";
-    tag = "v${version}";
-    hash = "sha256-FU1EHLQ+/2sOGeeGwONsrV786kHTFfMel7ocBcCe+rI=";
+    rev = "91db693ab6cef28a62158bbf07091d10a72e63f4";
+    hash = "sha256-HTVLjg9icv98IfLleP/Csq3bbe1DKNEpFiqlrwkriQ0=";
   };
 
   updateScript = nix-update-script { };
