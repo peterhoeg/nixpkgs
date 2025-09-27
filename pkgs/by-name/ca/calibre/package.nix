@@ -151,23 +151,33 @@ stdenv.mkDerivation (finalAttrs: {
     piper-tts
     xdg-utils
   ]
-  ++ lib.optional speechSupport speechd-minimal;
+  ++ lib.optionals speechSupport [
+    piper-tts
+    speechd-minimal
+  ];
+
+  env = {
+    MAGICK_INC = "${lib.getDev imagemagick}/include/ImageMagick";
+    MAGICK_LIB = "${lib.getLib imagemagick}/lib";
+    FC_INC_DIR = "${lib.getDev fontconfig}/include/fontconfig";
+    FC_LIB_DIR = "${lib.getLib fontconfig}/lib";
+    PODOFO_INC_DIR = "${lib.getDev podofo_0_10}/include/podofo";
+    PODOFO_LIB_DIR = "${lib.getLib podofo_0_10}/lib";
+    XDG_DATA_HOME = "${placeholder "out"}/share";
+    XDG_UTILS_INSTALL_MODE = "user";
+  }
+  // lib.optionalAttrs popplerSupport {
+    POPPLER_INC_DIR = "${lib.getDev poppler-utils}/include/poppler";
+    POPPLER_LIB_DIR = "${lib.getLib poppler-utils}/lib";
+  }
+  // lib.optionalAttrs speechSupport {
+    PIPER_TTS_DIR = "${lib.getBin piper-tts}/bin";
+  };
 
   installPhase = ''
     runHook preInstall
 
     export HOME=$TMPDIR/fakehome
-    export POPPLER_INC_DIR=${poppler-utils.dev}/include/poppler
-    export POPPLER_LIB_DIR=${poppler-utils.out}/lib
-    export MAGICK_INC=${imagemagick.dev}/include/ImageMagick
-    export MAGICK_LIB=${imagemagick.out}/lib
-    export FC_INC_DIR=${fontconfig.dev}/include/fontconfig
-    export FC_LIB_DIR=${fontconfig.lib}/lib
-    export PODOFO_INC_DIR=${podofo_0_10.dev}/include/podofo
-    export PODOFO_LIB_DIR=${podofo_0_10}/lib
-    export XDG_DATA_HOME=$out/share
-    export XDG_UTILS_INSTALL_MODE="user"
-    export PIPER_TTS_DIR=${piper-tts}/bin
 
     python setup.py install --root=$out \
       --prefix=$out \
@@ -209,7 +219,7 @@ stdenv.mkDerivation (finalAttrs: {
               optipng
             ]
           } \
-          ${if popplerSupport then popplerArgs else ""}
+          ${lib.optionalString popplerSupport popplerArgs}
       done
     '';
 
