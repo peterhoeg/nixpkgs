@@ -1,8 +1,11 @@
 {
   stdenv,
+  fetchurl,
   fetchzip,
   lib,
   makeWrapper,
+  makeDesktopItem,
+  copyDesktopItems,
   unzip,
   glib,
   gtk2,
@@ -11,22 +14,40 @@
   libXtst,
   coreutils,
   gnugrep,
-  zulu,
   preferGtk3 ? true,
-  preferZulu ? true,
 }:
 
 let
   rev = 3755;
-  jre' = (if preferZulu then zulu else jdk).override { enableJavaFX = true; };
+  # for the recommended java version, have a look in https://github.com/mguessan/davmail/blob/master/build.xml in the
+  # "download-jre" target
+  jdk' = jdk.override { enableJavaFX = true; };
   gtk' = if preferGtk3 then gtk3 else gtk2;
+  binPath = lib.makeBinPath [
+    jdk'
+    coreutils
+    gnugrep
+  ];
+
+  libPath = lib.makeLibraryPath [
+    glib
+    gtk'
+    libXtst
+  ];
+
+  # the icon hasn't changed in years, but we just need a stable URL so pin it at version 6.4.0
+  icon = fetchurl {
+    url = "https://raw.githubusercontent.com/mguessan/davmail/6.4.0/src/icon/davmail.png";
+    hash = "sha256-kYi6Rs9Lxzmj1g8VVlOljiCo4CwJ/5pWPpZctDjlcsE=";
+  };
+
 in
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "davmail";
   version = "6.4.0";
 
   src = fetchzip {
-    url = "mirror://sourceforge/${pname}/${version}/${pname}-${version}-${toString rev}.zip";
+    url = "mirror://sourceforge/davmail/${finalAttrs.finalPackage.version}/davmail-${finalAttrs.finalPackage.version}-${toString rev}.zip";
     hash = "sha256-cGuAxSIkhkcpRXlv5f3utH/1zZ1aYbLQN/OLuN80JdM=";
     stripRoot = false;
   };
@@ -35,7 +56,32 @@ stdenv.mkDerivation rec {
     sed -i -e '/^JAVA_OPTS/d' davmail
   '';
 
+  desktopItems = [
+    (makeDesktopItem {
+      name = "DavMail";
+      desktopName = "DavMail POP/IMAP/SMTP/Caldav/Carddav/LDAP Exchange Gateway";
+      icon = "davmail.png";
+      exec = "@out@/bin/davmail";
+      categories = [
+        "GTK"
+        "GNOME"
+        "Network"
+        "Email"
+      ];
+      keywords = [
+        "pop"
+        "imap"
+        "smtp"
+        "exchange"
+        "owa"
+        "outlook"
+      ];
+      startupWMClass = "davmail-DavGateway";
+    })
+  ];
+
   nativeBuildInputs = [
+    copyDesktopItems
     makeWrapper
     unzip
   ];
@@ -43,34 +89,31 @@ stdenv.mkDerivation rec {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/share/davmail
-    cp -vR ./* $out/share/davmail
-    makeWrapper $out/share/davmail/davmail $out/bin/davmail \
+    dir=$out/share/davmail
+
+    mkdir -p $dir
+    cp -vR ./* $dir
+    makeWrapper $dir/davmail $out/bin/davmail \
       --set-default JAVA_OPTS "-Xmx512M -Dsun.net.inetaddr.ttl=60 -Djdk.gtk.version=${lib.versions.major gtk'.version}" \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          jre'
-          coreutils
-          gnugrep
-        ]
-      } \
-      --prefix LD_LIBRARY_PATH : ${
-        lib.makeLibraryPath [
-          glib
-          gtk'
-          libXtst
-        ]
-      }
+      --prefix PATH : ${binPath} \
+      --prefix LD_LIBRARY_PATH : ${libPath}
+
+    install -Dm444 ${icon} $out/share/icons/hicolor/128x128/apps/davmail.png
 
     runHook postInstall
   '';
 
-  meta = with lib; {
-    description = "Java application which presents a Microsoft Exchange server as local CALDAV, IMAP and SMTP servers";
+  preFixup = ''
+    substituteInPlace $out/share/applications/*.desktop \
+      --subst-var out
+  '';
+
+  meta = {
+    description = "Present a Microsoft Exchange server as local CALDAV, IMAP and SMTP servers";
     homepage = "https://davmail.sourceforge.net/";
-    license = licenses.gpl2Plus;
-    maintainers = with maintainers; [ peterhoeg ];
-    platforms = platforms.all;
+    license = lib.licenses.gpl2Plus;
+    maintainers = with lib.maintainers; [ peterhoeg ];
     mainProgram = "davmail";
+    inherit (jdk'.meta) platforms;
   };
-}
+})
