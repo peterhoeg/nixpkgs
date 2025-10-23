@@ -24,9 +24,15 @@ stdenv.mkDerivation {
     pkg-config
     udevCheckHook
   ];
+
   buildInputs = [ libxml2 ];
 
-  prePatch = ''
+  postPatch = ''
+    for f in CMakeLists.txt libwebcam/CMakeLists.txt uvcdynctrl/CMakeLists.txt; do
+      substituteInPlace $f \
+        --replace-fail 'VERSION 2.6' 'VERSION 3.12'
+    done
+
     local fixup_list=(
       uvcdynctrl/CMakeLists.txt
       uvcdynctrl/udev/rules/80-uvcdynctrl.rules
@@ -34,18 +40,19 @@ stdenv.mkDerivation {
     )
     for f in "''${fixup_list[@]}"; do
       substituteInPlace "$f" \
-        --replace "/etc/udev" "$out/etc/udev" \
-        --replace "/lib/udev" "$out/lib/udev"
+        --replace-warn "/etc/udev" "$out/etc/udev" \
+        --replace-warn "/lib/udev" "$out/lib/udev"
     done
   '';
 
   doInstallCheck = true;
 
-  meta = with lib; {
+  meta = {
     description = "Simple interface for devices supported by the linux UVC driver";
     homepage = "https://guvcview.sourceforge.net";
-    license = licenses.gpl3Plus;
-    maintainers = [ maintainers.puffnfresh ];
-    platforms = platforms.linux;
+    license = lib.licenses.gpl3Plus;
+    maintainers = with lib.maintainers; [ puffnfresh ];
+    platforms = lib.platforms.linux;
+    mainProgram = "uvcdynctrl";
   };
 }
