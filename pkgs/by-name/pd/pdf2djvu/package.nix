@@ -10,19 +10,20 @@
   exiv2,
   fontconfig,
   graphicsmagick,
+  libiconv,
   libjpeg,
   libuuid,
   poppler,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   version = "0.9.19";
   pname = "pdf2djvu";
 
   src = fetchFromGitHub {
     owner = "jwilk";
     repo = "pdf2djvu";
-    rev = version;
+    rev = finalAttrs.finalPackage.version;
     sha256 = "sha256-j4mYdmLZ56qTA1KbWBjBvyTyLaeuIITKYsALRIO7lj0=";
   };
 
@@ -36,6 +37,7 @@ stdenv.mkDerivation rec {
     exiv2
     fontconfig
     graphicsmagick
+    libiconv
     libjpeg
     libuuid
     poppler
@@ -43,21 +45,17 @@ stdenv.mkDerivation rec {
 
   postPatch = ''
     substituteInPlace private/autogen \
-      --replace /usr/share/gettext ${gettext}/share/gettext \
-      --replace /usr/share/libtool ${libtool}/share/libtool
+      --replace-fail /usr/share/gettext ${gettext}/share/gettext \
+      --replace-fail /usr/share/libtool ${libtool}/share/libtool
 
     substituteInPlace configure.ac \
-      --replace '$djvulibre_bin_path' ${djvulibre.bin}/bin
-  '';
-
-  preAutoreconf = ''
-    private/autogen
+      --replace '$djvulibre_bin_path' ${lib.getBin djvulibre}/bin
   '';
 
   enableParallelBuilding = true;
 
   # Required by Poppler
-  CXXFLAGS = "-std=c++20";
+  env.CXXFLAGS = "-std=c++20";
 
   meta = with lib; {
     description = "Creates djvu files from PDF files";
@@ -66,4 +64,4 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ pSub ];
     mainProgram = "pdf2djvu";
   };
-}
+})
