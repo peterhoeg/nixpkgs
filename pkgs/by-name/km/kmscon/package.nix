@@ -17,18 +17,30 @@
   libgbm,
   ninja,
   check,
+  shadow,
   buildPackages,
+  withGL ? true,
 }:
-stdenv.mkDerivation {
-  pname = "kmscon";
-  version = "9.0.0-unstable-2025-01-09";
+
+stdenv.mkDerivation (finalAttrs: {
+  pname = "kmscon${lib.optionalString (!withGL) "-no-gl"}";
+  version = "9.2.1-unstable-2025-12-24";
 
   src = fetchFromGitHub {
-    owner = "Aetf";
+    owner = "kmscon";
     repo = "kmscon";
-    rev = "a81941f4464e6f9cee75bfb8a1db88c253ede33d";
-    sha256 = "sha256-l7Prt7CsYi4VCnp9xktvqqNT+4djSdO2GvP1JdxhNSI=";
+    rev = "b95e31363b5cd39137e2a8e247b0e36c66cd4b0a";
+    hash = "sha256-wq6W/bi9+cRKMIkQ3kwyUfVYCwUCGtdVB6QEd1C1Ipg=";
   };
+
+  patches = [
+    ./sandbox.patch # Generate system units where they should be (nix store) instead of /etc/systemd/system
+  ];
+
+  postPatch = ''
+    substituteInPlace src/pty.c src/kmscon_conf.c docs/man/kmscon.1.xml.in \
+      --replace-fail /bin/login ${lib.getExe' shadow "login"}
+  '';
 
   strictDeps = true;
 
@@ -37,35 +49,36 @@ stdenv.mkDerivation {
   ];
 
   buildInputs = [
-    libGLU
-    libGL
+    check
     libdrm
+    libgbm
     libtsm
     libxkbcommon
     pango
     pixman
     systemdLibs
-    libgbm
-    check
+  ]
+  ++ lib.optionals withGL [
+    libGL
+    libGLU
   ];
 
   nativeBuildInputs = [
+    docbook_xsl
+    libxslt # xsltproc
     meson
     ninja
-    docbook_xsl
     pkg-config
-    libxslt # xsltproc
+  ];
+
+  mesonFlags = [
+    (lib.mesonEnable "renderer_gltex" withGL)
+    (lib.mesonEnable "video_drm3d" withGL)
   ];
 
   env.NIX_CFLAGS_COMPILE =
     lib.optionalString stdenv.cc.isGNU "-O "
     + "-Wno-error=maybe-uninitialized -Wno-error=unused-result -Wno-error=implicit-function-declaration";
-
-  enableParallelBuilding = true;
-
-  patches = [
-    ./sandbox.patch # Generate system units where they should be (nix store) instead of /etc/systemd/system
-  ];
 
   meta = {
     description = "KMS/DRM based System Console";
@@ -75,4 +88,4 @@ stdenv.mkDerivation {
     maintainers = [ ];
     platforms = lib.platforms.linux;
   };
-}
+})
