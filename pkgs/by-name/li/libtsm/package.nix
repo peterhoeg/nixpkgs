@@ -4,24 +4,28 @@
   fetchFromGitHub,
   libxkbcommon,
   pkg-config,
-  cmake,
+  meson,
+  ninja,
+  check,
 }:
 
-stdenv.mkDerivation {
+stdenv.mkDerivation (finalAttrs: {
   pname = "libtsm";
-  version = "4.0.2-unstable-2023-12-24";
+  version = "4.3.0";
 
   src = fetchFromGitHub {
-    owner = "Aetf";
+    owner = "kmscon";
     repo = "libtsm";
-    rev = "69922bde02c7af83b4d48a414cc6036af7388626";
-    sha256 = "sha256-Rug3OWSbbiIivItULPNNptClIZ/PrXdQeUypAAxrUY8=";
+    tag = "v" + finalAttrs.version;
+    hash = "sha256-xAMQOACyXfh3HhsX44mzGBsR6vqjv0uTRwc5ePfPPls=";
   };
 
   buildInputs = [ libxkbcommon ];
 
   nativeBuildInputs = [
-    cmake
+    check
+    meson
+    ninja
     pkg-config
   ];
 
@@ -32,4 +36,4 @@ stdenv.mkDerivation {
     maintainers = [ ];
     platforms = lib.platforms.linux;
   };
-}
+})
