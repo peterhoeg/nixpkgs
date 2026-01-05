@@ -453,7 +453,7 @@ let
           server {
             ${concatMapStringsSep "\n" listenString redirectListen}
 
-            server_name ${vhost.serverName} ${concatStringsSep " " vhost.serverAliases};
+            server_name ${concatStringsSep " " (lib.unique ([ vhost.serverName ] ++ vhost.serverAliases))};
 
             location / {
               return ${toString vhost.redirectCode} https://$host$request_uri;
@@ -464,7 +464,7 @@ let
 
         server {
           ${concatMapStringsSep "\n" listenString hostListen}
-          server_name ${vhost.serverName} ${concatStringsSep " " vhost.serverAliases};
+          server_name ${concatStringsSep " " (lib.unique ([ vhost.serverName ] ++ vhost.serverAliases))};
           ${optionalString (hasSSL && vhost.http2 && !oldHTTP2) ''
             http2 on;
           ''}
