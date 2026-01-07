@@ -14,6 +14,7 @@
   boost,
   wrapQtAppsHook,
   cmake,
+  pkg-config,
   kio,
   plasma-framework,
   qttools,
@@ -66,6 +67,7 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     wrapQtAppsHook
     cmake
+    pkg-config
     qttools
     # Although these are test dependencies, we add them anyway so that we test
     # whether the test units compile. On Darwin we don't run the tests but we
@@ -94,20 +96,22 @@ stdenv.mkDerivation (finalAttrs: {
   doInstallCheck = true;
 
   cmakeFlags = [
-    "-DQT_PACKAGE_PREFIX=Qt${lib.versions.major qtbase.version}"
-    "-DKF_PACKAGE_PREFIX=KF${lib.versions.major qtbase.version}"
-    "-DBUILD_TESTING=ON"
+    (lib.cmakeFeature "QT_PACKAGE_PREFIX" "Qt${lib.versions.major qtbase.version}")
+    (lib.cmakeFeature "KF_PACKAGE_PREFIX" "KF${lib.versions.major qtbase.version}")
+    (lib.cmakeBool "BUILD_TESTING" true)
     # See https://github.com/Martchus/syncthingtray/issues/208
-    "-DEXCLUDE_TESTS_FROM_ALL=OFF"
-    "-DAUTOSTART_EXEC_PATH=${autostartExecPath}"
+    (lib.cmakeBool "EXCLUDE_TESTS_FROM_ALL" false)
+    (lib.cmakeFeature "AUTOSTART_EXEC_PATH" autostartExecPath)
     # See https://github.com/Martchus/syncthingtray/issues/42
-    "-DQT_PLUGIN_DIR:STRING=${placeholder "out"}/${qtbase.qtPluginPrefix}"
-    "-DBUILD_SHARED_LIBS=ON"
+    (lib.cmakeFeature "QT_PLUGIN_DIR" "${placeholder "out"}/${qtbase.qtPluginPrefix}")
+    (lib.cmakeBool "BUILD_SHARED_LIBS" true)
+    (lib.cmakeBool "SYSTEMD_SUPPORT" systemdSupport)
+    (lib.cmakeBool "NO_PLASMOID" (!plasmoidSupport))
+    (lib.cmakeBool "NO_FILE_ITEM_ACTION_PLUGIN" (!kioPluginSupport))
   ]
-  ++ lib.optionals (!plasmoidSupport) [ "-DNO_PLASMOID=ON" ]
-  ++ lib.optionals (!kioPluginSupport) [ "-DNO_FILE_ITEM_ACTION_PLUGIN=ON" ]
-  ++ lib.optionals systemdSupport [ "-DSYSTEMD_SUPPORT=ON" ]
-  ++ lib.optionals (!webviewSupport) [ "-DWEBVIEW_PROVIDER:STRING=none" ];
+  ++ lib.optionals (!webviewSupport) [ (lib.cmakeFeature "WEBVIEW_PROVIDER" "none") ];
+
+  env.LANG = "C.UTF-8";
 
   qtWrapperArgs = [
     "--prefix PATH : ${lib.makeBinPath [ xdg-utils ]}"
