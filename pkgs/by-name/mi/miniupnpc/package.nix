@@ -6,6 +6,7 @@
   cmake,
   versionCheckHook,
   nixosTests,
+  gnused,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -38,22 +39,21 @@ stdenv.mkDerivation (finalAttrs: {
     (lib.cmakeBool "UPNPC_BUILD_STATIC" stdenv.hostPlatform.isStatic)
   ];
 
-  nativeInstallCheckInputs = [
-    versionCheckHook
-  ];
-  versionCheckProgram = "${placeholder "out"}/bin/upnpc";
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  versionCheckProgram = "${placeholder "out"}/bin/${finalAttrs.meta.mainProgram}";
   doInstallCheck = true;
 
   doCheck = !stdenv.hostPlatform.isFreeBSD;
 
+  # as the external-ip script is basic there is no need for `resholve`
   postInstall = ''
     mv $out/bin/upnpc-* $out/bin/upnpc
     mv $out/bin/upnp-listdevices-* $out/bin/upnp-listdevices
     mv $out/bin/external-ip.sh $out/bin/external-ip
-    chmod +x $out/bin/external-ip
-    patchShebangs $out/bin/external-ip
+    chmod +x $out/bin/*
     substituteInPlace $out/bin/external-ip \
-      --replace-fail "upnpc" $out/bin/upnpc
+      --replace-fail "upnpc" $out/bin/${finalAttrs.meta.mainProgram} \
+      --replace-fail " sed " " ${lib.getExe gnused} "
   '';
 
   __darwinAllowLocalNetworking = true;
