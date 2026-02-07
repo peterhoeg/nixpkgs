@@ -41,6 +41,9 @@ stdenv.mkDerivation {
     ''
       substituteInPlace lib/init.c \
         --replace-fail 'ETCDIR "/sensors.d"' '"/etc/sensors.d"'
+
+      substituteInPlace prog/pwm/fancontrol \
+        --replace-fail '/run/fancontrol' '/run/fancontrol/fancontrol'
     '';
 
   nativeBuildInputs = [
