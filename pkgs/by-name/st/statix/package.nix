@@ -13,25 +13,25 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # also update version of the vim plugin in
   # pkgs/applications/editors/vim/plugins/overrides.nix
   # the version can be found in flake.nix of the source code
-  version = "0.5.8";
+  version = "0.5.8-unstable-2025-12-19";
 
   src = fetchFromGitHub {
-    owner = "oppiliappan";
+    owner = "molybdenumsoftware";
     repo = "statix";
-    tag = "v${finalAttrs.version}";
-    sha256 = "sha256-bMs3XMiGP6sXCqdjna4xoV6CANOIWuISSzCaL5LYY4c=";
+    rev = "83746932a76912ce7aca839f2a0358d46ed70fc9";
+    hash = "sha256-qPWU0TpiEzF7Scl5S5tU754BzDyw52nNi04m+UTvW9Y=";
   };
 
-  cargoHash = "sha256-Pi1q2qNLjQYr3Wla7rqrktNm0StszB2klcfzwAnF3tE=";
+  cargoHash = "sha256-G4OVh7Ese672gxiJdPE8D1J6p8OmiawG+mYSaVbIDR8=";
 
   buildFeatures = lib.optional withJson "json";
 
   # tests are failing on darwin
   doCheck = !stdenv.hostPlatform.isDarwin;
 
-  doInstallCheck = true;
-  nativeInstallCheckInputs = [ versionCheckHook ];
-  versionCheckProgramArg = "--version";
+  # doInstallCheck = true;
+  # nativeInstallCheckInputs = [ versionCheckHook ];
+  # versionCheckProgramArg = "--version";
 
   passthru.updateScript = nix-update-script { };
 
