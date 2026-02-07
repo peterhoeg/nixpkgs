@@ -3,12 +3,13 @@
   crystal,
   fetchFromGitHub,
   llvmPackages,
+  shards,
   openssl,
   makeWrapper,
 }:
 
 let
-  version = "0.15.0";
+  version = "0.17.1";
 in
 crystal.buildCrystalPackage {
   pname = "crystalline";
@@ -18,7 +19,7 @@ crystal.buildCrystalPackage {
     owner = "elbywan";
     repo = "crystalline";
     rev = "v${version}";
-    hash = "sha256-6ZAogEuOJH1QQ6NSJ+8KZUSFSgQAcvd4U9vWNAGix/M=";
+    hash = "sha256-SIfInDY6KhEwEPZckgobOrpKXBDDd0KhQt/IjdGBhWo=";
   };
 
   format = "crystal";
@@ -28,6 +29,7 @@ crystal.buildCrystalPackage {
     llvmPackages.llvm
     openssl
     makeWrapper
+    shards
   ];
   env.LLVM_CONFIG = lib.getExe' (lib.getDev llvmPackages.llvm) "llvm-config";
 
