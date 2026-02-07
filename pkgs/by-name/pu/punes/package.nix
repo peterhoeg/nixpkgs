@@ -91,10 +91,10 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   cmakeFlags = [
-    "-DENABLE_GIT_INFO=OFF"
-    "-DENABLE_RELEASE=ON"
-    "-DENABLE_FFMPEG=ON"
-    "-DENABLE_OPENGL=ON"
+    (lib.strings.cmakeBool "ENABLE_GIT_INFO" false)
+    (lib.strings.cmakeBool "ENABLE_RELEASE" true)
+    (lib.strings.cmakeBool "ENABLE_FFMPEG" true)
+    (lib.strings.cmakeBool "ENABLE_OPENGL" true)
     (lib.strings.cmakeBool "ENABLE_QT6_LIBS" withQt6)
   ];
 
