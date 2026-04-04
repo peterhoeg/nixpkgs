@@ -9,15 +9,17 @@
 
 python3Packages.buildPythonApplication (finalAttrs: {
   pname = "gcalcli";
-  version = "4.5.1";
+  version = "4.5.1-unstable-2025-10-25";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "insanum";
     repo = "gcalcli";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-FU1EHLQ+/2sOGeeGwONsrV786kHTFfMel7ocBcCe+rI=";
+    rev = "405639c27639a82a13538ad72ae012e76942530c";
+    hash = "sha256-TGaWSRZ/lNQTnxs/0WQ+DnrzmgaNSY5iEtSqHKqnDPU=";
   };
+
+  env.SETUPTOOLS_SCM_PRETEND_VERSION = lib.splitString "-" finalAttrs.version |> builtins.head;
 
   updateScript = nix-update-script { };
 
