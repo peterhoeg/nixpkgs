@@ -4,6 +4,7 @@
   pkgs,
   ...
 }:
+
 let
   CONTAINS_NEWLINE_RE = ".*\n.*";
   # The following values are reserved as complete option values:
@@ -14,6 +15,8 @@ let
 
   # There is no way to encode """ on its own line in a Minetest config.
   UNESCAPABLE_RE = ".*\n\"\"\"\n.*";
+
+  dir = "/var/lib/minetest";
 
   toConfMultiline =
     name: value:
@@ -43,42 +46,62 @@ let
     );
 
   cfg = config.services.minetest-server;
-  flag =
-    val: name:
-    lib.optionals (val != null) [
-      "--${name}"
-      "${toString val}"
-    ];
 
-  flags = [
-    "--server"
-  ]
-  ++ (
-    if cfg.configPath != null then
-      [
-        "--config"
-        cfg.configPath
-      ]
-    else
-      [
-        "--config"
-        (builtins.toFile "minetest.conf" (toConf cfg.config))
-      ]
-  )
-  ++ (flag cfg.gameId "gameid")
-  ++ (flag cfg.world "world")
-  ++ (flag cfg.logPath "logfile")
-  ++ (flag cfg.port "port")
-  ++ cfg.extraArgs;
+  flags =
+    let
+      flag =
+        val: name:
+        lib.optionals (val != null) [
+          "--${name}"
+          "${toString val}"
+        ];
+
+      file =
+        if cfg.configPath != null then
+          cfg.configPath
+        else
+          (builtins.toFile "minetest.conf" (toConf cfg.config));
+    in
+    [
+      "--config"
+      file
+    ]
+    ++ (flag cfg.gameId "gameid")
+    ++ (flag cfg.world "world")
+    ++ (flag cfg.logPath "logfile")
+    ++ (flag cfg.port "port")
+    ++ cfg.extraArgs;
+
+  addonsSetup =
+    pkgs.resholve.writeScriptBin "minetest-addons-setup"
+      {
+        interpreter = pkgs.runtimeShell;
+        inputs = with pkgs; [ coreutils ];
+        execer =
+          with pkgs;
+          map (e: "cannot:${if builtins.isString e then e else getExe e}") [
+          ];
+      }
+      (
+        ''
+          set -eEuo pipefail
+
+          _copy() {
+            cp -r --no-preserve=all $1/share/minetest/* ${dir}/.minetest
+          }
+        ''
+        + lib.concatMapStringsSep "\n" (e: ''
+          _copy "${e}"
+        '') cfg.addons
+      );
+
 in
 {
   options = {
     services.minetest-server = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "If enabled, starts a Minetest Server.";
-      };
+      enable = lib.mkEnableOption "start a Minetest Server";
+
+      package = lib.mkPackageOption pkgs "minetestserver" { };
 
       gameId = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -92,7 +115,13 @@ in
       };
 
       world = lib.mkOption {
-        type = lib.types.nullOr lib.types.path;
+        type = lib.types.nullOr (
+          lib.types.oneOf [
+            lib.types.path
+            lib.types.str
+          ]
+        );
+
         default = null;
         description = ''
           Name of the world to use. To list available worlds run
@@ -144,6 +173,12 @@ in
         '';
       };
 
+      addons = lib.mkOption {
+        type = lib.types.listOf lib.types.package;
+        description = "Addons";
+        default = [ ];
+      };
+
       extraArgs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
@@ -155,26 +190,27 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    users.users.minetest = {
-      description = "Minetest Server Service user";
-      home = "/var/lib/minetest";
-      createHome = true;
-      uid = config.ids.uids.minetest;
-      group = "minetest";
-    };
-    users.groups.minetest.gid = config.ids.gids.minetest;
-
     systemd.services.minetest-server = {
       description = "Minetest Server Service";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
+      environment.HOME = dir;
 
-      serviceConfig.Restart = "always";
-      serviceConfig.User = "minetest";
-      serviceConfig.Group = "minetest";
-      serviceConfig.StateDirectory = "minetest";
-      serviceConfig.WorkingDirectory = "/var/lib/minetest";
-      serviceConfig.ExecStart = "${pkgs.luanti}/bin/luanti ${lib.escapeShellArgs flags}";
+      serviceConfig = {
+        ExecStartPre = lib.getExe addonsSetup;
+        ExecStart = "${lib.getExe cfg.package} ${lib.escapeShellArgs flags}";
+        StateDirectory = builtins.baseNameOf dir;
+        Restart = "always";
+        RestartSec = "5s";
+        DynamicUser = true;
+        User = "minetest";
+        Group = "minetest";
+        PrivateTmp = true;
+        ProtectHome = "tmpfs";
+        ProtectSystem = "strict";
+        SyslogIdentifier = "%N";
+        WorkingDirectory = dir;
+      };
     };
   };
 }
