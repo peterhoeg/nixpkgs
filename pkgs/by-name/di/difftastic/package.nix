@@ -3,6 +3,7 @@
   rustPlatform,
   fetchFromGitHub,
   stdenv,
+  installShellFiles,
   versionCheckHook,
   nix-update-script,
   rust-jemalloc-sys,
@@ -25,11 +26,18 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   env = lib.optionalAttrs stdenv.hostPlatform.isStatic { RUSTFLAGS = "-C relocation-model=static"; };
 
+  postInstall = ''
+    installManPage difft.?
+    install -Dm444 -t $out/share/doc/difftastic *.md
+  '';
+
   # skip flaky tests
   checkFlags = [ "--skip=options::tests::test_detect_display_width" ];
 
-  nativeInstallCheckInputs = [ versionCheckHook ];
-  versionCheckProgram = "${placeholder "out"}/bin/difft";
+  nativeInstallCheckInputs = [
+    installShellFiles
+    versionCheckHook
+  ];
   doInstallCheck = true;
 
   passthru.updateScript = nix-update-script { };
