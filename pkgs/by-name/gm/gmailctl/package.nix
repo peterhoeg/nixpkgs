@@ -17,6 +17,11 @@ buildGoModule (finalAttrs: {
     hash = "sha256-UGX+Q1AF3Y0EE2+w9fjVwSZdtM3aGlbpQpLO9d5wASo=";
   };
 
+  postPatch = ''
+    substituteInPlace cmd/gmailctl/cmd/version.go \
+      --replace-fail 'version = "dev"' 'version = "${finalAttrs.version}"'
+  '';
+
   vendorHash = "sha256-VF0jDOVDOrLZBm8SAe5uGlMUOBBb+0zrnkjKkeK9VjU=";
 
   nativeBuildInputs = [
