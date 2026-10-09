@@ -11,8 +11,13 @@
   tclPackages,
   tk,
   xvfb-run,
+  libtommath,
 }:
 
+let
+  py311 = python.pythonOlder "3.12";
+
+in
 buildPythonPackage {
   pname = "tkinter";
   version = python.version;
@@ -57,7 +62,8 @@ buildPythonPackage {
   buildInputs = [
     tcl
     tk
-  ];
+  ]
+  ++ lib.optionals py311 [ libtommath ];
 
   env = {
     TCLTK_LIBS = toString [
@@ -70,6 +76,9 @@ buildPythonPackage {
       "-I${lib.getDev tcl}/include"
       "-I${lib.getDev tk}/include"
     ];
+  }
+  // lib.optionalAttrs py311 {
+    NIX_CFLAGS_COMPILE = "-Wno-error=incompatible-pointer-types";
   };
 
   nativeCheckInputs = lib.optional stdenv.hostPlatform.isLinux xvfb-run;
