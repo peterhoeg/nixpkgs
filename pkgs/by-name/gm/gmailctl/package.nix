@@ -19,9 +19,12 @@ buildGoModule (finalAttrs: {
 
   vendorHash = "sha256-yyJjrqkXcRKVAM5qkd92jOp2pD3n+Gm/divTw+EyiLo=";
 
-  nativeBuildInputs = [
-    installShellFiles
-  ];
+  nativeBuildInputs = [ installShellFiles ];
+
+  postPatch = ''
+    substituteInPlace cmd/gmailctl/cmd/version.go \
+      --replace-fail 'version = "dev"' 'version = "${finalAttrs.version}"'
+  '';
 
   postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd gmailctl \
