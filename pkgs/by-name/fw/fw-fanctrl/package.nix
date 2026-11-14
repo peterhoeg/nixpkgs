@@ -1,7 +1,7 @@
 {
   lib,
   python3Packages,
-  fw-ectool,
+  framework-tool,
   fetchFromGitHub,
 }:
 
