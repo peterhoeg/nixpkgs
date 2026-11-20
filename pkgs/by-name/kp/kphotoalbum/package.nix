@@ -11,17 +11,26 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "kphotoalbum";
-  version = "6.1.0";
+  version = "6.2.0";
 
   src = fetchurl {
     url = "mirror://kde/stable/kphotoalbum/${finalAttrs.version}/kphotoalbum-${finalAttrs.version}.tar.xz";
-    hash = "sha256-fznB/B2VriB+Wt6ZxrPrNoJP45AuK1vV4ONpAHYwUlY=";
+    hash = "sha256-xhEnNHGE0Y+VQeMiww3koyAtVFs0li5NAhXz/B6EXTI=";
   };
+
+  # 6.6.0 encoded as 0x6060000 hides Q_ENUMS (deprecated in Qt 6.12), which phonon's headers use
+  postPatch = ''
+    substituteInPlace CMakeLists.txt \
+      --replace-fail '<< 24 | ''${MINIMUM_QT6_VERSION_MINOR} << 16' '<< 16 | ''${MINIMUM_QT6_VERSION_MINOR} << 8'
+  '';
 
   env.LANG = "C.UTF-8";
 
   buildInputs = [
     kdePackages.qtbase
+    kdePackages.qtmultimedia
+    kdePackages.qtwebengine
+    kdePackages.marble
     exiv2
     libvlc
   ];
