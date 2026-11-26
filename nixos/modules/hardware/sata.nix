@@ -93,6 +93,7 @@ in
         lib.nameValuePair (unitName e) {
           description = "SATA timeout for ${e.name}";
           wantedBy = [ "sata-timeout.target" ];
+          unitConfig.ConditionPathExists = devicePath e;
           serviceConfig = {
             Type = "oneshot";
             ExecStart = "${startScript} '${devicePath e}'";
